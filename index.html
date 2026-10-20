@@ -209,7 +209,7 @@
 
   /* бургер переключения рабочих мест — только на узком экране; полоса #wp в приложении скрыта,
      её кнопки остаются как механизм переключения */
-  .wp,.fab,.pult-head,.pult-scrim,.burger,.rolemenu,.rolescrim{display:none}
+  .wp,.fab,.pult-head,.pult-scrim,.burger,.roleic,.rolemenu,.rolescrim{display:none}
   /* на телефоне макет — само приложение на весь экран: роль меняется бургером в шапке,
      пульт спрятан за плавающую кнопку и выезжает шторкой снизу */
   /* установленное приложение (значок на главном экране) — всегда мобильный вид, на любой ширине */
@@ -232,28 +232,55 @@
     .phone{width:100%;max-width:none;height:auto;padding:0;background:none;box-shadow:none;border-radius:0;flex:1;display:flex;min-height:0}
     .screen{width:100%;height:auto;flex:1;min-height:0;border-radius:0;padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-inset-right, 0px)}
     .statusbar{display:none}
-    .appbar{padding-top:calc(12px + var(--sat))}
-    .tabs{padding-bottom:max(8px, var(--sab))}
+    /* шапка — одна строка 54 точки сразу под вырезом: «LD»/назад и заголовок слева, значок роли, имя и бургер справа;
+       вторая тонкая строка — только крошки ленты или подпись, когда они есть. Тёмный цвет уходит под часы */
+    .appbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:54px;align-items:center;column-gap:10px;
+      padding:var(--sat) 16px 0}
+    .appbar .row{display:contents}
+    .appbar .row > :first-child{grid-column:1;grid-row:1}
+    .appbar .row > :last-child{grid-column:3;grid-row:1}
+    .appbar h3{grid-column:2;grid-row:1;margin:0;font-size:19px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}
+    .appbar .logo{font-size:20px}
+    .appbar [data-wback],.appbar [data-fback],.appbar [data-back]{font-size:0;padding:8px 4px 8px 0}
+    .appbar .sub,.appbar .crumbs{grid-column:1/-1;margin:0 0 8px}
+    .appbar .crumbs ~ .sub,.appbar .sub:has(~ .crumbs){display:none}
+    .appbar .crumbs:not(:has(button)){display:none}   /* одна крошка (уровень года) повторяет заголовок — строку не тратим */
+    .who{max-width:128px;font-size:12px;line-height:1.25}
+    .who b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .roleic{width:26px;height:26px;margin-right:8px}
+    .hbtn.gear{margin-left:8px}
+    /* вкладки — 54 точки плюс ровно отступ полосы «домой»; в Safari он 0, лишнего тёмного места нет */
+    .tabs{padding:2px 4px var(--sab)}
+    .tabs button{padding:7px 0 6px;gap:3px}
     .sheet{padding-bottom:calc(30px + var(--sab))}
     .who-wrap{display:flex;align-items:center}
-    .burger{display:inline-flex;margin-left:12px;padding:6px;margin-right:-6px;color:#fff}
+    .burger{display:inline-flex;margin-left:8px;padding:6px;margin-right:-6px;color:#fff}
     .burger .ic{width:22px;height:22px}
     .rolescrim{position:fixed;inset:0;z-index:70;background:rgba(17,24,28,.5)}
-    .rolemenu{position:fixed;z-index:71;right:calc(10px + env(safe-area-inset-right, 0px));top:calc(56px + var(--sat));width:min(300px, calc(100vw - 20px));
+    /* роли: свой значок и акцент — рабочий салатовый, бригадир янтарный, руководитель белый */
+    .r-w{--acc:var(--c-lime)} .r-f{--acc:#E8A100} .r-b{--acc:#fff}
+    .roleic{display:grid;place-items:center;width:30px;height:30px;margin-right:10px;color:var(--acc);border:1.5px solid var(--acc);flex:0 0 auto}
+    .roleic svg,.rolemenu .ri svg{width:18px;height:18px}
+    .rolemenu{position:fixed;z-index:71;right:calc(10px + env(safe-area-inset-right, 0px));top:calc(54px + var(--sat));width:min(310px, calc(100vw - 20px));
+      max-height:calc(100dvh - 72px - var(--sat) - var(--sab));overflow-y:auto;overscroll-behavior:contain;
       background:#fff;border-top:4px solid var(--c-lime);box-shadow:0 14px 34px rgba(0,0,0,.35);flex-direction:column}
     body.roles-open .rolescrim{display:block}
     body.roles-open .rolemenu{display:flex}
-    .rolemenu .t{font-size:12px;font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);padding:12px 16px 6px}
-    .rolemenu button{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;padding:13px 16px;border-top:1px solid var(--c-line);font-size:15px;color:var(--c-ink)}
-    .rolemenu button b{font-weight:800;color:var(--c-dark);min-width:84px}
-    .rolemenu button span{color:var(--c-muted);flex:1}
-    .rolemenu button[aria-current="true"]{background:var(--c-dark);color:#fff}
-    .rolemenu button[aria-current="true"] b{color:var(--c-lime)}
-    .rolemenu button[aria-current="true"] span{color:#B9C6CD}
-    .rolemenu button .ck{width:18px;height:18px;visibility:hidden;color:var(--c-lime)}
+    .rolemenu .t{font-size:12px;font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);padding:12px 16px 4px}
+    .rolemenu .gh{display:flex;align-items:center;gap:8px;padding:12px 16px 6px;font-size:12.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--c-dark);border-top:1px solid var(--c-line)}
+    .rolemenu .gh .ri{width:22px;height:22px}
+    .rolemenu .gh .ri svg{width:14px;height:14px}
+    .rolemenu .ri{display:grid;place-items:center;width:28px;height:28px;background:var(--c-dark);color:var(--acc);flex:0 0 auto}
+    .rolemenu button{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;padding:9px 16px;border-left:4px solid transparent;font-size:15px;color:var(--c-ink)}
+    .rolemenu button b{font-weight:700;flex:1}
+    .rolemenu button small{color:var(--c-muted);font-size:12.5px}
+    .rolemenu button[aria-current="true"]{background:var(--c-dark);color:#fff;border-left-color:var(--acc)}
+    .rolemenu button[aria-current="true"] b{color:var(--acc)}
+    .rolemenu button[aria-current="true"] small{color:#B9C6CD}
+    .rolemenu button .ck{width:18px;height:18px;visibility:hidden;color:var(--acc)}
     .rolemenu button[aria-current="true"] .ck{visibility:visible}
-    .body{padding-bottom:80px}
-    .toast{bottom:calc(150px + var(--sab))}
+    .body{padding-bottom:68px}
+    .toast{bottom:calc(122px + var(--sab))}
     body.insheet .fab{display:none}
     /* пульт — шторкой */
     .panel{position:fixed;left:0;right:0;bottom:0;z-index:60;max-width:none;height:85dvh;overflow-y:auto;overscroll-behavior:contain;background:#fff;
@@ -266,10 +293,11 @@
     .pult-head button{font:inherit;font-weight:800;font-size:14px;background:var(--c-dark);color:#fff;border:0;border-radius:var(--radius);padding:10px 16px;cursor:pointer}
     .pult-scrim{position:fixed;inset:0;z-index:55;background:rgba(17,24,28,.5)}
     body.pult-open .pult-scrim{display:block}
-    .fab{display:grid;place-items:center;position:fixed;z-index:30;width:52px;height:52px;border-radius:26px;border:0;cursor:pointer;
-      right:calc(14px + env(safe-area-inset-right, 0px));bottom:calc(88px + var(--sab));
-      background:var(--c-lime);color:var(--c-dark);box-shadow:0 8px 20px rgba(0,0,0,.3)}
-    .fab .ic{width:24px;height:24px}
+    /* кнопка пульта — 44 точки, в углу над вкладками */
+    .fab{display:grid;place-items:center;position:fixed;z-index:30;width:44px;height:44px;border-radius:22px;border:0;cursor:pointer;
+      right:calc(12px + env(safe-area-inset-right, 0px));bottom:calc(66px + var(--sab));
+      background:var(--c-lime);color:var(--c-dark);box-shadow:0 6px 16px rgba(0,0,0,.3)}
+    .fab .ic{width:20px;height:20px}
   }
   /* установленное приложение на iOS: height:100% у html/body не захватывает зону полосы «домой»,
      поэтому растягиваем на весь экран явно — 100vh здесь и есть весь экран; 100dvh — запасной */
@@ -285,7 +313,7 @@
   <h1>Учёт смен: <em>код рабочего</em> — скан бригадира</h1>
   <div class="wp" id="wp"><button data-v="w" aria-pressed="true">Рабочий</button><button data-v="f" aria-pressed="false">Бригадир</button><button data-v="b" aria-pressed="false">Дорин</button></div>
   <div class="rolescrim" id="rolescrim"></div>
-  <div class="rolemenu" id="rolemenu" role="menu" aria-label="Рабочее место"></div>
+  <div class="rolemenu" id="rolemenu" role="menu" aria-label="Кто вы"></div>
   <p class="lede">Три рабочих места: рабочий, бригадир и руководитель Дорин. На компьютере они стоят рядом, на телефоне переключаются вкладками сверху.
     Бригадир открывает объект, рабочий показывает свой код, бригадир его сканирует — приход отмечен. Уход — так же.
     Отчёт бригадира в конце дня закрывает смену объекта. Всё кликается; время дня двигается на пульте.
@@ -476,6 +504,8 @@ function fresh(){
   PLAN.reset();
 }
 function mint(w){ return {t: Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,6), born: Date.now(), used:false, w}; }
+/* код рабочего — у любого из состава: заводится при первом обращении (меню «Кто вы» выбирает и не пультовых) */
+const tokOf = id => S.tokens[id] || (S.tokens[id] = mint(id));
 const hm = m => `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
 const toMin = s => { const [h,m]=s.split(':').map(Number); return h*60+m; };
 const objName = id => OBJECTS.find(o=>o.id===id)?.name || '—';
@@ -786,7 +816,7 @@ function renderLeft(){
     <h3>${S.tabL==='code'?'Мой код':top?periodTitle(top):'Мои смены'}</h3>${top?crumbsHtml(top):''}</div>`;
   let body = '';
   if (S.tabL==='code'){
-    const tok = S.tokens[w.id], sec = leftSec(tok), dead = sec===0 || tok.used;
+    const tok = tokOf(w.id), sec = leftSec(tok), dead = sec===0 || tok.used;
     body += om
       ? `<div class="state">${ic('check')}<div><b>Вы на объекте с ${hm(om.in)}</b><span>${objName(om.obj)} · принял ${fm(om.by).name}</span></div></div>`
       : `<div class="state">${ic('clock')}<div><b>Вы сейчас не отмечены</b><span>Покажите код бригадиру — он отсканирует приход</span></div></div>`;
@@ -822,7 +852,7 @@ function renderLeft(){
 }
 function drawQR(){
   const box = document.getElementById('qr'); if(!box) return;
-  const tok = S.tokens[S.worker];
+  const tok = tokOf(S.worker);
   const url = `https://ldvill.theguild.work/p/${tok.t}`;
   if (window.qrcode){ const q = qrcode(0,'M'); q.addData(url); q.make(); box.innerHTML = q.createSvgTag({cellSize:6, margin:0, scalable:true}); }
   else box.innerHTML = `<div class="muted" style="text-align:center">QR<br><small>${url}</small></div>`;
@@ -948,7 +978,7 @@ function renderForeman(){
   el.querySelectorAll('[data-crumb]').forEach(b=>b.onclick=()=>{ crumbGo(S.fNav, JSON.parse(b.dataset.crumb)); S.sheetR=null; renderRight(); el.querySelector('.body')?.scrollTo(0,0); });
   crumbsToEnd(el);
   const ob = el.querySelector('[data-openobj]'); if (ob) ob.onclick=()=>{ S.sheetR={kind:'openobj', obj:card.obj}; renderRight(); };
-  const shoot = el.querySelector('#shoot'); if(shoot) shoot.onclick=()=>scan(S.tokens[S.worker]);
+  const shoot = el.querySelector('#shoot'); if(shoot) shoot.onclick=()=>scan(tokOf(S.worker));
   const rep = el.querySelector('#rep');
   if (rep) rep.oninput=()=>{ open.draft = rep.value; const ok = rep.value.trim();
     el.querySelector('#close').style.opacity = ok?1:.45; el.querySelector('#close-hint').textContent = closeHint(open, onSite); translate(el.querySelector('#close-hint')); };
@@ -1397,7 +1427,7 @@ function renderRight(){
 function renderPanel(){
   document.getElementById('clock').textContent = hm(S.now);
   document.getElementById('clock-m').textContent = hm(S.now);
-  document.getElementById('seg-worker').innerHTML = PULT_W.map(w=>`<button data-v="${w.id}" aria-pressed="${S.worker===w.id}">${w.name}</button>`).join('');
+  document.getElementById('seg-worker').innerHTML = (PULT_W.some(w=>w.id===S.worker) ? PULT_W : [...PULT_W, wk(S.worker)]).map(w=>`<button data-v="${w.id}" aria-pressed="${S.worker===w.id}">${w.name}</button>`).join('');
   document.getElementById('seg-foreman').innerHTML = FOREMEN.map(f=>`<button data-v="${f.id}" aria-pressed="${S.foreman===f.id}">${f.name}</button>`).join('');
   document.querySelectorAll('#seg-scan button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.scan));
   document.getElementById('scan-note').innerHTML = S.scan==='app'
@@ -1419,7 +1449,7 @@ document.querySelectorAll('#wp button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.ph').forEach(ph=>ph.classList.toggle('on', ph.dataset.wp===b.dataset.v));
 });
 document.querySelectorAll('#seg-scan button').forEach(b=>b.onclick=()=>{S.scan=b.dataset.v;S.sysStep=null;renderAll();});
-document.getElementById('p-expire').onclick=()=>{ S.tokens[S.worker].born = Date.now()-TTL*1000; renderLeft(); };
+document.getElementById('p-expire').onclick=()=>{ tokOf(S.worker).born = Date.now()-TTL*1000; renderLeft(); };
 document.getElementById('p-reuse').onclick=()=>{
   const sh = S.shifts[S.foreman];
   if (!S.lastUsed || !sh || sh.closed){ S.tabR='site'; renderAll(); return; }
@@ -1430,15 +1460,31 @@ document.getElementById('p-reuse').onclick=()=>{
 const BURGER_IC = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
 const CHECK_IC = '<svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5 9-10"/></svg>';
 const curWp = () => document.querySelector('#wp [aria-pressed="true"]').dataset.v;
+/* значки ролей: каска — рабочий, планшет — бригадир, портфель — руководитель */
+const ROLE_IC = {
+  w:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M2 18h20"/><path d="M4 18v-2a8 8 0 0 1 16 0v2"/><path d="M10 8.3V5h4v3.3"/></svg>',
+  f:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17"/><path d="M9 4V2.5h6V4"/><path d="M8.5 10h7M8.5 14h7M8.5 18h4"/></svg>',
+  b:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13"/><path d="M8.5 7V4h7v3"/><path d="M3 13h18"/></svg>'};
+/* «Кто вы»: люди по ролям; рабочие — четверо с пульта и ещё шестеро из состава */
+const MENU_W = () => { const a = WORKERS.slice(0,10); return a.some(w=>w.id===S.worker) ? a : [...a, wk(S.worker)]; };
 function renderRoleMenu(){
-  const items = [['w','Рабочий',wk(S.worker).name],['f','Бригадир',fm(S.foreman).name],['b','Дорин','руководитель']];
-  const m = document.getElementById('rolemenu'), cur = curWp();
-  m.innerHTML = '<div class="t">Рабочее место</div>' + items.map(([v,role,who])=>
-    `<button role="menuitemradio" data-role="${v}" aria-current="${v===cur}" aria-checked="${v===cur}"><b>${role}</b><span>${who}</span>${CHECK_IC}</button>`).join('');
-  m.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{
-    document.querySelector(`#wp button[data-v="${b.dataset.role}"]`).click();
+  const cur = curWp(), m = document.getElementById('rolemenu');
+  const row = (r, id, name, sub) => { const on = r===cur && (r==='b' || id===(r==='w'?S.worker:S.foreman));
+    return `<button class="r-${r}" role="menuitemradio" data-who="${r}:${id}" aria-current="${on}" aria-checked="${on}"><span class="ri">${ROLE_IC[r]}</span><b>${name}</b>${sub?`<small>${sub}</small>`:''}${CHECK_IC}</button>`; };
+  const grp = (r, title, rows) => `<div class="gh r-${r}"><span class="ri">${ROLE_IC[r]}</span>${title}</div>${rows}`;
+  m.innerHTML = '<div class="t">Кто вы</div>'
+    + grp('w', `Рабочие · ${MENU_W().length}`, MENU_W().map(w=>row('w', w.id, w.name)).join(''))
+    + grp('f', 'Бригадиры', FOREMEN.map(f=>row('f', f.id, f.name)).join(''))
+    + grp('b', 'Руководитель', row('b', 'b', 'Дорин', 'руководитель'));
+  m.querySelectorAll('[data-who]').forEach(b=>b.onclick=()=>{
+    const [r, id] = b.dataset.who.split(':');
+    if (r==='w'){ S.worker = id; tokOf(id); }
+    if (r==='f'){ S.foreman = id; S.sheetR = null; S.fNav = []; }
+    renderAll();
+    document.querySelector(`#wp button[data-v="${r}"]`).click();
     roles(false);
   });
+  m.querySelector('[aria-current="true"]')?.scrollIntoView({block:'nearest'});
 }
 const roles = on => { if (on) renderRoleMenu(); document.body.classList.toggle('roles-open', on); };
 document.getElementById('rolescrim').onclick=()=>roles(false);
@@ -1448,6 +1494,10 @@ function addBurger(scr){
     const who = row.querySelector('.who'); if (!who) return;
     let box = who.parentElement;
     if (box === row){ box = document.createElement('div'); box.className = 'who-wrap'; row.insertBefore(box, who); box.appendChild(who); }
+    /* кто сейчас: значок роли рядом с именем */
+    const r = {left:'w', right:'f', boss:'b'}[scr.id], ri = document.createElement('span');
+    ri.className = `roleic r-${r}`; ri.setAttribute('aria-hidden','true'); ri.innerHTML = ROLE_IC[r];
+    box.insertBefore(ri, who);
     const b = document.createElement('button');
     b.className = 'hbtn burger'; b.setAttribute('aria-label','Сменить рабочее место'); b.innerHTML = BURGER_IC;
     b.onclick = () => roles(true);
@@ -1472,7 +1522,7 @@ document.querySelectorAll('#seg-late button').forEach(b=>b.onclick=()=>{ S.lateF
 /* код обновляется сам: раз в секунду — полоска, по истечении — новый код */
 setInterval(()=>{
   if (S.tabL!=='code') return;
-  const tok = S.tokens[S.worker];
+  const tok = tokOf(S.worker);
   if (leftSec(tok)===0 && !S._renew){ S._renew = setTimeout(()=>{ S.tokens[S.worker]=mint(S.worker); S._renew=null; renderLeft(); }, 1500); }
   const bar = document.querySelector('#left .ttl i'), t = document.querySelector('#left .qrbox .muted');
   if (bar && leftSec(tok)>0 && !tok.used){ bar.style.width = `${leftSec(tok)/TTL*100}%`; t.textContent = `Обновится через ${leftSec(tok)} с · одноразовый`; translate(t); }
