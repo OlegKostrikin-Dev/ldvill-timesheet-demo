@@ -311,7 +311,7 @@
 <div class="wrap">
   <p class="eyebrow">LD Vill · S6 · макет клиента (PWA) · на согласование</p>
   <h1>Учёт смен: <em>код рабочего</em> — скан бригадира</h1>
-  <div class="wp" id="wp"><button data-v="w" aria-pressed="true">Рабочий</button><button data-v="f" aria-pressed="false">Бригадир</button><button data-v="b" aria-pressed="false">Дорин</button></div>
+  <div class="wp" id="wp"><button data-v="w" aria-pressed="false">Рабочий</button><button data-v="f" aria-pressed="false">Бригадир</button><button data-v="b" aria-pressed="true">Дорин</button></div>
   <div class="rolescrim" id="rolescrim"></div>
   <div class="rolemenu" id="rolemenu" role="menu" aria-label="Кто вы"></div>
   <p class="lede">Три рабочих места: рабочий, бригадир и руководитель Дорин. На компьютере они стоят рядом, на телефоне переключаются вкладками сверху.
@@ -406,9 +406,9 @@
           </div>
 
     <div class="phones">
-      <div class="ph on" data-wp="w"><div class="cap">Рабочий</div><div class="phone"><div class="screen" id="left"></div></div></div>
+      <div class="ph" data-wp="w"><div class="cap">Рабочий</div><div class="phone"><div class="screen" id="left"></div></div></div>
       <div class="ph" data-wp="f"><div class="cap">Бригадир</div><div class="phone"><div class="screen" id="right"></div></div></div>
-      <div class="ph" data-wp="b"><div class="cap">Руководитель · Дорин</div><div class="phone"><div class="screen" id="boss"></div></div></div>
+      <div class="ph on" data-wp="b"><div class="cap">Руководитель · Дорин</div><div class="phone"><div class="screen" id="boss"></div></div></div>
     </div>
     <div class="pult-scrim" id="pult-scrim"></div>
     <button class="fab" id="fab" aria-label="Пульт макета"><svg class="ic" viewBox="0 0 24 24"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg></button>
@@ -1473,9 +1473,9 @@ function renderRoleMenu(){
     return `<button class="r-${r}" role="menuitemradio" data-who="${r}:${id}" aria-current="${on}" aria-checked="${on}"><span class="ri">${ROLE_IC[r]}</span><b>${name}</b>${sub?`<small>${sub}</small>`:''}${CHECK_IC}</button>`; };
   const grp = (r, title, rows) => `<div class="gh r-${r}"><span class="ri">${ROLE_IC[r]}</span>${title}</div>${rows}`;
   m.innerHTML = '<div class="t">Кто вы</div>'
-    + grp('w', `Рабочие · ${MENU_W().length}`, MENU_W().map(w=>row('w', w.id, w.name)).join(''))
+    + grp('b', 'Руководитель', row('b', 'b', 'Дорин', 'руководитель'))
     + grp('f', 'Бригадиры', FOREMEN.map(f=>row('f', f.id, f.name)).join(''))
-    + grp('b', 'Руководитель', row('b', 'b', 'Дорин', 'руководитель'));
+    + grp('w', `Рабочие · ${MENU_W().length}`, MENU_W().map(w=>row('w', w.id, w.name)).join(''));
   m.querySelectorAll('[data-who]').forEach(b=>b.onclick=()=>{
     const [r, id] = b.dataset.who.split(':');
     if (r==='w'){ S.worker = id; tokOf(id); }
