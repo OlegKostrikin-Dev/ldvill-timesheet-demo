@@ -2,7 +2,7 @@
    Свои файлы — «сначала сеть, при обрыве кэш» (правка макета видна сразу после выкладки).
    Внешние шрифт и библиотека QR — «сначала кэш», кладутся туда при первом запросе.
    Новая версия оболочки — поднять номер в CACHE. */
-const CACHE = 'ldvill-v2';
+const CACHE = 'ldvill-v4';
 const SHELL = [
   './',
   './index.html',
@@ -45,8 +45,9 @@ self.addEventListener('fetch', (e) => {
   }
 
   if (url.origin !== self.location.origin) return;
+  /* cache: 'no-cache' — мимо HTTP-кэша браузера (GitHub Pages отдаёт max-age=600): версия сверяется с сервером при каждом открытии */
   e.respondWith(
-    fetch(req).then((res) => {
+    fetch(req, { cache: 'no-cache' }).then((res) => {
       if (res.ok) {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(req, copy));

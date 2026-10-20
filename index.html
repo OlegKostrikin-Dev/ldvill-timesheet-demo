@@ -185,6 +185,12 @@
   .hbtn.gear{color:#B9C6CD;padding:4px;margin-left:10px}
   .hbtn:focus-visible{outline:2px solid var(--c-lime)}
   .appbar .sub{font-size:12.5px;color:#B9C6CD;margin-top:2px}
+  /* хлебные крошки ленты периодов: одна строка, длинная — прокрутка внутри строки */
+  .crumbs{display:flex;align-items:center;gap:6px;margin-top:6px;max-width:100%;overflow-x:auto;white-space:nowrap;scrollbar-width:none;font-size:13px;color:#B9C6CD}
+  .crumbs::-webkit-scrollbar{display:none}
+  .crumbs button{all:unset;cursor:pointer;color:var(--c-lime);font-weight:700;flex:0 0 auto}
+  .crumbs i{font-style:normal;opacity:.6;flex:0 0 auto}
+  .crumbs b{color:#fff;font-weight:700;flex:0 0 auto}
   .appbar h3{overflow-wrap:anywhere}
   .fld{font:inherit;font-size:15px;width:100%;border:1px solid var(--c-line);border-radius:var(--radius);padding:12px;background:#fff;color:var(--c-ink)}
   .seg.fill button{flex:1;padding:9px 6px}
@@ -209,12 +215,15 @@
   /* установленное приложение (значок на главном экране) — всегда мобильный вид, на любой ширине */
   @media (max-width: 1100px), (display-mode: standalone){
     /* полоса под часами и под нижней чертой — тёмная: текст строки состояния белый (black-translucent) */
-    html{background:var(--c-dark)}
+    /* фон под приложением тёмный: любая щель у выреза или полосы «домой» не видна светлой полосой */
+    html,body{background:var(--c-dark)}
     /* отступы от выреза и нижней полосы — внутри шапки и вкладок, а не снаружи:
        тёмная шапка уходит под часы своим цветом, вкладки тёмные до самого низа экрана */
     :root{--sat:env(safe-area-inset-top, 0px);--sab:env(safe-area-inset-bottom, 0px)}
-    html,body{height:100%;overflow:hidden;overscroll-behavior:none}
-    .wrap{padding:0;max-width:none;height:100%;display:flex;flex-direction:column}
+    /* в установленном приложении на iOS height:100% не захватывает зону полосы «домой» —
+       под вкладками просвечивал светлый фон; фон тёмный, высота — весь экран */
+    html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#213946}
+    .wrap{padding:0;max-width:none;height:100vh;height:100dvh;display:flex;flex-direction:column}
     .eyebrow,h1,.lede{display:none}
     .stage{display:flex;flex:1;min-height:0;align-items:stretch;flex-wrap:nowrap}
     .ph.on{align-items:stretch}
@@ -263,6 +272,11 @@
       right:calc(14px + env(safe-area-inset-right, 0px));bottom:calc(88px + var(--sab));
       background:var(--c-lime);color:var(--c-dark);box-shadow:0 8px 20px rgba(0,0,0,.3)}
     .fab .ic{width:24px;height:24px}
+  }
+  /* установленное приложение на iOS: height:100% у html/body не захватывает зону полосы «домой»,
+     поэтому растягиваем на весь экран явно — 100vh здесь и есть весь экран; 100dvh — запасной */
+  @media (display-mode: standalone){
+    html,body,.wrap{height:100dvh;height:100vh}
   }
   @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
 </style>
@@ -502,6 +516,7 @@ function rngOf(seed){
 }
 const DOW = ['вс','пн','вт','ср','чт','пт','сб'];
 const MON = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const MON_G = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const MON_S = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
 const pad = n => String(n).padStart(2,'0');
 const DAY_MS = 864e5, T0 = Date.UTC(2026,9,20);   /* «сегодня» в макете — вт 20.10.2026 */
@@ -720,7 +735,31 @@ function periodView(sc, n){
   const w = weekOfNode(n);
   return pBig(`${weekLabel(w.days)} ${n.y}`, sc, aggOf(sc, w.days)) + `<div class="lbl">По дням</div>` + pList(w.days.slice().reverse().map(d=>dayRow(sc, d)));
 }
-const periodTitle = n => n.k==='year' ? `${n.y} год` : n.k==='month' ? `${MON[n.m-1]} ${n.y}` : n.k==='week' ? weekLabel(weekOfNode(n).days) : dayOf(n.key).label;
+/* заголовок шапки — всегда полная дата уровня */
+const weekFull = days => { const a = days[0], b = days[days.length-1]; return `Неделя ${a===b ? a.d : `${a.d}–${b.d}`} ${MON_G[a.m-1]} ${a.y}`; };
+const periodTitle = n => { if (n.k==='year') return `${n.y} год`; if (n.k==='month') return `${MON[n.m-1]} ${n.y}`;
+  if (n.k==='week') return weekFull(weekOfNode(n).days); const d = dayOf(n.key); return `${DOW[d.dow]} ${d.d} ${MON_G[d.m-1]} ${d.y}`; };
+/* хлебные крошки: цепочка год › месяц › неделя › день до узла; все, кроме последней, — кнопки */
+function crumbChain(n){
+  const d = n.k==='day' ? dayOf(n.key) : null, y = d ? d.y : n.y, m = d ? d.m : n.m, mon = d ? d.mon : n.mon;
+  const c = [{k:'year', y}];
+  if (n.k!=='year') c.push({k:'month', y, m});
+  if (n.k==='week' || n.k==='day') c.push({k:'week', y, m, mon});
+  if (d) c.push({k:'day', key:n.key});
+  return c;
+}
+const crumbLabel = n => n.k==='year' ? `${n.y}` : n.k==='month' ? MON[n.m-1] : n.k==='week' ? weekLabel(weekOfNode(n).days) : dayOf(n.key).label;
+const crumbsHtml = n => `<nav class="crumbs" aria-label="Период">${crumbChain(n).map((c,i,a)=> i===a.length-1
+  ? `<b aria-current="page">${crumbLabel(c)}</b>` : `<button data-crumb='${JSON.stringify(c)}'>${crumbLabel(c)}</button><i>›</i>`).join('')}</nav>`;
+/* нажатие на крошку: если уровень уже есть в стеке — вернуться к нему, иначе заменить хвост уровней ленты этим уровнем */
+function crumbGo(stack, n){
+  const same = x => x.k===n.k && x.y===n.y && x.m===n.m && x.mon===n.mon && x.key===n.key;
+  const i = stack.findIndex(same);
+  if (i>=0){ stack.length = i+1; return; }
+  while (stack.length && isPeriod(stack[stack.length-1])) stack.pop();
+  stack.push(n);
+}
+const crumbsToEnd = el => { const c = el.querySelector('.crumbs'); if (c) c.scrollLeft = c.scrollWidth; };
 const isPeriod = n => !!n && ['year','month','week','day'].includes(n.k);
 /* итог одного дня крупно — верх экрана дня */
 const pBigDay = (sc, d) => pBig(`${d.label}${d.live?' · сегодня':''}`, sc, dayAgg(sc, d));
@@ -746,7 +785,7 @@ function renderLeft(){
   const top = S.tabL==='days' ? S.wNav[S.wNav.length-1] : null, sc = {k:'w', id:w.id};
   const head = `<div class="statusbar"><span>${hm(S.now)}</span><span>5G ▮▮▮</span></div>
     <div class="appbar"><div class="row">${top?`<button class="hbtn" data-wback>${ic('back','s18')}Назад</button>`:'<span class="logo">LD</span>'}<div class="who"><b>${w.name}</b>рабочий</div></div>
-    <h3>${S.tabL==='code'?'Мой код':top?periodTitle(top):'Мои смены'}</h3>${top?`<div class="sub">Мои смены</div>`:''}</div>`;
+    <h3>${S.tabL==='code'?'Мой код':top?periodTitle(top):'Мои смены'}</h3>${top?crumbsHtml(top):''}</div>`;
   let body = '';
   if (S.tabL==='code'){
     const tok = S.tokens[w.id], sec = leftSec(tok), dead = sec===0 || tok.used;
@@ -780,6 +819,8 @@ function renderLeft(){
   el.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{S.tabL=b.dataset.l; S.wNav=[]; renderLeft();});
   el.querySelectorAll('[data-pnav]').forEach(b=>b.onclick=()=>{ S.wNav.push(JSON.parse(b.dataset.pnav)); renderLeft(); el.querySelector('.body').scrollTop=0; });
   const wb = el.querySelector('[data-wback]'); if (wb) wb.onclick=()=>{ S.wNav.pop(); renderLeft(); };
+  el.querySelectorAll('[data-crumb]').forEach(b=>b.onclick=()=>{ crumbGo(S.wNav, JSON.parse(b.dataset.crumb)); renderLeft(); el.querySelector('.body').scrollTop=0; });
+  crumbsToEnd(el);
 }
 function drawQR(){
   const box = document.getElementById('qr'); if(!box) return;
@@ -832,10 +873,10 @@ function renderForeman(){
   if (S.login){ const el=document.getElementById('right'); el.innerHTML=loginHtml(loginOf(f.name)); el.querySelector('[data-login]').onclick=()=>{S.login=false;renderAll();}; translate(el); return; }
   const card = S.tabR==='site' ? S.fNav[S.fNav.length-1] || null : null, sc = {k:'f', id:f.id};
   const title = S.tabR==='scan' ? 'Сканировать' : !card ? 'Объекты' : card.k==='pick' ? 'Выбор объекта' : isPeriod(card) ? periodTitle(card) : objName(card.obj);
-  const sub = card?.k==='shift' ? (card.key ? `${dayOf(card.key).label} · только просмотр` : `${TODAY.label} · сегодня`) : isPeriod(card) ? 'мои смены' : '';
+  const sub = card?.k==='shift' ? (card.key ? `${dayOf(card.key).label} · только просмотр` : `${TODAY.label} · сегодня`) : '';
   const head = `<div class="statusbar"><span>${hm(S.now)}</span><span>5G ▮▮▮</span></div>
     <div class="appbar"><div class="row">${card?`<button class="hbtn" data-fback>${ic('back','s18')}Назад</button>`:'<span class="logo">LD</span>'}<div class="who"><b>${f.name}</b>бригадир</div></div>
-    <h3>${title}</h3>${sub?`<div class="sub">${sub}</div>`:''}</div>`;
+    <h3>${title}</h3>${sub?`<div class="sub">${sub}</div>`:''}${isPeriod(card)?crumbsHtml(card):''}</div>`;
   let body = '', full = false;
   const onSite = open ? S.marks.filter(m=>m.obj===open.obj && m.by===f.id && m.out==null) : [];
   /* закрыть можно и с людьми без ухода (исключение, решение Oleg 20.10) — нельзя только с пустым отчётом */
@@ -906,6 +947,8 @@ function renderForeman(){
   el.querySelectorAll('[data-obj]').forEach(b=>b.onclick=()=>push({k:'shift', obj:b.dataset.obj}));
   const pk = el.querySelector('[data-fpick]'); if (pk) pk.onclick=()=>push({k:'pick'});
   const fb = el.querySelector('[data-fback]'); if (fb) fb.onclick=()=>{ S.fNav.pop(); S.sheetR=null; renderRight(); };
+  el.querySelectorAll('[data-crumb]').forEach(b=>b.onclick=()=>{ crumbGo(S.fNav, JSON.parse(b.dataset.crumb)); S.sheetR=null; renderRight(); el.querySelector('.body')?.scrollTo(0,0); });
+  crumbsToEnd(el);
   const ob = el.querySelector('[data-openobj]'); if (ob) ob.onclick=()=>{ S.sheetR={kind:'openobj', obj:card.obj}; renderRight(); };
   const shoot = el.querySelector('#shoot'); if(shoot) shoot.onclick=()=>scan(S.tokens[S.worker]);
   const rep = el.querySelector('#rep');
@@ -1047,7 +1090,7 @@ const PREV_MON = isoOf(Date.UTC(2026,9,12));
 const monthOf = (y,m) => BY_MONTH[`${y}-${pad(m)}`]||[];
 /* опоздание в любом дне — только по первому приходу человека в этот день */
 const lateX = (m, marks) => marks.find(x=>x.w===m.w)!==m ? 0 : S.lateFrom==='open' ? Math.max(0, m.in-(m.opened+S.settings.grace)) : lateBy(m.in);
-const hrs = m => `${(m/60).toFixed(1).replace('.0','')} ч`;
+const hrs = m => fmtHH(m);   /* один вид часов везде: «98 ч 45 мин» */
 const pl = (n, a, b, c) => { const t=n%10, h=n%100; return t===1&&h!==11 ? a : t>=2&&t<=4&&(h<10||h>=20) ? b : c; };
 const nav = o => `data-nav='${JSON.stringify(o)}'`;
 function dayStat(day){
@@ -1191,8 +1234,8 @@ function renderOwner(){
   const titles = {today:'Сегодня', hist:'История', objs:'Объекты', rep:'Отчёты'};
   let title, sub = '', body;
   if (!top){ title = titles[S.tabO]; body = {today:()=>dayView(dayOf(TODAY.key)), hist:histView, objs:objsView, rep:repView}[S.tabO](); if (S.tabO==='today') sub = `${TODAY.label} · идёт`; }
-  else if (top.k==='day'){ const d = dayOf(top.key); title = d.label; sub = d.live ? 'сегодня' : 'день из истории'; body = dayView(d); }
-  else if (isPeriod(top)){ title = periodTitle(top); sub = 'все объекты'; body = periodView({k:'all'}, top); }
+  else if (top.k==='day'){ const d = dayOf(top.key); title = periodTitle(top); sub = d.live ? 'сегодня' : ''; body = dayView(d); }
+  else if (isPeriod(top)){ title = periodTitle(top); body = periodView({k:'all'}, top); }
   else if (top.k==='dayobj'){ const d = dayOf(top.key); title = objName(top.obj); sub = d.live ? `${d.label} · сегодня` : d.label; body = dayObjView(d, top.obj); }
   else if (top.k==='obj'){ title = objName(top.id); sub = 'объект'; body = objView(top.id); }
   else if (top.k==='newobj'){ title = 'Новый объект'; body = newObjView(); }
@@ -1201,7 +1244,7 @@ function renderOwner(){
   const head = `<div class="statusbar"><span>${hm(S.now)}</span><span>5G ▮▮▮</span></div>
     <div class="appbar"><div class="row">${top?`<button class="hbtn" data-back>${ic('back','s18')}Назад</button>`:'<span class="logo">LD</span>'}
       <div style="display:flex;align-items:center"><div class="who"><b>Дорин</b>руководитель</div><button class="hbtn gear" data-gear aria-label="Настройки">${ic('gear','s18')}</button></div></div>
-      <h3>${title}</h3>${sub?`<div class="sub">${sub}</div>`:''}</div>`;
+      <h3>${title}</h3>${sub?`<div class="sub">${sub}</div>`:''}${isPeriod(top)?crumbsHtml(top):''}</div>`;
   const tabs = `<nav class="tabs">
     <button data-o="today" aria-current="${S.tabO==='today'}">${unread?`<span class="dot">${unread}</span>`:''}${ic('today')}Сегодня</button>
     <button data-o="hist" aria-current="${S.tabO==='hist'}">${ic('history')}История</button>
@@ -1214,6 +1257,8 @@ function renderOwner(){
   el.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>go(()=>{ S.tabO=b.dataset.o; S.oNav=[]; }));
   el.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>go(()=>{ S.tabO=b.dataset.tab; S.oNav=[]; }));
   el.querySelectorAll('[data-nav],[data-pnav]').forEach(b=>b.onclick=()=>go(()=>{ S.oNav.push(JSON.parse(b.dataset.nav||b.dataset.pnav)); S._slide=true; }));
+  el.querySelectorAll('[data-crumb]').forEach(b=>b.onclick=()=>go(()=>crumbGo(S.oNav, JSON.parse(b.dataset.crumb))));
+  crumbsToEnd(el);
   el.querySelector('[data-gear]').onclick=()=>go(()=>{ if (top?.k!=='set'){ S.oNav.push({k:'set'}); S._slide=true; } });
   const back = el.querySelector('[data-back]'); if (back) back.onclick=()=>go(()=>{
     const p = S.oNav.pop();
