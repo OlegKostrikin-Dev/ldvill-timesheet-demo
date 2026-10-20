@@ -795,7 +795,7 @@ const pBigDay = (sc, d) => pBig(`${d.label}${d.live?' · сегодня':''}`, s
 /* ══ ВХОД ══ */
 function loginHtml(login){
   return `<div class="statusbar"><span>${hm(S.now)}</span><span>5G ▮▮▮</span></div>
-    <div style="flex:1;background:var(--c-dark);color:#fff;padding:56px 24px 24px;display:flex;flex-direction:column;gap:14px">
+    <div style="flex:1;background:var(--c-dark);color:#fff;padding:calc(56px + var(--sat, 0px)) 24px calc(24px + var(--sab, 0px));overflow-y:auto;display:flex;flex-direction:column;gap:14px">
       <span class="logo" style="font-size:44px">LD</span>
       <h3 style="margin:0 0 10px;font-size:28px;font-weight:800;font-style:italic">Вход</h3>
       <div class="lbl" style="color:#B9C6CD">Логин</div><input value="${login}" style="font:inherit;font-size:16px;padding:14px;border:0;border-radius:2px">
@@ -1258,6 +1258,8 @@ function setView(){
 }
 
 function renderOwner(){
+  /* экран входа — и у Дорина: приложение стартует на его месте */
+  if (S.login){ const el=document.getElementById('boss'); el.innerHTML=loginHtml('dorin'); el.querySelector('[data-login]').onclick=()=>{S.login=false;renderAll();}; return; }
   const top = S.oNav[S.oNav.length-1];
   const titles = {today:'Сегодня', hist:'История', objs:'Объекты', rep:'Отчёты'};
   let title, sub = '', body;
@@ -1515,7 +1517,7 @@ document.getElementById('fab').onclick=()=>pult(true);
 document.getElementById('pult-close').onclick=()=>pult(false);
 document.getElementById('pult-scrim').onclick=()=>pult(false);
 document.getElementById('p-restart').onclick=()=>{ fresh(); renderAll(); };
-document.getElementById('p-login').onclick=()=>{ S.login=true; renderAll(); };
+document.getElementById('p-login').onclick=()=>{ S.login=true; renderAll(); pult(false); };   /* шторку убрать — иначе экран входа под ней не виден */
 document.querySelectorAll('#seg-lang button').forEach(b=>b.onclick=()=>{ S.lang=b.dataset.v; document.querySelectorAll('#seg-lang button').forEach(x=>x.setAttribute('aria-pressed', x===b)); renderAll(); });
 document.querySelectorAll('#seg-late button').forEach(b=>b.onclick=()=>{ S.lateFrom=b.dataset.v; document.querySelectorAll('#seg-late button').forEach(x=>x.setAttribute('aria-pressed', x===b)); renderAll(); });
 
