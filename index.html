@@ -201,26 +201,23 @@
   .slide{animation:sl .22s ease-out}
   @keyframes sl{from{transform:translateX(28px);opacity:.4}}
 
-  /* переключатель рабочих мест — только на узком экране */
-  .wp,.fab,.pult-head,.pult-scrim{display:none}
-  /* на телефоне макет — само приложение на весь экран: сверху тонкий переключатель рабочих мест,
+  /* бургер переключения рабочих мест — только на узком экране; полоса #wp в приложении скрыта,
+     её кнопки остаются как механизм переключения */
+  .wp,.fab,.pult-head,.pult-scrim,.burger,.rolemenu,.rolescrim{display:none}
+  /* на телефоне макет — само приложение на весь экран: роль меняется бургером в шапке,
      пульт спрятан за плавающую кнопку и выезжает шторкой снизу */
   /* установленное приложение (значок на главном экране) — всегда мобильный вид, на любой ширине */
   @media (max-width: 1100px), (display-mode: standalone){
     /* полоса под часами и под нижней чертой — тёмная: текст строки состояния белый (black-translucent) */
     html{background:var(--c-dark)}
-    :root{--wp-h:40px}
-    /* отступы от выреза и нижней полосы даёт :root (так же делает площадка публикации);
-       дальше высота — от 100% без 100dvh, иначе в приложении Claude отступ считается дважды */
-    :root{padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px)}
+    /* отступы от выреза и нижней полосы — внутри шапки и вкладок, а не снаружи:
+       тёмная шапка уходит под часы своим цветом, вкладки тёмные до самого низа экрана */
+    :root{--sat:env(safe-area-inset-top, 0px);--sab:env(safe-area-inset-bottom, 0px)}
     html,body{height:100%;overflow:hidden;overscroll-behavior:none}
     .wrap{padding:0;max-width:none;height:100%;display:flex;flex-direction:column}
     .eyebrow,h1,.lede{display:none}
     .stage{display:flex;flex:1;min-height:0;align-items:stretch;flex-wrap:nowrap}
     .ph.on{align-items:stretch}
-    .wp{display:flex;position:sticky;top:0;z-index:20;gap:0;background:var(--c-dark);flex:0 0 auto;padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-inset-right, 0px)}
-    .wp button{flex:1;height:var(--wp-h);font:inherit;font-size:13.5px;font-weight:700;color:#B9C6CD;background:none;border:0;padding:0 6px;cursor:pointer}
-    .wp button[aria-pressed="true"]{color:var(--c-dark);background:var(--c-lime)}
     .phones{position:static;width:100%;display:flex;flex:1;min-height:0;flex-wrap:nowrap}
     .ph{display:none;width:100%}
     .ph.on{display:flex;flex:1;min-height:0}
@@ -228,10 +225,28 @@
     .phone{width:100%;max-width:none;height:auto;padding:0;background:none;box-shadow:none;border-radius:0;flex:1;display:flex;min-height:0}
     .screen{width:100%;height:auto;flex:1;min-height:0;border-radius:0;padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-inset-right, 0px)}
     .statusbar{display:none}
-    .appbar{padding-top:12px}
-    .tabs{padding-bottom:8px}
+    .appbar{padding-top:calc(12px + var(--sat))}
+    .tabs{padding-bottom:max(8px, var(--sab))}
+    .sheet{padding-bottom:calc(30px + var(--sab))}
+    .who-wrap{display:flex;align-items:center}
+    .burger{display:inline-flex;margin-left:12px;padding:6px;margin-right:-6px;color:#fff}
+    .burger .ic{width:22px;height:22px}
+    .rolescrim{position:fixed;inset:0;z-index:70;background:rgba(17,24,28,.5)}
+    .rolemenu{position:fixed;z-index:71;right:calc(10px + env(safe-area-inset-right, 0px));top:calc(56px + var(--sat));width:min(300px, calc(100vw - 20px));
+      background:#fff;border-top:4px solid var(--c-lime);box-shadow:0 14px 34px rgba(0,0,0,.35);flex-direction:column}
+    body.roles-open .rolescrim{display:block}
+    body.roles-open .rolemenu{display:flex}
+    .rolemenu .t{font-size:12px;font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);padding:12px 16px 6px}
+    .rolemenu button{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;padding:13px 16px;border-top:1px solid var(--c-line);font-size:15px;color:var(--c-ink)}
+    .rolemenu button b{font-weight:800;color:var(--c-dark);min-width:84px}
+    .rolemenu button span{color:var(--c-muted);flex:1}
+    .rolemenu button[aria-current="true"]{background:var(--c-dark);color:#fff}
+    .rolemenu button[aria-current="true"] b{color:var(--c-lime)}
+    .rolemenu button[aria-current="true"] span{color:#B9C6CD}
+    .rolemenu button .ck{width:18px;height:18px;visibility:hidden;color:var(--c-lime)}
+    .rolemenu button[aria-current="true"] .ck{visibility:visible}
     .body{padding-bottom:80px}
-    .toast{bottom:150px}
+    .toast{bottom:calc(150px + var(--sab))}
     body.insheet .fab{display:none}
     /* пульт — шторкой */
     .panel{position:fixed;left:0;right:0;bottom:0;z-index:60;max-width:none;height:85dvh;overflow-y:auto;overscroll-behavior:contain;background:#fff;
@@ -245,7 +260,7 @@
     .pult-scrim{position:fixed;inset:0;z-index:55;background:rgba(17,24,28,.5)}
     body.pult-open .pult-scrim{display:block}
     .fab{display:grid;place-items:center;position:fixed;z-index:30;width:52px;height:52px;border-radius:26px;border:0;cursor:pointer;
-      right:calc(14px + env(safe-area-inset-right, 0px));bottom:calc(88px + env(safe-area-inset-bottom, 0px));
+      right:calc(14px + env(safe-area-inset-right, 0px));bottom:calc(88px + var(--sab));
       background:var(--c-lime);color:var(--c-dark);box-shadow:0 8px 20px rgba(0,0,0,.3)}
     .fab .ic{width:24px;height:24px}
   }
@@ -257,6 +272,8 @@
   <p class="eyebrow">LD Vill · S6 · макет клиента (PWA) · на согласование</p>
   <h1>Учёт смен: <em>код рабочего</em> — скан бригадира</h1>
   <div class="wp" id="wp"><button data-v="w" aria-pressed="true">Рабочий</button><button data-v="f" aria-pressed="false">Бригадир</button><button data-v="b" aria-pressed="false">Дорин</button></div>
+  <div class="rolescrim" id="rolescrim"></div>
+  <div class="rolemenu" id="rolemenu" role="menu" aria-label="Рабочее место"></div>
   <p class="lede">Три рабочих места: рабочий, бригадир и руководитель Дорин. На компьютере они стоят рядом, на телефоне переключаются вкладками сверху.
     Бригадир открывает объект, рабочий показывает свой код, бригадир его сканирует — приход отмечен. Уход — так же.
     Отчёт бригадира в конце дня закрывает смену объекта. Всё кликается; время дня двигается на пульте.
@@ -1365,6 +1382,40 @@ document.getElementById('p-reuse').onclick=()=>{
   if (!S.lastUsed || !sh || sh.closed){ S.tabR='site'; renderAll(); return; }
   S.tabR='scan'; renderAll(); scan(S.lastUsed);
 };
+/* бургер в шапке приложения: меню трёх рабочих мест вместо полосы ролей.
+   Выбор нажимает соответствующую кнопку скрытой полосы #wp — логика переключения одна. */
+const BURGER_IC = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
+const CHECK_IC = '<svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5 9-10"/></svg>';
+const curWp = () => document.querySelector('#wp [aria-pressed="true"]').dataset.v;
+function renderRoleMenu(){
+  const items = [['w','Рабочий',wk(S.worker).name],['f','Бригадир',fm(S.foreman).name],['b','Дорин','руководитель']];
+  const m = document.getElementById('rolemenu'), cur = curWp();
+  m.innerHTML = '<div class="t">Рабочее место</div>' + items.map(([v,role,who])=>
+    `<button role="menuitemradio" data-role="${v}" aria-current="${v===cur}" aria-checked="${v===cur}"><b>${role}</b><span>${who}</span>${CHECK_IC}</button>`).join('');
+  m.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{
+    document.querySelector(`#wp button[data-v="${b.dataset.role}"]`).click();
+    roles(false);
+  });
+}
+const roles = on => { if (on) renderRoleMenu(); document.body.classList.toggle('roles-open', on); };
+document.getElementById('rolescrim').onclick=()=>roles(false);
+function addBurger(scr){
+  scr.querySelectorAll('.appbar .row').forEach(row=>{
+    if (row.querySelector('.burger')) return;
+    const who = row.querySelector('.who'); if (!who) return;
+    let box = who.parentElement;
+    if (box === row){ box = document.createElement('div'); box.className = 'who-wrap'; row.insertBefore(box, who); box.appendChild(who); }
+    const b = document.createElement('button');
+    b.className = 'hbtn burger'; b.setAttribute('aria-label','Сменить рабочее место'); b.innerHTML = BURGER_IC;
+    b.onclick = () => roles(true);
+    box.appendChild(b);
+  });
+}
+['left','right','boss'].forEach(id=>{
+  const scr = document.getElementById(id);
+  addBurger(scr);
+  new MutationObserver(()=>addBurger(scr)).observe(scr, {childList:true, subtree:true});
+});
 /* пульт на телефоне — шторкой за плавающей кнопкой */
 const pult = on => document.body.classList.toggle('pult-open', on);
 document.getElementById('fab').onclick=()=>pult(true);
