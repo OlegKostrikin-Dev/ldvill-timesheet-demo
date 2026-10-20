@@ -1,0 +1,1397 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Учёт смен LD Vill</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LD Vill">
+<meta name="application-name" content="LD Vill">
+<meta name="theme-color" content="#213946">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<!--
+  Живой макет мобильного клиента LD Vill (PWA): рабочий, бригадир, владелец.
+  Устройство — по образцу мокап-прототипов JollyJob (docs/tasks/cv-card-chat-mockup.html):
+  слева пульт с пояснениями и переключателями, справа живые телефоны.
+  Палитра и шрифт — сайт ldvill.com и презентация лида (тёмно-синий, графит, салатовый,
+  Plus Jakarta Sans, прямые углы). Данные выдуманы, сервера нет: состояние живёт в странице.
+  Решения, на которых стоит макет, — записка S6 «Решения Oleg 20.10.2026 по прототипу LD Vill».
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<style>
+  /* ══ ТОКЕНЫ LD VILL (кандидаты в словарь клиента) ══ */
+  :root{
+    --c-dark:#213946;      /* шапки, нижняя панель, тёмные плашки */
+    --c-dark-2:#2A313A;
+    --c-ink:#343A42;       /* основной текст */
+    --c-muted:#6B7680;     /* вторичный текст */
+    --c-line:#E2E7E9;
+    --c-surface:#FFFFFF;
+    --c-ground:#F5F7F7;    /* фон экранов */
+    --c-lime:#C7FF00;      /* акцент: главная кнопка, активная вкладка */
+    --c-lime-ink:#7FA300;  /* акцент на светлом фоне */
+    --c-warn:#E8A100;
+    --c-bad:#D64545;
+    --c-ok:#2E9E5B;
+    --font:"Plus Jakarta Sans","Segoe UI",Arial,sans-serif;
+    --radius:2px;          /* бренд — прямые углы; 2px только чтобы не резало глаз */
+  }
+
+  /* ══ ОКРУЖЕНИЕ ПРОТОТИПА (не экран приложения) ══ */
+  *{box-sizing:border-box}
+  :root{--c-page:#E9EEF0;color-scheme:light}
+  html,body{background:var(--c-page)}
+  body{margin:0;color:var(--c-ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1560px;margin:0 auto;padding-block:32px 72px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+  .eyebrow{font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--c-dark);margin:0 0 10px}
+  h1{font-size:32px;line-height:1.1;margin:0 0 12px;font-weight:800;font-style:italic;letter-spacing:-.02em;color:var(--c-dark)}
+  h1 em{color:var(--c-lime-ink)}
+  .lede{font-size:16px;line-height:1.55;color:var(--c-muted);max-width:90ch;margin:0 0 24px}
+  .stage{display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap}
+  .panel{flex:1 1 300px;min-width:0;max-width:420px}
+  .panel h2{font-size:12px;font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);margin:22px 0 8px;font-weight:600}
+  .panel h2:first-child{margin-top:0}
+  .seg{display:flex;flex-wrap:wrap;gap:6px}
+  .seg button{font:inherit;font-size:13px;font-weight:600;color:var(--c-ink);background:#fff;border:1px solid var(--c-line);border-radius:var(--radius);padding:7px 12px;cursor:pointer}
+  .seg button[aria-pressed="true"]{background:var(--c-dark);border-color:var(--c-dark);color:#fff}
+  .seg button .rec{font-weight:500;font-size:11.5px;opacity:.75}
+  .clock{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--c-muted);margin-top:8px}
+  .clock b{font-size:22px;color:var(--c-dark);font-variant-numeric:tabular-nums}
+  .note{font-size:13px;line-height:1.6;color:var(--c-muted);margin:10px 0 0}
+  .note b{color:var(--c-ink)}
+  .decisions{font-size:13px;line-height:1.6;color:var(--c-muted);margin:0;padding-left:18px}
+  .decisions li{margin-bottom:6px}
+  .decisions b{color:var(--c-ink)}
+  .ask{background:#fff;border-left:3px solid var(--c-warn);padding:8px 12px;font-size:13px;line-height:1.55;margin-top:8px}
+  .phones{display:flex;gap:20px;flex-wrap:wrap;position:sticky;top:16px}
+  .ph{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .ph .cap{font-size:12px;font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted)}
+  .phone{width:362px;height:780px;background:#0b0e12;border-radius:46px;padding:10px;box-shadow:0 36px 60px -30px rgba(33,57,70,.6)}
+
+  /* ══ ЭКРАН ПРИЛОЖЕНИЯ ══ */
+  .screen{width:342px;height:760px;border-radius:37px;overflow:hidden;background:var(--c-ground);display:flex;flex-direction:column;position:relative;font-size:15px}
+  .statusbar{height:44px;flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 6px;font-size:14px;font-weight:600;color:#fff;background:var(--c-dark)}
+  .ic{width:22px;height:22px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .ic.s16{width:16px;height:16px}.ic.s18{width:18px;height:18px}.ic.s28{width:28px;height:28px}
+  .appbar{background:var(--c-dark);color:#fff;padding:8px 18px 14px;flex:0 0 auto}
+  .appbar .row{display:flex;align-items:center;justify-content:space-between}
+  .logo{font-weight:800;font-style:italic;font-size:22px;color:var(--c-lime);letter-spacing:-.04em}
+  .who{font-size:12.5px;color:#B9C6CD;text-align:right;line-height:1.3}
+  .who b{display:block;color:#fff;font-size:13.5px}
+  .appbar h3{margin:10px 0 0;font-size:22px;font-weight:800;font-style:italic;letter-spacing:-.01em}
+  .body{flex:1;min-height:0;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;scrollbar-width:none}
+  .body::-webkit-scrollbar{display:none}
+  .tabs{flex:0 0 auto;display:flex;background:var(--c-dark);padding:6px 4px 22px}
+  .tabs button{flex:1;background:none;border:0;color:#8FA0AA;font:inherit;font-size:11.5px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;cursor:pointer;position:relative}
+  .tabs button[aria-current="true"]{color:var(--c-lime)}
+  .tabs .dot{position:absolute;top:2px;left:calc(50% + 8px);min-width:16px;height:16px;border-radius:8px;background:var(--c-bad);color:#fff;font-size:10px;line-height:16px;padding:0 4px}
+
+  .card{background:var(--c-surface);border:1px solid var(--c-line);border-radius:var(--radius);padding:14px}
+  .card h4{margin:0 0 4px;font-size:16px;font-weight:700;color:var(--c-dark)}
+  .muted{color:var(--c-muted);font-size:13px}
+  .lbl{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--c-muted);margin:6px 0 -4px}
+  .btn{font:inherit;font-weight:800;font-size:15px;border:0;cursor:pointer;padding:15px 18px;width:100%;border-radius:var(--radius)}
+  .btn.primary{background:var(--c-lime);color:var(--c-dark);transform:skewX(-10deg)}
+  .btn.primary span{display:inline-block;transform:skewX(10deg)}
+  .btn.ghost{background:transparent;color:var(--c-dark);border:2px solid var(--c-dark)}
+  .btn.dark{background:var(--c-dark);color:#fff}
+  .btn:disabled{opacity:.4;cursor:default}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:3px 8px;border-radius:var(--radius);white-space:nowrap}
+  /* пока открыта шторка, тост прошлой отметки не наезжает на неё */
+  .sheet ~ .toast{display:none}
+  .pill.on{background:#E9FBC0;color:#4D6600}
+  .pill.off{background:#EEF1F3;color:var(--c-muted)}
+  .pill.warn{background:#FFF1D1;color:#8A5E00}
+  .pill.bad{background:#FBE1E1;color:#9B2C2C}
+  .list{display:flex;flex-direction:column}
+  .li{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--c-line)}
+  .li:first-child{border-top:0}
+  .li .main{flex:1;min-width:0}
+  .li .main b{display:block;font-size:14.5px;color:var(--c-ink)}
+  .li .main span{font-size:12.5px;color:var(--c-muted)}
+  .objpick{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;background:var(--c-surface);border:1px solid var(--c-line);padding:16px 14px;margin-top:8px;cursor:pointer;color:var(--c-dark)}
+  .objpick:first-child{border-left:4px solid var(--c-lime-ink)}
+  .objpick:focus-visible{outline:2px solid var(--c-lime-ink)}
+  .objpick .main{flex:1;display:flex;flex-direction:column;gap:2px}
+  .objpick .main b{font-size:16px}
+  .objpick .main span{font-size:12.5px;color:var(--c-muted)}
+  .objpick .main .ago{color:var(--c-lime-ink);font-weight:700}
+  .li .num{font-weight:700;font-variant-numeric:tabular-nums;color:var(--c-dark);text-align:right;font-size:14px}
+  .li .num small{display:block;font-weight:500;color:var(--c-muted);font-size:11.5px}
+  .av{width:34px;height:34px;flex:0 0 auto;border-radius:var(--radius);background:var(--c-dark);color:var(--c-lime);display:grid;place-items:center;font-weight:800;font-size:13px;font-style:italic}
+  select,textarea{font:inherit;font-size:15px;width:100%;border:1px solid var(--c-line);border-radius:var(--radius);padding:12px;background:#fff;color:var(--c-ink)}
+  textarea{min-height:170px;resize:none;line-height:1.5}
+
+  /* мой код */
+  .qrbox{background:#fff;border:1px solid var(--c-line);padding:18px;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .qr{width:236px;height:236px;display:grid;place-items:center;position:relative}
+  .qr svg{width:236px;height:236px}
+  .qr.dead::after{content:"Код устарел";position:absolute;inset:0;background:rgba(255,255,255,.88);display:grid;place-items:center;font-weight:800;color:var(--c-bad)}
+  .ttl{width:236px;height:4px;background:var(--c-line)}
+  .ttl i{display:block;height:100%;background:var(--c-lime-ink);transition:width 1s linear}
+  .state{display:flex;gap:10px;align-items:center;padding:12px 14px;background:var(--c-dark);color:#fff}
+  .state .ic{color:var(--c-lime)}
+  .state b{display:block}
+  .state span{font-size:12.5px;color:#B9C6CD}
+
+  /* сканер */
+  .cam{flex:1;background:#111;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#fff;text-align:center;padding:24px}
+  .frame{width:230px;height:230px;position:relative}
+  .frame i{position:absolute;width:42px;height:42px;border:4px solid var(--c-lime)}
+  .frame i:nth-child(1){top:0;left:0;border-right:0;border-bottom:0}
+  .frame i:nth-child(2){top:0;right:0;border-left:0;border-bottom:0}
+  .frame i:nth-child(3){bottom:0;left:0;border-right:0;border-top:0}
+  .frame i:nth-child(4){bottom:0;right:0;border-left:0;border-top:0}
+  .frame .ghostqr{position:absolute;inset:34px;opacity:.18;background:repeating-linear-gradient(90deg,#fff 0 9px,transparent 9px 18px),repeating-linear-gradient(0deg,#fff 0 9px,transparent 9px 18px);mix-blend-mode:screen}
+  .cam .hint{font-size:14px;color:#cfd8dc;max-width:260px;line-height:1.45}
+  .cam .btn{max-width:280px}
+  .syslink{position:absolute;top:18px;left:16px;right:16px;background:rgba(255,255,255,.95);color:#111;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;font-size:13px;text-align:left;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+  .syslink b{display:block;font-size:13.5px}
+
+  /* шторка и тост */
+  .scrim{position:absolute;inset:0;background:rgba(17,24,28,.55);z-index:7}
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:8;background:#fff;padding:20px 18px 30px;display:flex;flex-direction:column;gap:12px;border-top:4px solid var(--c-lime)}
+  .sheet h4{margin:0;font-size:19px;font-weight:800;font-style:italic;color:var(--c-dark)}
+  .sheet .big{display:flex;gap:12px;align-items:center}
+  .sheet .big .av{width:48px;height:48px;font-size:17px}
+  .sheet .err{border-top-color:var(--c-bad)}
+  .toast{position:absolute;left:14px;right:14px;bottom:92px;z-index:9;background:var(--c-dark);color:#fff;padding:12px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px;box-shadow:0 10px 24px rgba(0,0,0,.25);animation:tin .2s ease-out}
+  .toast .ic{color:var(--c-lime)}
+  @keyframes tin{from{transform:translateY(12px);opacity:0}}
+  .flash{animation:fl 1.6s ease-out}
+  @keyframes fl{0%{background:#E9FBC0}100%{background:transparent}}
+
+  /* рабочее место Дорина: итог дня, карточки объектов, переходы «назад» */
+  .sum{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#3A5361;border:1px solid var(--c-dark)}
+  .sum div{background:var(--c-dark);color:#B9C6CD;padding:10px 12px;font-size:12px;line-height:1.3}
+  .sum b{display:block;color:var(--c-lime);font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+  .sum .wide{grid-column:1 / -1}
+  .kv{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}
+  .kv div{font-size:11.5px;color:var(--c-muted)}
+  .kv b{display:block;font-size:16px;color:var(--c-dark);font-variant-numeric:tabular-nums}
+  .hrow{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .hrow h4{overflow-wrap:anywhere}
+  .tap{cursor:pointer}
+  .card.tap:hover{border-color:var(--c-lime-ink)}
+  .li.tap:hover .main b{color:var(--c-lime-ink)}
+  .chev{color:var(--c-muted)}
+  .hbtn{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:2px;color:var(--c-lime);font-weight:700;font-size:14px;padding:4px 0}
+  .hbtn.gear{color:#B9C6CD;padding:4px;margin-left:10px}
+  .hbtn:focus-visible{outline:2px solid var(--c-lime)}
+  .appbar .sub{font-size:12.5px;color:#B9C6CD;margin-top:2px}
+  .appbar h3{overflow-wrap:anywhere}
+  .fld{font:inherit;font-size:15px;width:100%;border:1px solid var(--c-line);border-radius:var(--radius);padding:12px;background:#fff;color:var(--c-ink)}
+  .seg.fill button{flex:1;padding:9px 6px}
+  /* лента периодов: большая карточка-итог — одна на трёх рабочих местах */
+  .pbig{background:var(--c-dark);color:#B9C6CD;padding:14px 14px 12px;border-left:4px solid var(--c-lime)}
+  .pbig .t{font-size:12.5px;font-weight:700;letter-spacing:.04em}
+  .pbig .h{display:block;color:var(--c-lime);font-size:34px;font-weight:800;font-style:italic;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin:2px 0 8px}
+  .pbig .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:11.5px;line-height:1.25}
+  .pbig .tiles b{display:block;color:#fff;font-size:16px;font-variant-numeric:tabular-nums}
+  .pbig .more{display:flex;align-items:center;justify-content:flex-end;gap:2px;margin-top:8px;color:var(--c-lime);font-weight:700;font-size:13px}
+  .pbig.tap:hover{border-left-color:#fff}
+  .rule{display:block;font-size:11px;font-weight:600;color:#8A5E00}
+  .li .num .rule{font-weight:600}
+  .slide{animation:sl .22s ease-out}
+  @keyframes sl{from{transform:translateX(28px);opacity:.4}}
+
+  /* переключатель рабочих мест — только на узком экране */
+  .wp,.fab,.pult-head,.pult-scrim{display:none}
+  /* на телефоне макет — само приложение на весь экран: сверху тонкий переключатель рабочих мест,
+     пульт спрятан за плавающую кнопку и выезжает шторкой снизу */
+  /* установленное приложение (значок на главном экране) — всегда мобильный вид, на любой ширине */
+  @media (max-width: 1100px), (display-mode: standalone){
+    /* полоса под часами и под нижней чертой — тёмная: текст строки состояния белый (black-translucent) */
+    html{background:var(--c-dark)}
+    :root{--wp-h:40px}
+    /* отступы от выреза и нижней полосы даёт :root (так же делает площадка публикации);
+       дальше высота — от 100% без 100dvh, иначе в приложении Claude отступ считается дважды */
+    :root{padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px)}
+    html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+    .wrap{padding:0;max-width:none;height:100%;display:flex;flex-direction:column}
+    .eyebrow,h1,.lede{display:none}
+    .stage{display:flex;flex:1;min-height:0;align-items:stretch;flex-wrap:nowrap}
+    .ph.on{align-items:stretch}
+    .wp{display:flex;position:sticky;top:0;z-index:20;gap:0;background:var(--c-dark);flex:0 0 auto;padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-inset-right, 0px)}
+    .wp button{flex:1;height:var(--wp-h);font:inherit;font-size:13.5px;font-weight:700;color:#B9C6CD;background:none;border:0;padding:0 6px;cursor:pointer}
+    .wp button[aria-pressed="true"]{color:var(--c-dark);background:var(--c-lime)}
+    .phones{position:static;width:100%;display:flex;flex:1;min-height:0;flex-wrap:nowrap}
+    .ph{display:none;width:100%}
+    .ph.on{display:flex;flex:1;min-height:0}
+    .ph .cap{display:none}
+    .phone{width:100%;max-width:none;height:auto;padding:0;background:none;box-shadow:none;border-radius:0;flex:1;display:flex;min-height:0}
+    .screen{width:100%;height:auto;flex:1;min-height:0;border-radius:0;padding-left:env(safe-area-inset-left, 0px);padding-right:env(safe-area-inset-right, 0px)}
+    .statusbar{display:none}
+    .appbar{padding-top:12px}
+    .tabs{padding-bottom:8px}
+    .body{padding-bottom:80px}
+    .toast{bottom:150px}
+    body.insheet .fab{display:none}
+    /* пульт — шторкой */
+    .panel{position:fixed;left:0;right:0;bottom:0;z-index:60;max-width:none;height:85dvh;overflow-y:auto;overscroll-behavior:contain;background:#fff;
+      padding:0 max(16px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+      border-top:4px solid var(--c-lime);transform:translateY(105%);transition:transform .22s ease-out;visibility:hidden}
+    body.pult-open .panel{transform:none;visibility:visible}
+    .pult-head{display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:1;background:#fff;padding:14px 0 10px;border-bottom:1px solid var(--c-line);margin-bottom:14px}
+    .pult-head .t{font-size:12px;font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted)}
+    .pult-head b{display:block;font-size:30px;color:var(--c-dark);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+    .pult-head button{font:inherit;font-weight:800;font-size:14px;background:var(--c-dark);color:#fff;border:0;border-radius:var(--radius);padding:10px 16px;cursor:pointer}
+    .pult-scrim{position:fixed;inset:0;z-index:55;background:rgba(17,24,28,.5)}
+    body.pult-open .pult-scrim{display:block}
+    .fab{display:grid;place-items:center;position:fixed;z-index:30;width:52px;height:52px;border-radius:26px;border:0;cursor:pointer;
+      right:calc(14px + env(safe-area-inset-right, 0px));bottom:calc(88px + env(safe-area-inset-bottom, 0px));
+      background:var(--c-lime);color:var(--c-dark);box-shadow:0 8px 20px rgba(0,0,0,.3)}
+    .fab .ic{width:24px;height:24px}
+  }
+  @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">LD Vill · S6 · макет клиента (PWA) · на согласование</p>
+  <h1>Учёт смен: <em>код рабочего</em> — скан бригадира</h1>
+  <div class="wp" id="wp"><button data-v="w" aria-pressed="true">Рабочий</button><button data-v="f" aria-pressed="false">Бригадир</button><button data-v="b" aria-pressed="false">Дорин</button></div>
+  <p class="lede">Три рабочих места: рабочий, бригадир и руководитель Дорин. На компьютере они стоят рядом, на телефоне переключаются вкладками сверху.
+    Бригадир открывает объект, рабочий показывает свой код, бригадир его сканирует — приход отмечен. Уход — так же.
+    Отчёт бригадира в конце дня закрывает смену объекта. Всё кликается; время дня двигается на пульте.
+    Данные выдуманы, сервера нет — макет показывает, как это будет выглядеть и работать.</p>
+
+  <div class="stage">
+    <div class="panel" id="panel">
+      <div class="pult-head"><div><span class="t">Пульт макета · сейчас</span><b id="clock-m">07:45</b></div><button id="pult-close">Закрыть</button></div>
+      <h2>Время на объекте</h2>
+      <div class="seg" id="seg-time">
+        <button data-t="465">Утро 07:45</button>
+        <button data-t="780">Середина дня 13:00</button>
+        <button data-t="1050">Конец дня 17:30</button>
+      </div>
+      <div class="seg" style="margin-top:6px">
+        <button data-t="468">07:48</button>
+        <button data-t="492">08:12</button>
+        <button data-t="1020">17:00</button>
+        <button data-t="+5">+5 мин</button>
+      </div>
+      <div class="clock">Сейчас <b id="clock">07:45</b></div>
+
+      <h2>Кто рабочий</h2>
+      <div class="seg" id="seg-worker"></div>
+
+      <h2>Кто бригадир</h2>
+      <div class="seg" id="seg-foreman"></div>
+
+      <h2>Язык приложения</h2>
+      <div class="seg" id="seg-lang">
+        <button data-v="ru" aria-pressed="true">Русский</button>
+        <button data-v="hu" aria-pressed="false">Magyar</button>
+        <button data-v="en" aria-pressed="false">English</button>
+      </div>
+      <p class="note">Переключает подписи на обоих телефонах. В приложении язык выбирает сам человек в профиле.</p>
+
+      <h2>Вход</h2>
+      <div class="seg"><button id="p-login">Показать экран входа</button></div>
+      <p class="note">Учётки заводит администратор, сам зарегистрироваться нельзя. Вход сохраняется на недели: открыл иконку — и работаешь.</p>
+
+      <h2>Опоздание считать от</h2>
+      <div class="seg" id="seg-late">
+        <button data-v="open" aria-pressed="true">Открытия объекта бригадиром <span class="rec">— по записке 20.10</span></button>
+        <button data-v="day" aria-pressed="false">Общего начала дня (08:00)</button>
+      </div>
+
+      <h2>Как бригадир сканирует</h2>
+      <div class="seg" id="seg-scan">
+        <button data-v="app" aria-pressed="true">Камерой в приложении <span class="rec">— совет</span></button>
+        <button data-v="system" aria-pressed="false">Обычной камерой телефона</button>
+      </div>
+      <p class="note" id="scan-note"></p>
+
+      <h2>Попробовать</h2>
+      <div class="seg">
+        <button id="p-expire">Сделать код рабочего просроченным</button>
+        <button id="p-reuse">Отсканировать уже использованный код</button>
+        <button id="p-restart">Начать день сначала</button>
+      </div>
+      <p class="note"><b>Сценарий показа:</b> С утра двое бригадиров уже работают; Tóth László открывает свою смену — это ваш путь.
+        <br>07:45 — бригадир нажимает «+ Начать смену на объекте», выбирает «Ferihegy, 2-es terminál» и подтверждает «Открыть смену». 07:48 — сканирует Ádám и Ивана, они вовремя.
+        08:12 — Péter опоздал: объект открыт в 07:45, порог 5 минут, значит, опоздание 22 минуты. 13:00 — Иван уезжает на «Budaörs»: уход здесь,
+        приход там у другого бригадира. 17:00 — уход остальных; на экране смены бригадир пишет отчёт и подтверждает «Закрыть смену» — отчёт приходит Дорину. С пустым отчётом смену не закрыть. Если кто-то уехал без скана ухода, бригадир всё равно может закрыть смену — «Закрыть без их ухода»; у человека будет отметка «уход не отмечен». Закрытые смены — сегодня и прошлые — открываются только для чтения.
+        <br><b>У Дорина:</b> всплывает «Новый отчёт», на «Сегодня» — счётчик. Карточка объекта — без фамилий; нажатие открывает день объекта с людьми, переездами и отчётом.
+        «История» — лента периодов: месяц, недели, дни, прошлые месяцы и годы; день открывается в том же виде, что «Сегодня». «Объекты» — завести новый: он сразу появится у бригадира. «Отчёты» — часы по людям и объектам за неделю или месяц. Настройки — за шестерёнкой, там же правило часов без ухода.
+        <br><b>Лента периодов</b> одна на трёх местах: у рабочего — «Мои смены», у бригадира — «Объекты» под открытой сменой, у Дорина — «История» и верх «Отчётов».</p>
+
+      <h2>Что решает макет</h2>
+      <ol class="decisions">
+        <li><b>Бригад нет.</b> Бригада — это те, кого бригадир отсканировал на открытом объекте. Ничего не заводим и не собираем; «своего» и «чужого» бригадира нет — принимает тот, кто открыл объект.</li>
+        <li><b>Код рабочего — одноразовый пропуск.</b> Живёт 60 секунд, гаснет после первого скана и сам обновляется. Внутри — ссылка, поэтому его читает и обычная камера телефона.</li>
+        <li><b>Приход или уход — решает система.</b> Бригадир не выбирает: нет открытой отметки — приход, есть — уход. Перед записью — одно касание «Подтвердить» с именем и временем.</li>
+        <li><b>Переезд.</b> Уход на первом объекте и приход на втором; часы делятся сами.</li>
+        <li><b>Единая лента периодов — как доступ к отчётам.</b> Одна механика на трёх рабочих местах: сверху большая карточка месяца — крупно часы, мелко смены, объекты и бригады (у Дорина ещё люди, у рабочего — опоздания). Ниже эта неделя по дням, прошлые недели месяца, прошлые месяцы года и прошлые годы — свёрнутыми строками. Любая строка раскрывается с «‹ Назад»: год → месяцы → недели → дни → день. Цифры сходятся между уровнями: дни складываются в неделю, недели — в месяц, месяцы — в год.</li>
+        <li><b>У бригадира две вкладки — «Объекты» и «Сканировать».</b> «Объекты» устроены как у Дорина, только своё: сверху открытая смена, ниже лента его смен; день раскрывается в смены, прошлая смена — только чтение. Новая смена — «+ Начать смену на объекте»: список объектов в одно касание, сверху тот, где бригадир был последним.</li>
+        <li><b>Смена — один экран:</b> статус (не открыта / открыта с… / закрыта в…), люди с приходом и уходом, «Сканировать код», отчёт за день и «Закрыть смену». Открыть и закрыть — только с подтверждением; с пустым отчётом не закрыть. Закрытая смена — только чтение.</li>
+        <li><b>Закрыть смену без ухода — можно, это исключение.</b> Если на объекте остались люди без скана ухода, «Закрыть смену» показывает их списком: основное — «Отсканировать уход», контуром — «Закрыть без их ухода». У таких людей везде одна пилюля «уход не отмечен»: на экране смены, в дне объекта у Дорина, в «Моих сменах» рабочего; на карточке объекта без фамилий — счётчик. Рабочему ничего не приходит: личного кабинета и уведомлений нет.</li>
+        <li><b>Часы без ухода — правило, а не число в коде.</b> Три варианта в настройках Дорина: не считать (0 ч, по умолчанию), минимальный день (засчитать 4, 7 или 8 ч вместо фактического — штраф) или до закрытия смены. Правило пересчитывает смену, день, ленту и отчёты; рядом с такими часами — подпись «по правилу: …». В прототипе правило держит контракт.</li>
+        <li><b>Отчёт</b> — часть данных о рабочем дне на объекте, как и люди: пишется на экране смены, можно надиктовать кнопкой микрофона на клавиатуре; звук никуда не уходит.</li>
+        <li><b>Время ставит сервер</b>, не телефон. В макете время берётся с пульта.</li>
+        <li><b>Порог опоздания и округление — параметры, а не числа в коде.</b> В прототипе их держит контракт картриджа (меняет Copilot); экран за шестерёнкой у Дорина — как это может выглядеть позже, в прототип он не входит.</li>
+        <li><b>Рабочее место Дорина — четыре вкладки.</b> «Сегодня» — это день из истории, только живой: сверху итог по всем объектам, ниже карточка на объект без фамилий; фамилии, переезды и отчёт — на экране дня объекта. «История» — прошлые дни тем же экраном. «Объекты» — часы за месяц, дневник отчётов и кнопка нового объекта. «Отчёты» — часы по людям (основа зарплаты) и по объектам за неделю или месяц; выгрузка в Excel — позже. Вкладки «Без ухода» нет: такие отметки видны пилюлей в дне объекта и счётчиком на карточке. На компьютере то же самое открывается в веб-интерфейсе движка.</li>
+        <li><b>Вкладки внизу, крупные кнопки</b> — пользоваться в перчатках и на солнце; главная кнопка — салатовая, как на сайте LD Vill.</li>
+      </ol>
+
+      <h2>Вопросы к заказчику</h2>
+      <div class="ask"><b>От какого времени считать опоздание?</b> Планового начала по объектам нет. По записке 20.10 смена начинается, когда бригадир открыл объект, — от этого и считаем (переключатель выше). Второй вариант — одно начало дня на всех. Какой правильный?</div>
+      <div class="ask"><b>Пришёл на другой объект, а уход с первого не отсканировали.</b> Совет: закрывать первый объект моментом нового прихода с пометкой «уход не отмечен» — и показывать Дорину в дне объекта. Или не пускать приход, пока не отмечен уход?</div>
+      <div class="ask"><b>Как считать часы без ухода?</b> Три варианта в Настройках Дорина: не считать, минимальный день (4, 7 или 8 ч) или до закрытия смены — какой ваш?</div>
+          </div>
+
+    <div class="phones">
+      <div class="ph on" data-wp="w"><div class="cap">Рабочий</div><div class="phone"><div class="screen" id="left"></div></div></div>
+      <div class="ph" data-wp="f"><div class="cap">Бригадир</div><div class="phone"><div class="screen" id="right"></div></div></div>
+      <div class="ph" data-wp="b"><div class="cap">Руководитель · Дорин</div><div class="phone"><div class="screen" id="boss"></div></div></div>
+    </div>
+    <div class="pult-scrim" id="pult-scrim"></div>
+    <button class="fab" id="fab" aria-label="Пульт макета"><svg class="ic" viewBox="0 0 24 24"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg></button>
+  </div>
+</div>
+
+<script>
+/* ══ глифы Lucide ══ */
+const P = {
+  qr:'<rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>',
+  list:'<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>',
+  site:'<path d="M2 20h20"/><path d="M5 20V8l7-5 7 5v12"/><path d="M9 20v-6h6v6"/>',
+  scan:'<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/>',
+  note:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+  today:'<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
+  alert:'<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  gear:'<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  in:'<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/>',
+  out:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>',
+  mic:'<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
+  link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  back:'<path d="m15 18-6-6 6-6"/>',
+  chev:'<path d="m9 18 6-6-6-6"/>',
+  history:'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
+  chart:'<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+};
+const ic = (n, c='') => `<svg class="ic ${c}" viewBox="0 0 24 24">${P[n]}</svg>`;
+
+/* ══ данные ══ */
+const OBJECTS = [
+  {id:'fer', name:'Ferihegy, 2-es terminál', addr:'Budapest, Liszt Ferenc repülőtér', from:'2025-09-01'},
+  {id:'bud', name:'Budaörs, raktár', addr:'Budaörs, Kinizsi út 2', from:'2025-05-05'},
+  {id:'obu', name:'Óbuda, lakóház', addr:'Budapest, Bécsi út 154', from:'2026-01-12'},
+  {id:'kob', name:'Kőbánya, iskola', addr:'Budapest, Halom utca 7', from:'2026-09-01'},
+  /* объекты прошлого года — работы сданы, объект закрыт */
+  {id:'csg', name:'Csepel, gyár', addr:'Budapest, Csepeli út 12', from:'2025-01-06', to:'2025-07-31', closed:true},
+  {id:'ujp', name:'Újpest, iroda', addr:'Budapest, Váci út 151', from:'2025-01-06', to:'2025-11-28', closed:true},
+  {id:'zug', name:'Zugló, rendelő', addr:'Budapest, Thököly út 98', from:'2025-08-04', to:'2026-02-27', closed:true},
+];
+const BASE_OBJ_N = OBJECTS.length;   /* объекты, заведённые Дориным в макете, «Начать день сначала» убирает */
+/* первые четыре — на пульте (у них есть «Мои смены»), остальные живут только в истории; from — когда пришёл в компанию */
+const WORKERS = [
+  {id:'ka', name:'Kovács Ádám', short:'KÁ', from:'2025-01-06'},
+  {id:'ip', name:'Иван Петренко', short:'ИП', from:'2025-03-03'},
+  {id:'np', name:'Nagy Péter', short:'NP', from:'2025-01-06'},
+  {id:'sg', name:'Szabó Gergő', short:'SG', from:'2025-01-06'},
+  ...['Horváth Bálint','Kiss Dániel','Farkas Tamás','Balogh Norbert','Papp Zsolt','Takács Gábor','Juhász Attila','Lakatos Roland',
+      'Mészáros Csaba','Oláh Krisztián','Simon Dávid','Rácz Levente','Fekete István','Szilágyi Ákos','Török Márton','Fehér Márk',
+      'Balázs Viktor','Gál Richárd','Kocsis Imre','Pintér Ferenc','Sipos Kristóf','Hegedűs Bence','Németh Patrik',
+      'Олег Бондаренко','Сергей Ткаченко','Андрій Мельник']
+    .map((name,i)=>({id:'w'+(i+5), name, short:name.split(' ').map(s=>s[0]).join(''),
+      from: i<14 ? '2025-01-06' : ['2025-02-10','2025-04-07','2025-05-12','2025-06-16','2025-08-25','2025-09-08','2025-10-13','2025-11-17','2026-01-19','2026-03-02','2026-04-20','2026-06-08'][i-14]})),
+];
+const PULT_W = WORKERS.slice(0,4);
+const FOREMEN = [
+  {id:'tl', name:'Tóth László', short:'TL', from:'2025-01-06'},
+  {id:'mb', name:'Molnár Bence', short:'MB', from:'2025-01-06'},
+  {id:'vz', name:'Varga Zoltán', short:'VZ', from:'2025-06-02'},
+];
+const agoTxt = d => d==null ? 'ещё не были' : d===1 ? 'вы были вчера' : d===2 ? 'вы были позавчера' : `вы были ${d} дн. назад`;
+const PAST = { /* прошлые смены — для «Мои смены» */
+  ka:[['пн 19.10','Ferihegy, 2-es terminál','07:28','16:40'],['пт 16.10','Óbuda, lakóház','07:31','16:02'],['чт 15.10','Óbuda, lakóház','07:25','16:55']],
+  ip:[['пн 19.10','Ferihegy, 2-es terminál','07:40','16:40'],['пт 16.10','Budaörs, raktár','07:29','15:30'],['чт 15.10','Budaörs, raktár','07:30','17:10']],
+  np:[['пн 19.10','Ferihegy, 2-es terminál','07:52','16:40'],['пт 16.10','Óbuda, lakóház','07:47','16:02'],['чт 15.10','Óbuda, lakóház','07:33','16:55']],
+  sg:[['пн 19.10','Budaörs, raktár','07:20','17:05'],['пт 16.10','Budaörs, raktár','07:22','15:30'],['чт 15.10','Ferihegy, 2-es terminál','07:30','16:30']],
+};
+const TTL = 60;
+
+/* ══ состояние ══ */
+let S;
+function fresh(){
+  S = {
+    now:465, worker:'ka', right:'foreman', foreman:'tl', scan:'app',
+    tabL:'code', tabR:'site', tabO:'today',
+    wNav:[], fNav:[],   /* стеки экранов рабочего и бригадира: лента периодов, выбор объекта, смена; у Дорина — oNav */
+    shifts:{},          /* foremanId → текущая смена {f, obj, opened, closed, report, notOut:[]} */
+    shiftLog:[],        /* все смены дня — бригадир может за день открыть второй объект */
+    lang:'ru', login:false, lateFrom:'open', toastB:null,
+    oNav:[],            /* экраны Дорина поверх вкладки: день, день объекта, объект, новый объект, настройки */
+    repPer:'week', repBy:'people', newSeq:0,
+    marks:[],           /* {w, obj, by, in, out, outBy, flag} */
+    tokens:{},          /* workerId → {t, born, used} */
+    lastUsed:null,      /* последний погашенный код — для «повторного скана» */
+    /* noOut — как считать часы без ухода: zero — не считать, min — минимальный день noOutMin ч, close — до закрытия смены */
+    settings:{start:480, grace:5, round:15, noOut:'zero', noOutMin:4},
+    sheetR:null, toastL:null, toastR:null, flashL:false,
+  };
+  PULT_W.forEach(w => S.tokens[w.id] = mint(w.id));
+  OBJECTS.splice(BASE_OBJ_N);
+  PLAN.reset();
+}
+function mint(w){ return {t: Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,6), born: Date.now(), used:false, w}; }
+const hm = m => `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+const toMin = s => { const [h,m]=s.split(':').map(Number); return h*60+m; };
+const objName = id => OBJECTS.find(o=>o.id===id)?.name || '—';
+const wk = id => WORKERS.find(w=>w.id===id);
+const fm = id => FOREMEN.find(f=>f.id===id);
+/* открытая отметка — человек на объекте; «уход не отмечен» после закрытия смены открытой уже не считается */
+const openMark = w => S.marks.find(m => m.w===w && m.out==null && !m.noOut);
+const leftSec = tok => Math.max(0, TTL - Math.floor((Date.now()-tok.born)/1000));
+function roundMin(m){ const r=S.settings.round; return r ? Math.floor(m/r)*r : m; }
+const fmtH = m => { const h=Math.floor(m/60), mm=m%60; return mm? `${h} ч ${mm} мин` : `${h} ч`; };
+/* опоздание — только у первого прихода за день; переезд опозданием не считается */
+const lateBy = inMin => Math.max(0, inMin - (S.settings.start + S.settings.grace));
+const isFirst = m => m._new || S.marks.find(x=>x.w===m.w)===m;
+const lateOf = m => !isFirst(m) ? 0 : S.lateFrom==='open' ? Math.max(0, m.in - (m.opened + S.settings.grace)) : lateBy(m.in);
+/* часы без ухода — по правилу из настроек Дорина (как считать, решает заказчик):
+   zero — не считать; min — засчитать минимальный день вместо фактического времени; close — от прихода до закрытия смены */
+const noOutMins = m => S.settings.noOut==='min' ? S.settings.noOutMin*60 : S.settings.noOut==='close' ? roundMin(Math.max(0, m.closedAt-m.in)) : 0;
+const dur = m => m.out!=null ? roundMin(m.out-m.in) : m.noOut ? noOutMins(m) : roundMin(S.now-m.in);
+const ruleTxt = () => S.settings.noOut==='min' ? `по правилу: минимум ${S.settings.noOutMin} ч` : S.settings.noOut==='close' ? 'по правилу: до закрытия смены' : 'по правилу: не считается';
+const ruleLong = () => (S.settings.noOut==='min' ? `Им засчитается минимальный день — ${S.settings.noOutMin} ч.` : S.settings.noOut==='close' ? 'Часы им посчитаются до закрытия смены.' : 'Часы без ухода не считаются.') + ' Правило — в настройках Дорина.';
+/* одна пилюля «уход не отмечен» на всех экранах */
+const noOutPill = (n) => `<span class="pill bad">${ic('alert','s16')}уход не отмечен${n!=null?`: ${n}`:''}</span>`;
+/* часы отметки с подписью правила — для экранов с фамилиями */
+const durCell = m => `${fmtH(dur(m))}${m.noOut?`<small class="rule">${ruleTxt()}</small>`:''}${m.out==null&&!m.noOut?'<small>идёт</small>':''}`;
+
+/* ══ ИСТОРИЯ: выдуманные рабочие дни с января 2025 по вчера ══
+   Генерируется детерминированно (свой seeded random по дате), чтобы макет каждый раз показывал одно и то же.
+   Прошлые смены рабочих с пульта (PAST) вшиты в историю как есть — «Мои смены» и отчёты Дорина сходятся. */
+function rngOf(seed){
+  let a = seed>>>0;
+  const f = () => { a = a+0x6D2B79F5|0; let t = Math.imul(a^a>>>15, 1|a); t = t+Math.imul(t^t>>>7, 61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
+  f.n = (x,y) => x+Math.floor(f()*(y-x+1));
+  f.pick = arr => arr[Math.floor(f()*arr.length)];
+  f.shuf = arr => { const b=arr.slice(); for(let i=b.length-1;i>0;i--){ const j=Math.floor(f()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; } return b; };
+  return f;
+}
+const DOW = ['вс','пн','вт','ср','чт','пт','сб'];
+const MON = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const MON_S = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+const pad = n => String(n).padStart(2,'0');
+const DAY_MS = 864e5, T0 = Date.UTC(2026,9,20);   /* «сегодня» в макете — вт 20.10.2026 */
+const isoOf = t => new Date(t).toISOString().slice(0,10);
+function mkDay(t){
+  const dt = new Date(t), y = dt.getUTCFullYear(), m = dt.getUTCMonth()+1, d = dt.getUTCDate(), dow = dt.getUTCDay();
+  return {key:isoOf(t), y, m, d, dow, ago:Math.round((T0-t)/DAY_MS), mon:isoOf(t-((dow+6)%7)*DAY_MS),
+    label:`${DOW[dow]} ${pad(d)}.${pad(m)}${y!==2026?'.'+String(y).slice(2):''}`};
+}
+const TODAY = mkDay(T0);
+/* праздники Венгрии и рабочие каникулы 24–31 декабря — в эти дни не работают */
+const HOLI = new Set(['2025-01-01','2025-04-18','2025-04-21','2025-05-01','2025-05-02','2025-06-09','2025-08-20','2025-10-23','2025-10-24',
+  '2025-12-24','2025-12-25','2025-12-26','2025-12-29','2025-12-30','2025-12-31','2026-01-01','2026-01-02','2026-04-03','2026-04-06',
+  '2026-05-01','2026-05-25','2026-08-20','2026-08-21']);
+const REP_LINES = [
+  r=>`Протянули кабель ВВГнг-LS 3×2,5 — ${r.n(12,32)*10} м, участок ${r.n(1,6)}.`,
+  r=>`Уложили гофру Ø20 под розетки — ${r.n(6,18)*10} м.`,
+  r=>`Смонтировали кабельные лотки 200×50 — ${r.n(3,9)*10} м по коридору.`,
+  r=>`Повесили светильники — ${r.n(12,40)} шт., подключили ${r.n(6,12)}.`,
+  r=>`Собрали щит ЩР-${r.n(1,6)}, расключили ${r.n(8,24)} групп.`,
+  r=>`Прозвонили линии на участке ${r.n(1,6)}, замечаний нет.`,
+  r=>`Поставили подрозетники — ${r.n(20,60)} шт.`,
+  r=>`Затянули кабель в лотки по осям ${r.pick(['А–Г','1–5','Б–Д','3–8'])}.`,
+];
+const REP_ISSUES = ['Привезли кабель и автоматы, разгрузили сами.','Мешали штукатуры — перешли на другой участок.',
+  'Ждём автоматы на 16 А, без них щит не закончить.','Не хватило гофры, докупили на месте.','Генподрядчик сдвинул потолки — светильники перенесли.'];
+function genReport(r, extra){
+  const lines = r.shuf(REP_LINES).slice(0, r.n(2,3)).map(f=>f(r));
+  if (extra) lines.push(extra);
+  if (r()<0.45) lines.push(r.pick(REP_ISSUES));
+  if (r()<0.5) lines.push(`Завтра: ${r.pick(['светильники','щит','лотки на 2-м этаже','прозвонка',`кабель на участке ${r.n(2,7)}`])}.`);
+  return lines.join('\n');
+}
+const activeObjs = key => OBJECTS.filter(o=>o.from && o.from<=key && (!o.to || o.to>=key)).map(o=>o.id);
+/* бригадиры в дни, вшитые из PAST */
+const PIN_F = {'2026-10-19':{fer:'tl', bud:'mb'}, '2026-10-16':{obu:'tl', bud:'mb'}, '2026-10-15':{obu:'tl', bud:'mb', fer:'vz'}};
+function genDay(day){
+  const r = rngOf(day.y*10000+day.m*100+day.d), pinF = PIN_F[day.key]||{}, pinW = {};
+  if (day.y===2026) for (const [w,rows] of Object.entries(PAST)) for (const [lab,o,a,b] of rows)
+    if (lab.slice(3)===`${pad(day.d)}.${pad(day.m)}`) pinW[w] = {obj:OBJECTS.find(x=>x.name===o).id, in:toMin(a), out:toMin(b)};
+  const act = activeObjs(day.key), fAct = FOREMEN.filter(f=>f.from<=day.key).map(f=>f.id);
+  const nMain = Math.min(fAct.length, act.length, 3);
+  const objs = [...Object.keys(pinF), ...r.shuf(act).filter(o=>!(o in pinF))].slice(0, nMain + (act.length>nMain && r()<0.35 ? 1 : 0));
+  const main = objs.slice(0,nMain), freeF = r.shuf(fAct.filter(f=>!Object.values(pinF).includes(f))), fOf = {}, crew = {};
+  main.forEach(o=>{ fOf[o] = pinF[o] || freeF.shift(); crew[o] = []; });
+  Object.entries(pinW).forEach(([w,p])=>crew[p.obj].push(w));
+  r.shuf(WORKERS.filter(w=>w.from<=day.key && !(w.id in pinW)).map(w=>w.id)).filter(()=>r()<0.9).forEach((w,i)=>crew[main[i%nMain]].push(w));
+  /* лишний объект: бригадир с утра на одном, после обеда вся бригада переезжает на другой */
+  const X = objs.length>nMain ? main.find(o=>!crew[o].some(w=>w in pinW)) : null, Y = X ? objs[nMain] : null;
+  const shifts = [], marks = [];
+  main.forEach(o=>{
+    const pins = crew[o].filter(w=>w in pinW).map(w=>pinW[w]);
+    let opened = r.n(440,460); if (pins.length) opened = Math.min(opened, Math.min(...pins.map(p=>p.in)) - r.n(0,4));
+    const close = o===X ? r.n(705,735) : pins.length ? Math.max(...pins.map(p=>p.out)) : r.n(930,1050);
+    crew[o].forEach(w=>{ const p = pinW[w];
+      marks.push({w, obj:o, by:fOf[o], opened, in: p ? p.in : r()<0.08 ? opened+r.n(9,35) : opened+r.n(0,5), out: p ? p.out : close-r.n(0, o===X?5:12)}); });
+    shifts.push({f:fOf[o], obj:o, opened, closed:close+r.n(3,12), report:genReport(r, o===X ? `После обеда всей бригадой переехали на «${objName(Y)}».` : '')});
+    if (o===X){
+      const op2 = close+r.n(25,40), cl2 = r.n(960,1020);
+      crew[o].forEach(w=>marks.push({w, obj:Y, by:fOf[o], opened:op2, in:op2+r.n(0,6), out:cl2-r.n(0,10)}));
+      shifts.push({f:fOf[o], obj:Y, opened:op2, closed:cl2+r.n(3,12), report:genReport(r)});
+    }
+  });
+  /* иногда один человек переезжает между объектами днём */
+  if (r()<0.45 && nMain>1){
+    const a = r.pick(main.filter(o=>o!==X)), b = r.pick(main.filter(o=>o!==X && o!==a));
+    const cand = crew[a].filter(w=>!(w in pinW));
+    if (b && cand.length>3){
+      const w = r.pick(cand), m = marks.find(x=>x.w===w && x.obj===a), t = r.n(690,780), sb = shifts.find(s=>s.obj===b);
+      m.out = t; marks.push({w, obj:b, by:fOf[b], opened:sb.opened, in:t+r.n(25,45), out:sb.closed-r.n(3,15)});
+    }
+  }
+  /* около 1% отметок — без ухода: бригадир закрыл смену, а человек уже уехал. Свой генератор, чтобы не сдвинуть остальную историю;
+     только последняя отметка человека за день и не у вшитых смен с пульта */
+  const rn = rngOf((day.y*10000+day.m*100+day.d) ^ 0x9E3779B9);
+  marks.forEach(m=>{
+    if (m.w in pinW || rn()>=0.01 || marks.some(x=>x.w===m.w && x.in>m.in)) return;
+    const sh = shifts.find(s=>s.obj===m.obj && s.f===m.by);
+    m.noOut = true; m.out = null; m.closedAt = sh.closed;
+  });
+  marks.sort((p,q)=>p.in-q.in);
+  return {...day, shifts, marks};
+}
+const HIST = [], BY_KEY = {}, BY_MONTH = {};
+for (let t = Date.UTC(2025,0,6); t < T0; t += DAY_MS){
+  const day = mkDay(t);
+  if (day.dow===0 || day.dow===6 || HOLI.has(day.key)) continue;
+  const g = genDay(day); HIST.push(g); BY_KEY[g.key] = g; (BY_MONTH[`${g.y}-${pad(g.m)}`] ||= []).push(g);
+}
+const YEARS = [...new Set(HIST.map(d=>d.y))];
+/* когда бригадир последний раз был на объекте (дней назад) — порядок списка объектов; тоже из истории */
+const LAST_SEEN = {};
+FOREMEN.forEach(f=>LAST_SEEN[f.id]={});
+HIST.forEach(day=>day.shifts.forEach(s=>{ const cur = LAST_SEEN[s.f][s.obj]; if (cur==null || day.ago<cur) LAST_SEEN[s.f][s.obj] = day.ago; }));
+
+/* ══ СЕГОДНЯ УЖЕ ИДЁТ ══
+   С утра Molnár Bence и Varga Zoltán уже открыли свои смены (не на Ferihegy — туда идёт Tóth László, это путь показа).
+   Отметки зависят от времени на пульте: кто пришёл позже «сейчас» — ещё не виден; к 13:00 один человек переехал от Молнара к Варге;
+   к 17:30 Varga закрыл смену с отчётом, у Молнара люди ещё на объекте. Рабочие с пульта в этих сменах не участвуют. */
+const PLAN = (()=>{
+  const r = rngOf(20261020), pool = r.shuf(WORKERS.slice(4).map(w=>w.id));
+  const shifts = [{f:'mb', obj:'bud', _opened:442}, {f:'vz', obj:'obu', _opened:447, _closed:1035}];
+  shifts[1]._report = 'Протянули кабель ВВГнг-LS 3×2,5 по 3-му этажу — 210 м.\nПоставили подрозетники — 36 шт.\nВ обед от Молнара пришёл ещё один человек — затянули кабель в лотки по осям 1–5.\nЗавтра: щит ЩР-2.';
+  const marks = [];
+  [[shifts[0], pool.slice(0,11)], [shifts[1], pool.slice(11,20)]].forEach(([sh, ids], k)=>ids.forEach((w,i)=>{
+    const late = i===ids.length-1 && k===0 || i===ids.length-1 && k===1 && r()<0.6;   /* одно-два опоздания позже по времени дня */
+    marks.push({w, obj:sh.obj, by:sh.f, opened:sh._opened, _in: late ? sh._opened+r.n(24,45) : sh._opened+r.n(0,14), _out: sh._closed ? sh._closed-r.n(4,16) : null});
+  }));
+  /* переезд к 13:00: человек от Молнара уходит в 12:20 и приходит к Варге в 12:50 */
+  const mv = marks.find(m=>m.by==='mb'); mv._out = 740;
+  marks.push({w:mv.w, obj:'obu', by:'vz', opened:447, _in:770, _out:shifts[1]._closed-r.n(4,16)});
+  marks.sort((a,b)=>a._in-b._in);
+  return {
+    reset(){ shifts.forEach(s=>{ delete s._shown; s.isNew=false; }); },
+    /* разложить план по времени пульта в S.marks / S.shiftLog / S.shifts (отметки Oleg с пульта не трогаем) */
+    sync(){
+      const now = S.now;
+      S.marks = S.marks.filter(m=>!m.plan); S.shiftLog = S.shiftLog.filter(s=>!s.plan);
+      shifts.forEach(s=>{
+        if (s._opened>now){ if (S.shifts[s.f]?.plan) delete S.shifts[s.f]; return; }
+        Object.assign(s, {plan:true, opened:s._opened, closed: s._closed!=null && s._closed<=now ? s._closed : null, notOut:[]});
+        s.report = s.closed ? s._report : (s.draft||'');
+        if (s.closed && !s._shown){ s._shown = true; s.isNew = true; } else if (!s.closed){ s._shown = false; s.isNew = false; }
+        S.shiftLog.unshift(s);
+        if (!S.shifts[s.f] || S.shifts[s.f].plan) S.shifts[s.f] = s;
+      });
+      const vis = marks.filter(m=>m._in<=now).map(m=>Object.assign(m, {plan:true, in:m._in, out: m._out!=null && m._out<=now ? m._out : null}));
+      S.marks = [...vis, ...S.marks];
+    },
+  };
+})();
+
+/* ══ ЛЕНТА ПЕРИОДОВ ══
+   Одна механика на трёх рабочих местах — «как доступ к отчётам»: сверху итог месяца крупно, ниже эта неделя по дням,
+   прошлые недели месяца, месяцы года и прошлые годы свёрнутыми строками; любая строка раскрывается экраном с «‹ Назад».
+   Все уровни считаются из одних и тех же дней через dur(), поэтому сумма дней = неделя, недель = месяц, месяцев = год
+   (в data-min каждой строки — минуты, по ним проверка). Охват sc: {k:'w', id} — рабочий, {k:'f', id} — бригадир, {k:'all'} — Дорин.
+   «Смена» в ленте — рабочий день; «бригада» — смена бригадира на объекте. */
+const fmtHH = m => { const h = Math.floor(m/60), mm = m%60; return `${String(h).replace(/\B(?=(\d{3})+(?!\d))/g,' ')} ч${mm?` ${mm} мин`:''}`; };
+function scopeSel(sc, day){
+  if (sc.k==='w') return {ms: day.marks.filter(m=>m.w===sc.id), shs: []};
+  if (sc.k==='f') return {ms: day.marks.filter(m=>m.by===sc.id), shs: day.shifts.filter(s=>s.f===sc.id)};
+  return {ms: day.marks, shs: day.shifts};
+}
+/* итог дня кэшируется для прошлых дней: ключ включает все правила, от которых зависят часы и опоздания */
+const _agg = new Map();
+const setKey = () => `${S.settings.round}|${S.settings.grace}|${S.settings.start}|${S.lateFrom}|${S.settings.noOut}|${S.settings.noOutMin}`;
+function dayAgg(sc, day){
+  const ck = day.live ? null : `${sc.k}${sc.id||''}|${day.key}|${setKey()}`;
+  if (ck && _agg.has(ck)) return _agg.get(ck);
+  const {ms, shs} = scopeSel(sc, day);
+  const a = { mins: ms.reduce((x,m)=>x+dur(m),0), days: ms.length||shs.length ? 1 : 0,
+    shifts: sc.k==='w' ? new Set(ms.map(m=>m.obj+'|'+m.by)).size : shs.length,
+    late: ms.filter(m=>lateX(m, day.marks)>0).length, noOut: ms.filter(m=>m.noOut).length,
+    objs: new Set([...ms.map(m=>m.obj), ...shs.map(s=>s.obj)]), people: new Set(ms.map(m=>m.w)) };
+  if (ck) _agg.set(ck, a);
+  return a;
+}
+function aggOf(sc, days){
+  const a = {mins:0, days:0, shifts:0, late:0, noOut:0, objs:new Set(), people:new Set()};
+  days.forEach(d=>{ const x = dayAgg(sc, d); a.mins+=x.mins; a.days+=x.days; a.shifts+=x.shifts; a.late+=x.late; a.noOut+=x.noOut; x.objs.forEach(o=>a.objs.add(o)); x.people.forEach(w=>a.people.add(w)); });
+  return a;
+}
+const monthDays = (y,m) => { const a = BY_MONTH[`${y}-${pad(m)}`]||[]; return y===TODAY.y && m===TODAY.m ? [...a, dayOf(TODAY.key)] : a; };
+const yearDays = y => Array.from({length:12}, (_,i)=>monthDays(y,i+1)).flat();
+/* недели — внутри месяца: неделя на стыке месяцев делится, чтобы недели складывались ровно в месяц */
+function weeksOf(days){ const w = []; days.forEach(d=>{ const l = w[w.length-1]; if (l && l.mon===d.mon) l.days.push(d); else w.push({mon:d.mon, days:[d]}); }); return w; }
+const weekLabel = days => { const a = days[0], b = days[days.length-1]; return a===b ? `${a.d} ${MON_S[a.m-1]}` : `${a.d}–${b.d} ${MON_S[a.m-1]}`; };
+const pnav = o => `data-pnav='${JSON.stringify(o)}'`;
+const pList = rows => rows.filter(Boolean).length ? `<div class="card" style="padding-block:4px"><div class="list">${rows.join('')}</div></div>` : `<div class="card muted">За этот период смен нет.</div>`;
+const plS = n => pl(n,'смена','смены','смен'), plO = n => pl(n,'объект','объекта','объектов');
+/* большая карточка: крупно часы, мелко смены, объекты, бригады; у Дорина ещё люди, у рабочего — опоздания */
+function pBig(title, sc, a, to){
+  const tiles = [[a.days, plS(a.days)], [a.objs.size, plO(a.objs.size)], [a.shifts, pl(a.shifts,'бригада','бригады','бригад')]];
+  if (sc.k==='all') tiles.push([a.people.size, pl(a.people.size,'человек','человека','человек')]);
+  if (sc.k==='w') tiles.push([a.late, pl(a.late,'опоздание','опоздания','опозданий')]);
+  return `<div class="pbig${to?' tap':''}" ${to?pnav(to):''} data-min="${a.mins}"><div class="t">${title}</div><b class="h">${fmtHH(a.mins)}</b>
+    <div class="tiles" style="grid-template-columns:repeat(${tiles.length},1fr)">${tiles.map(([n,t])=>`<div><b>${n}</b>${t}</div>`).join('')}</div>
+    ${a.noOut?`<div style="margin-top:8px">${noOutPill(a.noOut)} <span class="rule" style="display:inline;color:#E8C66B">${ruleTxt()}</span></div>`:''}
+    ${to?`<div class="more">По неделям ${ic('chev','s16')}</div>`:''}</div>`;
+}
+function pRow(label, a, to, sub){
+  return `<div class="li tap" ${pnav(to)} data-min="${a.mins}"><div class="main"><b>${label}</b><span>${sub}</span></div><div class="num">${fmtHH(a.mins)}</div>${ic('chev','s16 chev')}</div>`;
+}
+const pSub = a => `${a.days} ${plS(a.days)} · ${a.objs.size} ${plO(a.objs.size)}`;
+function dayRow(sc, d){
+  const a = dayAgg(sc, d); if (!a.days && !d.live) return '';
+  let sub = !a.days ? 'отметок пока нет' : sc.k==='all' ? `${a.objs.size} ${plO(a.objs.size)} · ${a.people.size} чел.` : [...a.objs].map(objName).join(', ');
+  if (a.noOut) sub += ` ${noOutPill(sc.k==='w' ? null : a.noOut)}`;
+  return pRow(`${d.label}${d.live?' · сегодня':''}`, a, {k:'day', key:d.key}, sub);
+}
+function weekRow(sc, w, y, m){ const a = aggOf(sc, w.days); return a.days ? pRow(weekLabel(w.days), a, {k:'week', y, m, mon:w.mon}, pSub(a)) : ''; }
+function monthRow(sc, y, m){ const a = aggOf(sc, monthDays(y,m)); return a.days ? pRow(MON[m-1], a, {k:'month', y, m}, pSub(a)) : ''; }
+function yearRow(sc, y){ const a = aggOf(sc, yearDays(y)); return a.days ? pRow(`${y}`, a, {k:'year', y}, pSub(a)) : ''; }
+/* большая карточка текущего месяца — та же наверху «Отчётов» у Дорина */
+const pBigMonth = sc => pBig(`${MON[TODAY.m-1]} ${TODAY.y} · месяц идёт`, sc, aggOf(sc, monthDays(TODAY.y, TODAY.m)), {k:'month', y:TODAY.y, m:TODAY.m});
+/* верхний уровень ленты */
+function ribbon(sc){
+  const wk = weeksOf(monthDays(TODAY.y, TODAY.m)), cur = wk[wk.length-1];
+  let h = pBigMonth(sc);
+  h += `<div class="lbl">Эта неделя · по дням</div>` + pList(cur.days.slice().reverse().map(d=>dayRow(sc,d)));
+  const pw = wk.slice(0,-1).reverse().map(w=>weekRow(sc, w, TODAY.y, TODAY.m)).filter(Boolean);
+  if (pw.length) h += `<div class="lbl">${MON[TODAY.m-1]} · прошлые недели</div>` + pList(pw);
+  const pm = Array.from({length:TODAY.m-1}, (_,i)=>TODAY.m-1-i).map(m=>monthRow(sc, TODAY.y, m)).filter(Boolean);
+  if (pm.length) h += `<div class="lbl">${TODAY.y} · прошлые месяцы</div>` + pList(pm);
+  const py = YEARS.filter(y=>y<TODAY.y).reverse().map(y=>yearRow(sc, y)).filter(Boolean);
+  if (py.length) h += `<div class="lbl">Прошлые годы</div>` + pList(py);
+  return h;
+}
+/* экраны год → месяц → неделя; день рисует само рабочее место */
+const weekOfNode = n => weeksOf(monthDays(n.y, n.m)).find(x=>x.mon===n.mon);
+function periodView(sc, n){
+  if (n.k==='year') return pBig(`${n.y} год`, sc, aggOf(sc, yearDays(n.y))) + `<div class="lbl">По месяцам</div>` + pList(Array.from({length:12}, (_,i)=>12-i).map(m=>monthRow(sc, n.y, m)));
+  if (n.k==='month'){ const days = monthDays(n.y, n.m);
+    return pBig(`${MON[n.m-1]} ${n.y}`, sc, aggOf(sc, days)) + `<div class="lbl">По неделям</div>` + pList(weeksOf(days).reverse().map(w=>weekRow(sc, w, n.y, n.m))); }
+  const w = weekOfNode(n);
+  return pBig(`${weekLabel(w.days)} ${n.y}`, sc, aggOf(sc, w.days)) + `<div class="lbl">По дням</div>` + pList(w.days.slice().reverse().map(d=>dayRow(sc, d)));
+}
+const periodTitle = n => n.k==='year' ? `${n.y} год` : n.k==='month' ? `${MON[n.m-1]} ${n.y}` : n.k==='week' ? weekLabel(weekOfNode(n).days) : dayOf(n.key).label;
+const isPeriod = n => !!n && ['year','month','week','day'].includes(n.k);
+/* итог одного дня крупно — верх экрана дня */
+const pBigDay = (sc, d) => pBig(`${d.label}${d.live?' · сегодня':''}`, sc, dayAgg(sc, d));
+
+/* ══ ВХОД ══ */
+function loginHtml(login){
+  return `<div class="statusbar"><span>${hm(S.now)}</span><span>5G ▮▮▮</span></div>
+    <div style="flex:1;background:var(--c-dark);color:#fff;padding:56px 24px 24px;display:flex;flex-direction:column;gap:14px">
+      <span class="logo" style="font-size:44px">LD</span>
+      <h3 style="margin:0 0 10px;font-size:28px;font-weight:800;font-style:italic">Вход</h3>
+      <div class="lbl" style="color:#B9C6CD">Логин</div><input value="${login}" style="font:inherit;font-size:16px;padding:14px;border:0;border-radius:2px">
+      <div class="lbl" style="color:#B9C6CD">Пароль</div><input type="password" value="........" style="font:inherit;font-size:16px;padding:14px;border:0;border-radius:2px">
+      <button class="btn primary" data-login style="margin-top:12px"><span>Войти</span></button>
+      <div style="font-size:13px;color:#B9C6CD;line-height:1.5">Вход сохраняется на несколько недель. Забыли пароль — скажите бригадиру или администратору.</div>
+    </div>`;
+}
+const loginOf = n => n.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(' ','.');
+
+/* ══ ЛЕВЫЙ ТЕЛЕФОН — РАБОЧИЙ ══ */
+function renderLeft(){
+  const w = wk(S.worker), om = openMark(w.id);
+  if (S.login){ const el=document.getElementById('left'); el.innerHTML=loginHtml(loginOf(w.name)); el.querySelector('[data-login]').onclick=()=>{S.login=false;renderAll();}; translate(el); return; }
+  const top = S.tabL==='days' ? S.wNav[S.wNav.length-1] : null, sc = {k:'w', id:w.id};
+  const head = `<div class="statusbar"><span>${hm(S.now)}</span><span>5G ▮▮▮</span></div>
+    <div class="appbar"><div class="row">${top?`<button class="hbtn" data-wback>${ic('back','s18')}Назад</button>`:'<span class="logo">LD</span>'}<div class="who"><b>${w.name}</b>рабочий</div></div>
+    <h3>${S.tabL==='code'?'Мой код':top?periodTitle(top):'Мои смены'}</h3>${top?`<div class="sub">Мои смены</div>`:''}</div>`;
+  let body = '';
+  if (S.tabL==='code'){
+    const tok = S.tokens[w.id], sec = leftSec(tok), dead = sec===0 || tok.used;
+    body += om
+      ? `<div class="state">${ic('check')}<div><b>Вы на объекте с ${hm(om.in)}</b><span>${objName(om.obj)} · принял ${fm(om.by).name}</span></div></div>`
+      : `<div class="state">${ic('clock')}<div><b>Вы сейчас не отмечены</b><span>Покажите код бригадиру — он отсканирует приход</span></div></div>`;
+    body += `<div class="qrbox"><div class="qr ${dead?'dead':''}" id="qr"></div>
+      <div class="ttl"><i style="width:${dead?0:sec/TTL*100}%"></i></div>
+      <div class="muted">${dead?'Обновляем…':`Обновится через ${sec} с · одноразовый`}</div></div>
+      <p class="muted" style="margin:0;text-align:center">${om?'Уход — тем же кодом, у бригадира.':'Код личный: показать его можно только с вашего телефона.'}</p>`;
+  } else if (!top) body += ribbon(sc);
+  else if (top.k!=='day') body += periodView(sc, top);
+  else {
+    /* день рабочего: приход и уход по объектам */
+    const day = dayOf(top.key), ms = day.marks.filter(m=>m.w===w.id);
+    body += pBigDay(sc, day) + `<div class="lbl">Приход и уход</div><div class="card"><div class="list">`;
+    if (!ms.length) body += `<div class="li"><div class="main"><span>Отметок ещё нет</span></div></div>`;
+    ms.forEach(m=>{ const late = lateX(m, day.marks);
+      body += `<div class="li"><div class="main"><b>${objName(m.obj)}</b><span>${hm(m.in)} — ${m.out!=null?hm(m.out):m.noOut?noOutPill():'сейчас'}${late?` · опоздание ${late} мин`:''}</span>${m.flag?`<span style="display:block;color:#8A5E00">${m.flag}</span>`:''}<span style="display:block">принял ${fm(m.by).name}</span></div><div class="num">${durCell(m)}</div></div>`;
+    });
+    body += `</div></div>`;
+  }
+  const tabs = `<nav class="tabs">
+    <button data-l="code" aria-current="${S.tabL==='code'}">${ic('qr')}Мой код</button>
+    <button data-l="days" aria-current="${S.tabL==='days'}">${ic('list')}Мои смены</button></nav>`;
+  const toast = S.toastL ? `<div class="toast">${ic('check')}<span>${S.toastL}</span></div>` : '';
+  const el = document.getElementById('left');
+  el.innerHTML = head + `<div class="body ${S.flashL?'flash':''}">${body}</div>` + toast + tabs;
+  S.flashL = false;
+  drawQR();
+  el.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{S.tabL=b.dataset.l; S.wNav=[]; renderLeft();});
+  el.querySelectorAll('[data-pnav]').forEach(b=>b.onclick=()=>{ S.wNav.push(JSON.parse(b.dataset.pnav)); renderLeft(); el.querySelector('.body').scrollTop=0; });
+  const wb = el.querySelector('[data-wback]'); if (wb) wb.onclick=()=>{ S.wNav.pop(); renderLeft(); };
+}
+function drawQR(){
+  const box = document.getElementById('qr'); if(!box) return;
+  const tok = S.tokens[S.worker];
+  const url = `https://ldvill.theguild.work/p/${tok.t}`;
+  if (window.qrcode){ const q = qrcode(0,'M'); q.addData(url); q.make(); box.innerHTML = q.createSvgTag({cellSize:6, margin:0, scalable:true}); }
+  else box.innerHTML = `<div class="muted" style="text-align:center">QR<br><small>${url}</small></div>`;
+}
+
+/* ══ ВТОРОЙ ТЕЛЕФОН — БРИГАДИР ══
+   Устроен как у Дорина, только своё: «Объекты» — его смены (открытая сверху, ниже по дням), «Сканировать» — по открытой смене.
+   Смена объекта — один экран: статус, люди, сканирование, отчёт, закрытие. Открыть и закрыть — только через подтверждение.
+   S.fNav — стек экранов: пусто — список (открытая смена и лента); {k:'pick'} — выбор объекта; {k:'shift', obj} — смена сегодня;
+   {k:'shift', obj, key} — прошлая смена, только чтение; {k:'year'|'month'|'week'|'day'} — уровни ленты периодов. */
+function fStatus(fid, oid){
+  const sh = S.shifts[fid];
+  if (sh && sh.obj===oid && !sh.closed) return {st:'open', sh};
+  const done = S.shiftLog.filter(s=>s.f===fid && s.obj===oid && s.closed).pop();
+  return done ? {st:'closed', sh:done} : {st:'none'};
+}
+const fPill = s => s.st==='open' ? `<span class="pill on">Открыт с ${hm(s.sh.opened)}</span>` : s.st==='closed' ? `<span class="pill off">Закрыт в ${hm(s.sh.closed)}</span>` : `<span class="pill warn">Не открыт</span>`;
+/* карточка смены в списке — без фамилий */
+function fShiftCard(day, s){
+  const ms = day.marks.filter(m=>m.obj===s.obj && m.by===s.f), no = ms.filter(m=>m.noOut).length;
+  return `<div class="card tap" data-fshift='${JSON.stringify(day.live?{obj:s.obj}:{obj:s.obj, key:day.key})}'><div class="hrow"><h4>${objName(s.obj)}</h4>${fPill(s.closed?{st:'closed', sh:s}:{st:'open', sh:s})}</div>
+    <div class="kv"><div><b>${new Set(ms.map(m=>m.w)).size}</b>людей</div><div><b>${hrs(ms.reduce((a,m)=>a+dur(m),0))}</b>часы</div><div><b>${s.closed&&s.report?'сдан':'нет'}</b>отчёт</div></div>
+    ${no?`<div style="margin-top:8px">${noOutPill(no)}</div>`:''}</div>`;
+}
+/* подсказка под «Закрыть смену»: отчёт обязателен, люди без ухода — нет */
+function closeHint(open, onSite){
+  if (!(open.draft||'').trim()) return 'Чтобы закрыть смену, напишите отчёт.';
+  return onSite.length ? `На объекте ещё ${onSite.length} без отметки ухода — закрыть можно, у них будет отметка «уход не отмечен».` : 'Отчёт уйдёт Дорину.';
+}
+/* люди смены с фамилиями: приход, уход, часы, опоздание */
+function fPeople(day, fid, oid, live){
+  const ms = day.marks.filter(m=>m.obj===oid && m.by===fid), here = ms.filter(m=>m.out==null && !m.noOut), gone = ms.filter(m=>m.out!=null);
+  const row = (m, dim) => { const w = wk(m.w), late = lateX(m, day.marks);
+    return `<div class="li${live&&m.w===S.flashR?' flash':''}"><div class="av"${dim?' style="background:#EEF1F3;color:var(--c-muted)"':''}>${w.short}</div><div class="main"><b>${w.name}</b><span>${m.out!=null?`${hm(m.in)} — ${hm(m.out)}`:m.noOut?`${hm(m.in)} — ${noOutPill()}`:`пришёл ${hm(m.in)}`}${late?` · <span style="color:#8A5E00">опоздание ${late} мин</span>`:''}</span></div><div class="num">${durCell(m)}</div></div>`; };
+  let h = '';
+  if (live){
+    h += `<div class="lbl">На объекте сейчас · ${here.length}</div><div class="card"><div class="list">${here.length ? here.map(m=>row(m)).join('') : `<div class="li"><div class="main"><span>Никого. Нажмите «Сканировать код» и наведите камеру на код рабочего.</span></div></div>`}</div></div>`;
+    if (gone.length) h += `<div class="lbl">Ушли · ${gone.length}</div><div class="card"><div class="list">${gone.map(m=>row(m,true)).join('')}</div></div>`;
+  } else {
+    h += `<div class="lbl">Люди · ${new Set(ms.map(m=>m.w)).size}</div><div class="card"><div class="list">${ms.length ? ms.map(m=>row(m,true)).join('') : `<div class="li"><div class="main"><span>Отметок не было.</span></div></div>`}</div></div>`;
+  }
+  return h;
+}
+function renderForeman(){
+  const f = fm(S.foreman), sh = S.shifts[f.id], open = sh && !sh.closed ? sh : null;
+  if (S.login){ const el=document.getElementById('right'); el.innerHTML=loginHtml(loginOf(f.name)); el.querySelector('[data-login]').onclick=()=>{S.login=false;renderAll();}; translate(el); return; }
+  const card = S.tabR==='site' ? S.fNav[S.fNav.length-1] || null : null, sc = {k:'f', id:f.id};
+  const title = S.tabR==='scan' ? 'Сканировать' : !card ? 'Объекты' : card.k==='pick' ? 'Выбор объекта' : isPeriod(card) ? periodTitle(card) : objName(card.obj);
+  const sub = card?.k==='shift' ? (card.key ? `${dayOf(card.key).label} · только просмотр` : `${TODAY.label} · сегодня`) : isPeriod(card) ? 'мои смены' : '';
+  const head = `<div class="statusbar"><span>${hm(S.now)}</span><span>5G ▮▮▮</span></div>
+    <div class="appbar"><div class="row">${card?`<button class="hbtn" data-fback>${ic('back','s18')}Назад</button>`:'<span class="logo">LD</span>'}<div class="who"><b>${f.name}</b>бригадир</div></div>
+    <h3>${title}</h3>${sub?`<div class="sub">${sub}</div>`:''}</div>`;
+  let body = '', full = false;
+  const onSite = open ? S.marks.filter(m=>m.obj===open.obj && m.by===f.id && m.out==null) : [];
+  /* закрыть можно и с людьми без ухода (исключение, решение Oleg 20.10) — нельзя только с пустым отчётом */
+  const canClose = open && (open.draft||'').trim();
+  if (S.tabR==='scan'){
+    full = true;
+    body = !open
+      ? `<div class="cam"><div class="hint">Сначала откройте смену — иначе отметке некуда записаться.</div><button class="btn primary" data-go="site"><span>Перейти в «Объекты»</span></button></div>`
+      : `<div class="cam"><div class="frame"><i></i><i></i><i></i><i></i><div class="ghostqr"></div></div>
+        <div class="hint">Наведите камеру на код в телефоне рабочего. Приход или уход система определит сама.</div>
+        <button class="btn primary" id="shoot"><span>Отсканировать код рабочего</span></button>
+        <div class="hint" style="font-size:12px;opacity:.7">${objName(open.obj)}</div></div>`;
+  } else if (!card){
+    /* список смен: открытая сверху, ниже сегодня и прошлые дни, где он бригадир */
+    body += open
+      ? `<button class="btn ghost" disabled>+ Начать смену на объекте</button><div class="muted" style="margin-top:-4px">Сначала закройте открытую смену — бригадир ведёт одну смену за раз.</div>
+         <div class="lbl">Открыта сейчас</div>${fShiftCard(dayOf(TODAY.key), open)}`
+      : `<button class="btn primary" data-fpick><span>+ Начать смену на объекте</span></button>`;
+    /* ниже — лента периодов: его смены за месяц, неделю, день; день раскрывается в смены, смена — только чтение */
+    body += `<div class="lbl">Мои смены</div>` + ribbon(sc);
+  } else if (isPeriod(card) && card.k!=='day'){
+    body += periodView(sc, card);
+  } else if (card.k==='day'){
+    const day = dayOf(card.key), shs = day.shifts.filter(s=>s.f===f.id);
+    body += pBigDay(sc, day) + `<div class="lbl">Смены дня · ${shs.length}</div>` + (shs.length ? shs.map(s=>fShiftCard(day, s)).join('') : `<div class="card muted">Сегодня смен ещё не было.</div>`);
+  } else if (card.k==='pick'){
+    /* выбор объекта: все объекты в одно касание; сверху — где бригадир был последним */
+    const seen = LAST_SEEN[f.id] || {}, today = S.shiftLog.filter(s=>s.f===f.id).map(s=>s.obj);
+    const objs = OBJECTS.filter(o=>!o.closed).sort((a,b)=>(today.includes(a.id)?0:seen[a.id]??99)-(today.includes(b.id)?0:seen[b.id]??99));
+    const ago = o => { const s = fStatus(f.id, o.id);
+      return s.st==='closed' ? `сегодня уже были · закрыт в ${hm(s.sh.closed)}` : o.isNew&&seen[o.id]==null ? 'новый объект · добавил Дорин' : agoTxt(seen[o.id]); };
+    body += `<div class="lbl">Где вы сегодня работаете</div>
+      <div class="muted" style="margin-top:-4px">Нажмите на объект — откроется экран смены, там её и откроете.</div>
+      <div class="list">${objs.map(o=>`<button class="objpick" data-obj="${o.id}">
+        <span class="main"><b>${o.name}</b><span>${o.addr}</span><span class="ago">${ago(o)}</span></span>${ic('chev')}</button>`).join('')}</div>`;
+  } else {
+    /* экран смены: всё о рабочем дне на объекте */
+    const o = OBJECTS.find(x=>x.id===card.obj);
+    const past = card.key ? dayOf(card.key).shifts.filter(s=>s.f===f.id && s.obj===card.obj) : null;
+    const s = past ? {st:'closed', sh:past[past.length-1]} : fStatus(f.id, card.obj);
+    body += `<div class="card"><div class="hrow"><h4>${o.name}</h4>${fPill(s)}</div><div class="muted">${o.addr}${s.st!=='none'?` · открыт ${hm(s.sh.opened)}`:''}</div></div>`;
+    if (s.st==='none'){
+      body += open
+        ? `<div class="card muted">Сначала закройте смену на «${objName(open.obj)}».</div><button class="btn primary" disabled><span>Открыть смену</span></button>`
+        : `<div class="muted">Пока смена не открыта, сканировать на объекте нельзя. Откроете — все отметки людей будут числиться за ней.</div><button class="btn primary" data-openobj><span>Открыть смену</span></button>`;
+    } else if (s.st==='open'){
+      body += fPeople(dayOf(TODAY.key), f.id, card.obj, true) + `<button class="btn primary" data-go="scan"><span>${S.marks.some(m=>m.obj===card.obj&&m.by===f.id)?'Сканировать ещё':'Сканировать код'}</span></button>
+        <div class="lbl">Отчёт за день</div>
+        <textarea id="rep" placeholder="Что делали, сколько сделали, что привезли, что мешало.">${esc(open.draft||'')}</textarea>
+        <div class="muted" style="display:flex;gap:8px;align-items:center;margin-top:-4px">${ic('mic','s16')}Можно надиктовать — кнопка микрофона на клавиатуре телефона. Звук никуда не отправляется.</div>
+        <button class="btn dark" id="close" style="opacity:${canClose?1:.45}">Закрыть смену</button>
+        <div class="muted" id="close-hint" style="margin-top:-4px">${closeHint(open, onSite)}</div>`;
+    } else {
+      const day = dayOf(card.key || TODAY.key);
+      body += fPeople(day, f.id, card.obj, false) + `<div class="lbl">Отчёт за день · ${hm(s.sh.closed)}</div><div class="card" style="white-space:pre-wrap;font-size:14px;line-height:1.5">${s.sh.report?esc(s.sh.report):'—'}</div>`;
+    }
+  }
+  const tabs = `<nav class="tabs">
+    <button data-r="site" aria-current="${S.tabR==='site'}">${ic('site')}Объекты</button>
+    <button data-r="scan" aria-current="${S.tabR==='scan'}">${ic('scan')}Сканировать</button></nav>`;
+  const el = document.getElementById('right');
+  el.innerHTML = head + (full ? body : `<div class="body">${body}</div>`) + sheetHtml() + (S.toastR?`<div class="toast">${ic('check')}<span>${S.toastR}</span></div>`:'') + tabs;
+  const push = n => { S.fNav.push(n); renderRight(); el.querySelector('.body')?.scrollTo(0,0); };
+  el.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{ S.tabR=b.dataset.r; S.sheetR=null; if (b.dataset.r==='site') S.fNav=[]; renderRight(); });
+  el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{ S.tabR=b.dataset.go; if (b.dataset.go==='site') S.fNav=[]; renderRight(); });
+  el.querySelectorAll('[data-fshift]').forEach(b=>b.onclick=()=>push({k:'shift', ...JSON.parse(b.dataset.fshift)}));
+  el.querySelectorAll('[data-pnav]').forEach(b=>b.onclick=()=>push(JSON.parse(b.dataset.pnav)));
+  el.querySelectorAll('[data-obj]').forEach(b=>b.onclick=()=>push({k:'shift', obj:b.dataset.obj}));
+  const pk = el.querySelector('[data-fpick]'); if (pk) pk.onclick=()=>push({k:'pick'});
+  const fb = el.querySelector('[data-fback]'); if (fb) fb.onclick=()=>{ S.fNav.pop(); S.sheetR=null; renderRight(); };
+  const ob = el.querySelector('[data-openobj]'); if (ob) ob.onclick=()=>{ S.sheetR={kind:'openobj', obj:card.obj}; renderRight(); };
+  const shoot = el.querySelector('#shoot'); if(shoot) shoot.onclick=()=>scan(S.tokens[S.worker]);
+  const rep = el.querySelector('#rep');
+  if (rep) rep.oninput=()=>{ open.draft = rep.value; const ok = rep.value.trim();
+    el.querySelector('#close').style.opacity = ok?1:.45; el.querySelector('#close-hint').textContent = closeHint(open, onSite); translate(el.querySelector('#close-hint')); };
+  const close = el.querySelector('#close'); if(close) close.onclick=()=>{
+    /* люди без ухода — сперва предлагаем отсканировать; закрыть без их ухода можно, это исключение */
+    if (onSite.length){ S.sheetR={kind:'notout', list:onSite}; renderRight(); return; }
+    closeAsk(open, 0);
+  };
+  bindSheet(el);
+  S.flashR = null;
+  /* пока открыта шторка, плавающая кнопка пульта прячется — она закрывала правый край «Подтвердить» */
+  document.body.classList.toggle('insheet', !!S.sheetR);
+}
+function esc(s){ return s.replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function sheetHtml(){
+  const sh = S.sheetR; if(!sh) return '';
+  let inner = '';
+  if (sh.kind==='confirm'){
+    const w = wk(sh.w), isOut = !!sh.out;
+    const late = !isOut && !S.marks.some(m=>m.w===sh.w) ? lateOf({w:sh.w, in:S.now, opened:S.shifts[S.foreman].opened, _new:true}) : 0;
+    inner = `<h4>${isOut?'Уход':'Приход'}</h4>
+      <div class="big"><div class="av">${w.short}</div><div><b style="font-size:17px">${w.name}</b><div class="muted">${isOut?`уход с объекта «${objName(sh.out.obj)}» · был с ${hm(sh.out.in)}`:`приход на объект «${objName(S.shifts[S.foreman].obj)}»`}</div></div></div>
+      ${sh.moveFrom?`<div class="pill warn">${ic('alert','s16')}Не отмечен уход с «${objName(sh.moveFrom.obj)}» — закроем его этим временем</div>`:''}
+      ${late?`<div class="pill warn">${ic('clock','s16')}Опоздание ${late} мин</div>`:''}
+      <div class="muted">Время отметки — ${hm(S.now)}, ставит сервер.</div>
+      <button class="btn primary" data-s="ok"><span>Подтвердить</span></button>
+      <button class="btn ghost" data-s="no">Отмена</button>`;
+  } else if (sh.kind==='openobj'){
+    inner = `<h4>Открыть смену на «${objName(sh.obj)}»?</h4>
+      <div class="muted" style="font-size:14px">Время — ${hm(S.now)}, отметки людей будут числиться за ней.</div>
+      <button class="btn primary" data-s="open"><span>Да, открыть</span></button>
+      <button class="btn ghost" data-s="no">Отмена</button>`;
+  } else if (sh.kind==='closeobj'){
+    inner = `<h4>Закрыть смену на «${objName(sh.obj)}»?</h4>
+      <div class="muted" style="font-size:14px">Время — ${hm(S.now)}, отчёт уйдёт Дорину.</div>
+      ${sh.noOut?`<div>${noOutPill()}</div><div class="muted" style="font-size:14px;margin-top:-4px">У ${sh.noOut} ${pl(sh.noOut,'человека','человек','человек')} будет отметка «уход не отмечен». ${ruleLong()}</div>`:''}
+      <button class="btn primary" data-s="closeok"><span>Да, закрыть</span></button>
+      <button class="btn ghost" data-s="no">Отмена</button>`;
+  } else if (sh.kind==='notout'){
+    /* исключение: человек уехал, а уход не отсканировали. Основное — отсканировать; закрыть без ухода — можно, контуром */
+    inner = `<h4>На объекте ${sh.list.length} без отметки ухода</h4>
+      <div class="list">${sh.list.map(m=>`<div class="li"><div class="av">${wk(m.w).short}</div><div class="main"><b>${wk(m.w).name}</b><span>с ${hm(m.in)}</span></div></div>`).join('')}</div>
+      <button class="btn primary" data-s="scanrest"><span>Отсканировать уход</span></button>
+      <button class="btn ghost" data-s="closenoout">Закрыть без их ухода</button>`;
+  } else {
+    inner = `<h4 style="color:var(--c-bad)">${sh.title}</h4><div class="muted" style="font-size:14px">${sh.text}</div>
+      <button class="btn dark" data-s="no">Понятно</button>`;
+  }
+  return `<div class="scrim" data-s="no"></div><div class="sheet" style="${sh.kind==='err'?'border-top-color:var(--c-bad)':''}">${inner}</div>`;
+}
+function bindSheet(el){
+  el.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{
+    const a = b.dataset.s, sh = S.sheetR;
+    if (a==='no'){ S.sheetR=null; renderRight(); return; }
+    if (a==='ok') return commit(sh);
+    if (a==='open'){
+      const f = S.foreman;
+      S.shifts[f] = {f, obj:sh.obj, opened:S.now, closed:null, report:'', notOut:[]};
+      S.shiftLog.push(S.shifts[f]); S.sheetR=null; S.fNav=[{k:'shift', obj:sh.obj}];
+      toastR(`Смена открыта · ${hm(S.now)}`); renderAll(); return;
+    }
+    if (a==='closeok'){ const o = S.shifts[S.foreman]; o.report = o.draft.trim(); return closeShift(); }
+    if (a==='scanrest'){ S.sheetR=null; S.tabR='scan'; renderRight(); return; }
+    if (a==='closenoout') return closeAsk(S.shifts[S.foreman], sh.list.length);
+  });
+}
+/* перед закрытием: пустой отчёт не пускает; иначе — обычное подтверждение (с припиской, если кто-то без ухода) */
+function closeAsk(open, noOut){
+  S.sheetR = !(open.draft||'').trim()
+    ? {kind:'err', title:'Отчёт пустой', text:'Напишите или надиктуйте хотя бы пару строк — что сделано за день.'}
+    : {kind:'closeobj', obj:open.obj, noOut};
+  renderRight();
+}
+
+/* скан: проверка пропуска — как это будет делать движок */
+function scan(tok){
+  const sh = S.shifts[S.foreman];
+  if (S.scan==='system' && !S.sysStep){ S.sysStep = tok; renderSys(); return; }
+  S.sysStep = null;
+  if (tok.used){ S.sheetR={kind:'err', title:'Код уже использован', text:'Этим кодом уже отметились. Попросите рабочего открыть «Мой код» — там уже новый.'}; return renderRight(); }
+  if (leftSec(tok)===0){ S.sheetR={kind:'err', title:'Код устарел', text:'Код живёт минуту. Попросите рабочего открыть «Мой код» — он обновится сам.'}; return renderRight(); }
+  const om = openMark(tok.w);
+  if (om && om.obj===sh.obj) S.sheetR = {kind:'confirm', w:tok.w, tok, out:om};
+  else S.sheetR = {kind:'confirm', w:tok.w, tok, moveFrom: om||null};
+  renderRight();
+}
+function renderSys(){
+  /* обычная камера телефона: система показывает ссылку, касание открывает приложение */
+  renderRight();
+  const cam = document.querySelector('#right .cam'); if(!cam) return;
+  const d = document.createElement('div');
+  d.className='syslink'; d.innerHTML = `${ic('link')}<div><b>Открыть ldvill.theguild.work</b>ссылка из QR-кода · касание откроет приложение</div>`;
+  d.onclick = ()=>scan(S.sysStep);
+  cam.appendChild(d);
+}
+function commit(sh){
+  const f = S.foreman, shift = S.shifts[f], tok = sh.tok, w = wk(sh.w);
+  tok.used = true; S.lastUsed = tok;
+  if (sh.out){ sh.out.out = S.now; sh.out.outBy = f; toastR(`${w.name} — уход ${hm(S.now)}`); S.toastL = `Уход отмечен · ${hm(S.now)}`; }
+  else {
+    if (sh.moveFrom){ sh.moveFrom.out = S.now; sh.moveFrom.flag = 'уход не отмечен, закрыт приходом на другой объект'; }
+    S.marks.push({w:sh.w, obj:shift.obj, by:f, in:S.now, out:null, opened:shift.opened});
+    toastR(`${w.name} — приход ${hm(S.now)}`); S.toastL = `Приход отмечен · ${objName(shift.obj)} · ${hm(S.now)}`;
+  }
+  S.tokens[sh.w] = mint(sh.w);           /* погашенный код сменяется новым */
+  S.sheetR = null; S.flashL = true; S.flashR = sh.w;
+  /* бригадир возвращается на экран смены: там видно, кто пришёл и кто ушёл; сканер — кнопкой «Сканировать ещё» */
+  S.tabR = 'site'; S.fNav = [{k:'shift', obj:shift.obj}];
+  clearTimeout(S._tl); S._tl = setTimeout(()=>dropToast('left', 'toastL'), 2600);
+  renderAll();
+}
+function closeShift(){
+  const f = S.foreman, sh = S.shifts[f];
+  const left = S.marks.filter(m=>m.obj===sh.obj && m.by===f && m.out==null);
+  left.forEach(m=>{ m.noOut = true; m.closedAt = S.now; });
+  sh.notOut = left; sh.closed = S.now; S.sheetR = null;
+  if (sh.plan){ sh._closed = S.now; sh._report = sh.report; sh._shown = true; }
+  toastR('Отчёт отправлен Дорину · смена закрыта');
+  sh.isNew = true;   /* «новый отчёт» и счётчик на «Сегодня» — пока Дорин не открыл день объекта */
+  S.toastB = `Новый отчёт: ${objName(sh.obj)} · ${fm(f).name}`; clearTimeout(S._tb); S._tb = setTimeout(()=>dropToast('boss', 'toastB'), 3500);
+  renderAll();
+}
+function toastR(t){ S.toastR = t; clearTimeout(S._tr); S._tr = setTimeout(()=>dropToast('right', 'toastR'), 2600); }
+/* убрать тост, не перерисовывая экран: перерисовка по таймеру съедала касание кнопки на телефоне */
+function dropToast(id, key){ S[key] = null; document.querySelector(`#${id} .toast`)?.remove(); }
+
+/* ══ ТРЕТИЙ ТЕЛЕФОН — РУКОВОДИТЕЛЬ ДОРИН ══
+   Вкладки: Сегодня · История · Объекты · Отчёты; настройки — за шестерёнкой в шапке.
+   «Сегодня» — это день из истории, только живой: один и тот же dayView рисует и сегодня, и любой прошлый день. */
+function dayOf(key){
+  if (key===TODAY.key) return {...TODAY, live:true, shifts:S.shiftLog, marks:S.marks};
+  return BY_KEY[key];
+}
+const allDays = () => [...HIST, dayOf(TODAY.key)];
+const PREV_MON = isoOf(Date.UTC(2026,9,12));
+const monthOf = (y,m) => BY_MONTH[`${y}-${pad(m)}`]||[];
+/* опоздание в любом дне — только по первому приходу человека в этот день */
+const lateX = (m, marks) => marks.find(x=>x.w===m.w)!==m ? 0 : S.lateFrom==='open' ? Math.max(0, m.in-(m.opened+S.settings.grace)) : lateBy(m.in);
+const hrs = m => `${(m/60).toFixed(1).replace('.0','')} ч`;
+const pl = (n, a, b, c) => { const t=n%10, h=n%100; return t===1&&h!==11 ? a : t>=2&&t<=4&&(h<10||h>=20) ? b : c; };
+const nav = o => `data-nav='${JSON.stringify(o)}'`;
+function dayStat(day){
+  return { objs:[...new Set(day.shifts.map(s=>s.obj))],
+    now: day.live ? day.marks.filter(m=>m.out==null&&!m.noOut).length : 0,
+    people: new Set(day.marks.map(m=>m.w)).size, mins: day.marks.reduce((a,m)=>a+dur(m),0),
+    late: day.marks.filter(m=>lateX(m,day.marks)>0).length,
+    rep: day.shifts.filter(s=>s.closed&&s.report).length, shifts: day.shifts.length };
+}
+function objStat(day, oid){
+  const ms = day.marks.filter(m=>m.obj===oid), shs = day.shifts.filter(s=>s.obj===oid);
+  return { ms, shs, now: day.live ? ms.filter(m=>m.out==null&&!m.noOut).length : 0, people: new Set(ms.map(m=>m.w)).size,
+    mins: ms.reduce((a,m)=>a+dur(m),0), late: ms.filter(m=>lateX(m,day.marks)>0).length,
+    reported: shs.length>0 && shs.every(s=>s.closed&&s.report), isNew: shs.some(s=>s.isNew), noOut: ms.filter(m=>m.noOut).length };
+}
+
+/* день: общий итог и карточки объектов БЕЗ фамилий */
+function dayView(day){
+  const st = dayStat(day);
+  if (!st.objs.length) return `<div class="card"><h4>Пока ни один объект не открыт</h4><div class="muted">Объект появится здесь, когда бригадир откроет его утром.</div></div>`;
+  let h = `<div class="sum" data-min="${st.mins}">${day.live
+      ? `<div><b>${st.now}</b>сейчас на объектах</div><div><b>${st.people}</b>было за день</div>`
+      : `<div><b>${st.people}</b>человек за день</div><div><b>${st.objs.length}</b>${pl(st.objs.length,'объект','объекта','объектов')}</div>`}
+    <div><b>${hrs(st.mins)}</b>отработано</div><div><b>${st.late}</b>${pl(st.late,'опоздание','опоздания','опозданий')}</div>
+    <div class="wide"><b>${st.rep}/${st.shifts}</b>${day.live?'отчётов сдано из открытых смен':'отчётов сдано'}</div></div>
+    <div class="lbl">Объекты · ${st.objs.length}</div>`;
+  st.objs.forEach(oid=>{
+    const o = objStat(day, oid);
+    const pill = o.reported ? `<span class="pill on">${o.isNew?'новый отчёт':'отчёт сдан'}</span>` : `<span class="pill off">отчёта ещё нет</span>`;
+    h += `<div class="card tap" ${nav({k:'dayobj', key:day.key, obj:oid})}><div class="hrow"><h4>${objName(oid)}</h4>${pill}</div>
+      <div class="muted">${o.shs.map(s=>`${fm(s.f).name}, ${hm(s.opened)} — ${s.closed?hm(s.closed):'идёт'}`).join(' · ')}</div>
+      <div class="kv">${day.live?`<div><b>${o.now}</b>сейчас</div>`:''}<div><b>${o.people}</b>за день</div><div><b>${hrs(o.mins)}</b>часы</div><div><b>${o.late}</b>${pl(o.late,'опоздание','опоздания','опозданий')}</div></div>${o.noOut?`<div style="margin-top:8px">${noOutPill(o.noOut)}</div>`:''}</div>`;
+  });
+  return h;
+}
+
+/* день объекта: тут уже с фамилиями, переездами и отчётом бригадира */
+function dayObjView(day, oid){
+  const o = objStat(day, oid), ob = OBJECTS.find(x=>x.id===oid);
+  let h = `<div class="card"><div class="muted">${ob?ob.addr:''}</div><div class="list" style="margin-top:4px">${o.shs.map(s=>`<div class="li"><div class="av">${fm(s.f).short}</div><div class="main"><b>${fm(s.f).name}</b><span>бригадир · ${hm(s.opened)} — ${s.closed?hm(s.closed):'идёт'}</span></div></div>`).join('')}</div>
+    <div class="kv">${day.live?`<div><b>${o.now}</b>сейчас</div>`:''}<div><b>${o.people}</b>за день</div><div><b>${hrs(o.mins)}</b>часы</div><div><b>${o.late}</b>${pl(o.late,'опоздание','опоздания','опозданий')}</div></div></div>
+    <div class="lbl">Люди · ${o.people}</div><div class="card"><div class="list">`;
+  if (!o.ms.length) h += `<div class="li"><div class="main"><span>Пока никого не отсканировали.</span></div></div>`;
+  o.ms.forEach(m=>{
+    const w = wk(m.w), late = lateX(m, day.marks);
+    const mv = day.marks.filter(x=>x.w===m.w && x!==m).map(x=> x.in>m.in ? `переезд на «${objName(x.obj)}» в ${hm(m.out)}` : `приехал с «${objName(x.obj)}»`).join(' · ');
+    h += `<div class="li"><div class="av">${w.short}</div><div class="main"><b>${w.name}</b><span>${hm(m.in)} — ${m.out!=null?hm(m.out):m.noOut?noOutPill():'на объекте'}${late?` · <span style="color:#8A5E00;font-weight:700">опоздание ${late} мин</span>`:''}</span>${mv?`<span style="display:block">${mv}</span>`:''}${m.flag?`<span style="display:block;color:#8A5E00">${m.flag}</span>`:''}</div><div class="num">${durCell(m)}</div></div>`;
+  });
+  h += `</div></div><div class="lbl">Отчёт бригадира</div>`;
+  o.shs.forEach(s=>{
+    h += s.report && s.closed
+      ? `<div class="card"><div class="muted" style="margin-bottom:6px"><b style="color:var(--c-ink)">${fm(s.f).name}</b> · ${hm(s.closed)}${s.isNew?' <span class="pill on">новый</span>':''}</div><div style="white-space:pre-wrap;font-size:14px;line-height:1.5">${esc(s.report)}</div></div>`
+      : `<div class="card muted">${fm(s.f).name}: отчёта пока нет — смена идёт.</div>`;
+  });
+  return h;
+}
+
+/* История — лента периодов по всем объектам; день открывается тем же dayView, что «Сегодня» */
+function histView(){
+  return `<div class="muted">Нажмите на месяц, неделю или день — откроется с кнопкой «Назад». День выглядит так же, как «Сегодня».</div>` + ribbon({k:'all'});
+}
+
+/* Объекты: часы за месяц, новый объект, карточка объекта с дневником */
+function objMonth(oid){
+  const ob = OBJECTS.find(o=>o.id===oid), pool = ob && ob.closed ? HIST : [...monthOf(TODAY.y, TODAY.m), dayOf(TODAY.key)];
+  const days = pool.filter(d=>d.shifts.some(s=>s.obj===oid));
+  const ms = days.flatMap(d=>d.marks.filter(m=>m.obj===oid));
+  return { days, mins: ms.reduce((a,m)=>a+dur(m),0), people: new Set(ms.map(m=>m.w)).size };
+}
+function objsView(){
+  let h = `<button class="btn primary" ${nav({k:'newobj'})}><span>+ Новый объект</span></button>
+    <div class="lbl">Октябрь, с учётом сегодня</div><div class="card" style="padding-block:4px"><div class="list">`;
+  const row = o => { const mo = objMonth(o.id);
+    return `<div class="li tap" ${nav({k:'obj', id:o.id})}><div class="main"><b>${o.name}${o.isNew?' <span class="pill on">новый</span>':''}</b><span>${mo.days.length} ${pl(mo.days.length,'рабочий день','рабочих дня','рабочих дней')} · ${o.addr}</span></div><div class="num">${hrs(mo.mins)}</div>${ic('chev','s16 chev')}</div>`; };
+  h += OBJECTS.filter(o=>!o.closed).map(row).join('') + `</div></div><div class="lbl">Закрытые объекты · за всё время</div><div class="card" style="padding-block:4px"><div class="list">`;
+  return h + OBJECTS.filter(o=>o.closed).map(row).join('') + `</div></div>`;
+}
+function objView(id){
+  const ob = OBJECTS.find(o=>o.id===id), mo = objMonth(id);
+  let h = `<div class="muted">${ob.addr}</div>
+    <div class="sum"><div><b>${hrs(mo.mins)}</b>${ob.closed?'за всё время':'за октябрь'}</div><div><b>${mo.days.length}</b>${pl(mo.days.length,'рабочий день','рабочих дня','рабочих дней')}</div><div class="wide"><b>${mo.people}</b>человек побывало на объекте</div></div>`;
+  if (!mo.days.length) return h + `<div class="card"><h4>Здесь ещё не работали</h4><div class="muted">Бригадиры уже видят объект в своём списке «Где вы сегодня работаете». Как только кто-то его откроет, дни и отчёты появятся здесь.</div></div>`;
+  const days = mo.days.slice().reverse();
+  h += `<div class="lbl">Дни работы</div><div class="card" style="padding-block:4px"><div class="list">${days.map(d=>{ const o = objStat(d, id);
+    return `<div class="li tap" ${nav({k:'dayobj', key:d.key, obj:id})}><div class="main"><b>${d.label}${d.live?' · сегодня':''}</b><span>${[...new Set(o.shs.map(s=>fm(s.f).name))].join(', ')} · ${o.people} чел.</span></div><div class="num">${hrs(o.mins)}</div>${ic('chev','s16 chev')}</div>`; }).join('')}</div></div>
+    <div class="lbl">Дневник объекта</div>`;
+  days.forEach(d=>d.shifts.filter(s=>s.obj===id && s.closed && s.report).reverse().forEach(s=>{
+    h += `<div class="card"><div class="muted" style="margin-bottom:6px"><b style="color:var(--c-ink)">${d.label}</b> · ${fm(s.f).name} · ${hm(s.closed)}</div><div style="white-space:pre-wrap;font-size:14px;line-height:1.5">${esc(s.report)}</div></div>`; }));
+  return h;
+}
+function newObjView(){
+  return `<div class="lbl">Название</div><input class="fld" id="no-name" placeholder="Например: Újpest, iroda">
+    <div class="lbl">Адрес</div><input class="fld" id="no-addr" placeholder="Город, улица, дом">
+    <button class="btn primary" id="no-add" style="margin-top:6px"><span>Добавить объект</span></button>
+    <div class="muted">Объект сразу появится у бригадиров в списке «Где вы сегодня работаете» с пометкой «новый объект».</div>`;
+}
+
+/* Отчёты: сводные за период — по людям (основа зарплаты) и по объектам */
+const PER = { week:['Эта неделя', d=>d.mon===TODAY.mon, '19–20.10, сегодня ещё идёт'], last:['Прошлая неделя', d=>d.mon===PREV_MON, '12–16.10'], month:['Месяц', d=>d.y===TODAY.y&&d.m===TODAY.m, 'октябрь, 1–20.10'] };
+function repView(){
+  const [, f, sub] = PER[S.repPer], days = allDays().filter(f);
+  const segBtn = (k, v, t) => `<button data-${k}="${v}" aria-pressed="${S[k==='per'?'repPer':'repBy']===v}">${t}</button>`;
+  let h = pBigMonth({k:'all'}) + `<div class="seg fill">${Object.entries(PER).map(([v,[t]])=>segBtn('per',v,t)).join('')}</div>
+    <div class="seg fill">${segBtn('by','people','По людям')}${segBtn('by','objs','По объектам')}</div>`;
+  const acc = {};
+  days.forEach(d=>d.marks.forEach(m=>{ const k = S.repBy==='people' ? m.w : m.obj;
+    const a = acc[k] || (acc[k] = {days:new Set(), mins:0, late:0, people:new Set()});
+    a.days.add(d.key); a.mins += dur(m); a.late += lateX(m, d.marks); a.people.add(m.w); }));
+  const total = Object.values(acc).reduce((s,a)=>s+a.mins,0);
+  h += `<div class="sum"><div><b>${hrs(total)}</b>отработано</div><div><b>${new Set(days.flatMap(d=>d.marks.map(m=>m.w))).size}</b>человек</div></div>
+    <div class="lbl">${S.repBy==='people'?'По людям':'По объектам'} · ${sub}</div><div class="card" style="padding-block:4px"><div class="list">`;
+  if (S.repBy==='people'){
+    WORKERS.filter(w=>acc[w.id]).sort((a,b)=>a.name.localeCompare(b.name,'hu')).forEach(w=>{ const a = acc[w.id];
+      h += `<div class="li"><div class="av">${w.short}</div><div class="main"><b>${w.name}</b><span>${a.days.size} дн. · ${a.late?`опоздания ${a.late} мин`:'без опозданий'}</span></div><div class="num">${hrs(a.mins)}</div></div>`; });
+  } else {
+    OBJECTS.filter(o=>acc[o.id]).forEach(o=>{ const a = acc[o.id];
+      h += `<div class="li tap" ${nav({k:'obj', id:o.id})}><div class="main"><b>${o.name}</b><span>${a.days.size} дн. · ${a.people.size} чел.</span></div><div class="num">${hrs(a.mins)}</div>${ic('chev','s16 chev')}</div>`; });
+  }
+  if (!Object.keys(acc).length) h += `<div class="li"><div class="main"><span>За этот период отметок нет.</span></div></div>`;
+  return h + `</div></div><button class="btn ghost" disabled>Выгрузить в Excel</button><div class="muted" style="text-align:center;margin-top:-4px"><span class="pill off">позже</span> Выгрузка не входит в прототип: форма таблицы — по вашему расчёту зарплаты.</div>`;
+}
+
+/* Настройки — за шестерёнкой; в прототип не входят */
+function setView(){
+  const opt = (k, vals, fmt) => `<div class="seg" style="gap:6px">${vals.map(v=>`<button data-set="${k}" data-v="${v}" aria-pressed="${S.settings[k]===v}" style="font:inherit;font-size:13px;font-weight:700;padding:9px 12px;border:1px solid var(--c-line);background:${S.settings[k]===v?'var(--c-dark)':'#fff'};color:${S.settings[k]===v?'#fff':'var(--c-ink)'};border-radius:2px;cursor:pointer">${fmt(v)}</button>`).join('')}</div>`;
+  return `<div class="card" style="border-left:3px solid var(--c-warn)"><span class="pill warn">позже</span> <b>Так экран может выглядеть позже.</b><div class="muted">В прототипе эти значения держит контракт картриджа, а меняет их Copilot. Здесь — чтобы попробовать, как правило меняет числа.</div></div>
+    <div class="lbl">Начало рабочего дня (если считать от него)</div>${opt('start',[420,450,480],hm)}
+    <div class="lbl">Опоздание считается после</div>${opt('grace',[0,5,10,15],v=>v?`${v} мин`:'сразу')}
+    <div class="lbl">Округление часов</div>${opt('round',[0,15,30],v=>v?`до ${v} мин`:'не округлять')}
+    <div class="lbl">Часы без отметки ухода</div>
+    <div class="muted" style="margin-top:-2px">Бригадир закрыл смену, а у человека не отсканирован уход. Сколько часов ему засчитать?</div>
+    ${opt('noOut',['zero','min','close'],v=>({zero:'Не считать', min:'Минимальный день', close:'До закрытия смены'})[v])}
+    ${S.settings.noOut==='min'?`<div class="muted">Засчитать вместо фактического времени — это штраф за пропущенный уход:</div>${opt('noOutMin',[4,7,8],v=>`${v} ч`)}`:''}
+    <div class="card muted">${({zero:'<b>Не считать</b> — 0 ч: время без ухода в часы не входит. Так по умолчанию.', min:`<b>Минимальный день</b> — засчитываем ${S.settings.noOutMin} ч, сколько бы человек ни пробыл на объекте.`, close:'<b>До закрытия смены</b> — от прихода до момента, когда бригадир закрыл смену.'})[S.settings.noOut]}
+      Рядом с такими часами везде стоит подпись «${ruleTxt()}». Правило сразу пересчитывает смену, день, ленту и отчёты.</div>
+    <div class="card muted">Опоздание считается только по первому приходу за день — от открытия объекта или от начала дня (переключатель на пульте): переезд на другой объект опозданием не бывает. Правило применяется ко всем одинаково и сразу пересчитывает «Сегодня», «Историю» и «Отчёты».</div>`;
+}
+
+function renderOwner(){
+  const top = S.oNav[S.oNav.length-1];
+  const titles = {today:'Сегодня', hist:'История', objs:'Объекты', rep:'Отчёты'};
+  let title, sub = '', body;
+  if (!top){ title = titles[S.tabO]; body = {today:()=>dayView(dayOf(TODAY.key)), hist:histView, objs:objsView, rep:repView}[S.tabO](); if (S.tabO==='today') sub = `${TODAY.label} · идёт`; }
+  else if (top.k==='day'){ const d = dayOf(top.key); title = d.label; sub = d.live ? 'сегодня' : 'день из истории'; body = dayView(d); }
+  else if (isPeriod(top)){ title = periodTitle(top); sub = 'все объекты'; body = periodView({k:'all'}, top); }
+  else if (top.k==='dayobj'){ const d = dayOf(top.key); title = objName(top.obj); sub = d.live ? `${d.label} · сегодня` : d.label; body = dayObjView(d, top.obj); }
+  else if (top.k==='obj'){ title = objName(top.id); sub = 'объект'; body = objView(top.id); }
+  else if (top.k==='newobj'){ title = 'Новый объект'; body = newObjView(); }
+  else { title = 'Настройки'; body = setView(); }
+  const unread = S.shiftLog.filter(s=>s.isNew).length;
+  const head = `<div class="statusbar"><span>${hm(S.now)}</span><span>5G ▮▮▮</span></div>
+    <div class="appbar"><div class="row">${top?`<button class="hbtn" data-back>${ic('back','s18')}Назад</button>`:'<span class="logo">LD</span>'}
+      <div style="display:flex;align-items:center"><div class="who"><b>Дорин</b>руководитель</div><button class="hbtn gear" data-gear aria-label="Настройки">${ic('gear','s18')}</button></div></div>
+      <h3>${title}</h3>${sub?`<div class="sub">${sub}</div>`:''}</div>`;
+  const tabs = `<nav class="tabs">
+    <button data-o="today" aria-current="${S.tabO==='today'}">${unread?`<span class="dot">${unread}</span>`:''}${ic('today')}Сегодня</button>
+    <button data-o="hist" aria-current="${S.tabO==='hist'}">${ic('history')}История</button>
+    <button data-o="objs" aria-current="${S.tabO==='objs'}">${ic('site')}Объекты</button>
+    <button data-o="rep" aria-current="${S.tabO==='rep'}">${ic('chart')}Отчёты</button></nav>`;
+  const el = document.getElementById('boss');
+  el.innerHTML = head + `<div class="body${S._slide?' slide':''}">${body}</div>` + (S.toastB?`<div class="toast">${ic('note')}<span>${S.toastB}</span></div>`:'') + tabs;
+  S._slide = false;
+  const go = fn => { fn(); renderBoss(); };
+  el.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>go(()=>{ S.tabO=b.dataset.o; S.oNav=[]; }));
+  el.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>go(()=>{ S.tabO=b.dataset.tab; S.oNav=[]; }));
+  el.querySelectorAll('[data-nav],[data-pnav]').forEach(b=>b.onclick=()=>go(()=>{ S.oNav.push(JSON.parse(b.dataset.nav||b.dataset.pnav)); S._slide=true; }));
+  el.querySelector('[data-gear]').onclick=()=>go(()=>{ if (top?.k!=='set'){ S.oNav.push({k:'set'}); S._slide=true; } });
+  const back = el.querySelector('[data-back]'); if (back) back.onclick=()=>go(()=>{
+    const p = S.oNav.pop();
+    /* отчёт прочитан — Дорин открыл день объекта и вернулся */
+    if (p.k==='dayobj' && p.key===TODAY.key) S.shiftLog.forEach(s=>{ if (s.obj===p.obj) s.isNew=false; });
+  });
+  el.querySelectorAll('[data-per]').forEach(b=>b.onclick=()=>go(()=>{ S.repPer=b.dataset.per; }));
+  el.querySelectorAll('[data-by]').forEach(b=>b.onclick=()=>go(()=>{ S.repBy=b.dataset.by; }));
+  el.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{ const v = b.dataset.v; S.settings[b.dataset.set] = isNaN(+v) ? v : +v; renderAll(); });
+  const add = el.querySelector('#no-add'); if (add) add.onclick=()=>{
+    const name = el.querySelector('#no-name').value.trim(), addr = el.querySelector('#no-addr').value.trim();
+    if (!name){ toastB('Впишите название объекта'); return; }
+    const o = {id:`n${++S.newSeq}`, name:esc(name), addr:esc(addr)||'адрес уточнить', isNew:true};
+    OBJECTS.push(o); S.oNav.pop();
+    toastB(`Объект «${o.name}» добавлен — бригадиры уже видят его в списке`);
+    renderAll();
+  };
+}
+function toastB(t){ S.toastB = t; clearTimeout(S._tb); S._tb = setTimeout(()=>dropToast('boss', 'toastB'), 3500); renderBoss(); }
+
+/* ══ ПОДПИСИ НА ТРЁХ ЯЗЫКАХ ══
+   Макет переводит готовый экран по словарю фраз; в приложении это будут ключи i18n. */
+const T = [
+  ['Мой код','Kódom','My code'],['Мои смены','Műszakjaim','My shifts'],['рабочий','dolgozó','worker'],['бригадир','brigádvezető','foreman'],
+  ['Вы на объекте с','A munkaterületen vagy ettől:','On site since'],['принял','fogadta','checked in by'],
+  ['Вы сейчас не отмечены','Most nem vagy bejelentkezve','You are not checked in'],
+  ['Покажите код бригадиру — он отсканирует приход','Mutasd a kódot a brigádvezetőnek — ő beolvassa az érkezést','Show the code to the foreman — they scan your arrival'],
+  ['Обновится через','Frissül:','Refreshes in'],['с · одноразовый','mp · egyszer használható','s · single use'],['Обновляем…','Frissítés…','Refreshing…'],
+  ['Уход — тем же кодом, у бригадира.','Távozás — ugyanazzal a kóddal, a brigádvezetőnél.','Check-out — same code, at the foreman.'],
+  ['Код личный: показать его можно только с вашего телефона.','A kód személyes: csak a saját telefonodról mutatható meg.','The code is personal: it only shows on your phone.'],
+  ['Отметок ещё нет','Még nincs jelölés','No marks yet'],['Сегодня','Ma','Today'],['Раньше','Korábban','Earlier'],['Октябрь','Október','October'],['с учётом сегодня','a mai nappal','including today'],
+  ['Объект открыт','Munkaterület megnyitva','Site opened'],['Отчёт за день','Napi jelentés','Daily report'],['Сканировать код','Kód beolvasása','Scan code'],['Сканировать','Beolvasás','Scan'],
+  ['Объект','Munkaterület','Site'],['Отчёт','Jelentés','Report'],['Где вы сегодня работаете','Hol dolgozol ma','Where are you working today'],
+  ['С этой минуты все отметки числятся за этим объектом.','Mostantól minden jelölés ehhez a munkaterülethez tartozik.','From now on all marks belong to this site.'],
+  ['Открыть объект','Munkaterület megnyitása','Open site'],['На объекте сейчас','Most a helyszínen','On site now'],['Ушли','Távoztak','Left'],['пришёл','érkezett','arrived'],
+  ['Подтвердить','Megerősítés','Confirm'],['Отмена','Mégse','Cancel'],['Приход','Érkezés','Check-in'],['Уход','Távozás','Check-out'],
+  ['Что сделали за день','Mit csináltatok ma','What was done today'],['Отправить и закрыть смену','Elküldés és műszak zárása','Send and close shift'],
+  ['Отправить и закрыть','Elküldés és zárás','Send and close'],
+  ['Можно надиктовать — кнопка микрофона на клавиатуре телефона. Звук никуда не отправляется.','Diktálható — a billentyűzet mikrofon gombjával. A hang sehová nem kerül.','You can dictate — the microphone key on the phone keyboard. No audio is sent.'],
+  ['Наведите камеру на код в телефоне рабочего. Приход или уход система определит сама.','Irányítsd a kamerát a dolgozó telefonján lévő kódra. Az érkezést vagy távozást a rendszer dönti el.','Point the camera at the code on the worker’s phone. The system decides check-in or check-out.'],
+  ['Отсканировать код рабочего','Dolgozó kódjának beolvasása','Scan the worker’s code'],
+  ['Код уже использован','A kódot már felhasználták','Code already used'],['Код устарел','A kód lejárt','Code expired'],['Понятно','Értem','OK'],
+  ['Время отметки','A jelölés ideje','Mark time'],['ставит сервер','a szerver állítja be','set by the server'],['Опоздание','Késés','Late by'],['мин','perc','min'],
+  ['Без ухода','Távozás nélkül','No check-out'],['Часы','Órák','Hours'],['Настройки','Beállítások','Settings'],['руководитель','vezető','manager'],
+  ['Выгрузить в Excel','Exportálás Excelbe','Export to Excel'],['позже','később','later'],
+  ['Вход','Belépés','Sign in'],['Логин','Felhasználónév','Login'],['Пароль','Jelszó','Password'],['Войти','Belépés','Sign in'],
+  ['Вход сохраняется на несколько недель. Забыли пароль — скажите бригадиру или администратору.','A belépés hetekig megmarad. Elfelejtetted a jelszót — szólj a brigádvezetőnek vagy az adminisztrátornak.','You stay signed in for weeks. Forgot the password — tell the foreman or the administrator.'],
+  ['на объекте','a helyszínen','on site'],['без ухода','távozás nélkül','no check-out'],['закрыт','lezárva','closed'],['идёт','folyamatban','ongoing'],['не посчитано','nincs számolva','not counted'],
+  ['ч','ó','h'],
+  ['открыт','megnyitva','opened'],['опоздание','késés','late'],['сейчас','most','now'],['всего','összesen','total'],['с','óta','since'],['уход не отмечен','távozás nincs jelölve','no check-out'],
+  ['Никого. Откройте «Сканировать» и наведите камеру на код рабочего.','Senki. Nyisd meg a «Beolvasás»-t, és irányítsd a kamerát a dolgozó kódjára.','Nobody yet. Open «Scan» and point the camera at a worker’s code.'],
+  ['Смена закрыта в','A műszak lezárva:','Shift closed at'],['отчёт отправлен Дорину','a jelentés elküldve Dorinnak','report sent to Dorin'],
+  ['Отчёт отправлен · смена закрыта','Jelentés elküldve · műszak lezárva','Report sent · shift closed'],['Приход отмечен','Érkezés rögzítve','Check-in recorded'],['Уход отмечен','Távozás rögzítve','Check-out recorded'],
+  ['приход','érkezés','check-in'],['уход','távozás','check-out'],['приход на объект','érkezés a munkaterületre','check-in at site'],['уход с объекта','távozás a munkaterületről','check-out from site'],['был с','ott volt óta','there since'],
+  /* рабочее место Дорина */
+  ['История','Előzmények','History'],['Объекты','Munkaterületek','Sites'],['Отчёты','Jelentések','Reports'],['Назад','Vissza','Back'],
+  ['сейчас на объектах','most a helyszíneken','on sites now'],['было за день','a nap során','during the day'],['человек за день','fő a nap során','people that day'],
+  ['отработано','ledolgozva','worked'],['отчётов сдано из открытых смен','jelentés leadva a megnyitott műszakokból','reports in, of opened shifts'],['отчётов сдано','jelentés leadva','reports in'],
+  ['объект','munkaterület','site'],['объекта','munkaterület','sites'],['объектов','munkaterület','sites'],
+  ['опоздание','késés','late arrival'],['опоздания','késés','late arrivals'],['опозданий','késés','late arrivals'],['без опозданий','késés nélkül','no late arrivals'],
+  ['отчёт сдан','jelentés leadva','report in'],['отчёта ещё нет','még nincs jelentés','no report yet'],['новый отчёт','új jelentés','new report'],['новый','új','new'],
+  ['за день','a nap során','that day'],['часы','órák','hours'],['Люди','Emberek','People'],['Отчёт бригадира','Brigádvezetői jelentés','Foreman report'],
+  ['переезд на','átment ide:','moved to'],['приехал с','érkezett innen:','came from'],['Пока никого не отсканировали.','Még senkit sem olvastak be.','Nobody scanned yet.'],
+  ['отчёта пока нет — смена идёт.','még nincs jelentés — a műszak tart.','no report yet — shift is ongoing.'],
+  ['день из истории','nap az előzményekből','a day from history'],['сегодня','ma','today'],['Эта неделя','Ez a hét','This week'],['Прошлая неделя','Múlt hét','Last week'],['Месяц','Hónap','Month'],
+  ['Прошлые рабочие дни. Нажмите на день — он откроется так же, как «Сегодня».','Korábbi munkanapok. Koppints egy napra — ugyanúgy nyílik meg, mint a «Ma».','Past work days. Tap a day — it opens just like «Today».'],
+  ['чел.','fő','ppl'],['дн.','nap','d'],['По людям','Emberenként','By people'],['По объектам','Munkaterületenként','By site'],['человек','fő','people'],
+  ['Новый объект','Új munkaterület','New site'],['новый объект · добавил Дорин','új munkaterület · Dorin vette fel','new site · added by Dorin'],
+  ['Название','Név','Name'],['Адрес','Cím','Address'],['Добавить объект','Munkaterület hozzáadása','Add site'],['Город, улица, дом','Város, utca, házszám','City, street, number'],
+  ['Например: Újpest, iroda','Például: Újpest, iroda','For example: Újpest, iroda'],
+  ['Октябрь, с учётом сегодня','Október, a mai nappal','October, including today'],['рабочий день','munkanap','work day'],['рабочих дня','munkanap','work days'],['рабочих дней','munkanap','work days'],
+  ['за октябрь','októberben','in October'],['человек побывало на объекте','fő dolgozott itt','people worked here'],['Дни работы','Munkanapok','Work days'],['Дневник объекта','A munkaterület naplója','Site log'],
+  ['Здесь ещё не работали','Itt még nem dolgoztak','No work here yet'],
+  ['Пока ни один объект не открыт','Még egy munkaterület sincs megnyitva','No site opened yet'],
+  ['Объект появится здесь, когда бригадир откроет его утром.','A munkaterület itt jelenik meg, amikor a brigádvezető reggel megnyitja.','A site shows up here once a foreman opens it in the morning.'],
+  ['пн','H','Mon'],['вт','K','Tue'],['ср','Sze','Wed'],['чт','Cs','Thu'],['пт','P','Fri'],['идёт','folyamatban','ongoing'],
+  /* бригадир: смены */
+  ['Начать смену на объекте','Műszak indítása egy munkaterületen','Start a shift on a site'],['Выбор объекта','Munkaterület választása','Choose a site'],
+  ['Открыта сейчас','Most nyitva','Open now'],['Открыть смену','Műszak megnyitása','Open shift'],['Закрыть смену','Műszak lezárása','Close shift'],
+  ['Открыть смену на','Műszak megnyitása itt:','Open the shift at'],['Закрыть смену на','Műszak lezárása itt:','Close the shift at'],
+  ['Да, открыть','Igen, megnyitás','Yes, open'],['Да, закрыть','Igen, lezárás','Yes, close'],
+  ['Открыт с','Nyitva ettől:','Open since'],['Закрыт в','Lezárva:','Closed at'],['Не открыт','Nincs megnyitva','Not opened'],
+  ['отметки людей будут числиться за ней.','az emberek jelölései ide tartoznak.','people’s marks will belong to it.'],['отчёт уйдёт Дорину.','a jelentés Dorinhoz kerül.','the report goes to Dorin.'],
+  ['Отчёт уйдёт Дорину.','A jelentés Dorinhoz kerül.','The report goes to Dorin.'],['Время —','Idő —','Time —'],['только просмотр','csak megtekintés','read only'],
+  ['Сначала откройте смену — иначе отметке некуда записаться.','Előbb nyisd meg a műszakot — különben a jelölés nem kerül sehova.','Open a shift first — otherwise the mark has nowhere to go.'],
+  ['Перейти в «Объекты»','Ugrás: «Munkaterületek»','Go to «Sites»'],['Сегодня смен ещё не было.','Ma még nem volt műszak.','No shifts today yet.'],
+  ['Сначала закройте открытую смену — бригадир ведёт одну смену за раз.','Előbb zárd le a nyitott műszakot — egyszerre egy műszak lehet.','Close the open shift first — one shift at a time.'],
+  ['Сначала закройте смену на','Előbb zárd le a műszakot itt:','First close the shift at'],
+  ['Пока смена не открыта, сканировать на объекте нельзя. Откроете — все отметки людей будут числиться за ней.','Amíg a műszak nincs megnyitva, itt nem lehet beolvasni. Megnyitás után minden jelölés ide tartozik.','Until the shift is open, scanning is not possible here. Once open, all marks belong to it.'],
+  ['Закрыть можно, когда у всех отмечен уход и отчёт не пустой.','Akkor zárható le, ha mindenkinek van távozása és a jelentés nem üres.','You can close once everyone has checked out and the report is not empty.'],
+  ['Нажмите на объект — откроется экран смены, там её и откроете.','Koppints a munkaterületre — megnyílik a műszak képernyője, ott indíthatod.','Tap a site — the shift screen opens, start it there.'],
+  ['Никого. Нажмите «Сканировать код» и наведите камеру на код рабочего.','Senki. Nyomd meg a «Kód beolvasása» gombot, és irányítsd a kamerát a dolgozó kódjára.','Nobody yet. Tap «Scan code» and point the camera at a worker’s code.'],
+  ['Смена открыта','Műszak megnyitva','Shift opened'],['людей','fő','people'],['сдан','leadva','in'],['нет','nincs','no'],['Отметок не было.','Nem volt jelölés.','No marks.'],
+  ['Сканировать ещё','Újabb beolvasás','Scan another'],['Вернуться к смене','Vissza a műszakhoz','Back to the shift'],['сегодня уже были · закрыт в','ma már itt voltatok · lezárva:','already here today · closed at'],
+  ['Утро','Reggel','Morning'],['Середина дня','Délben','Midday'],['Конец дня','Nap vége','End of day'],['Закрытые объекты · за всё время','Lezárt munkaterületek · összesen','Closed sites · all time'],['за всё время','összesen','all time'],['Раньше в этом месяце','Korábban ebben a hónapban','Earlier this month'],
+  ['За этот период отметок нет.','Ebben az időszakban nincs jelölés.','No marks in this period.'],
+  ['Что делали, сколько сделали, что привезли, что мешало.','Mit csináltatok, mennyit, mi érkezett, mi akadályozott.','What was done, how much, what was delivered, what got in the way.'],
+  /* лента периодов */
+  ['месяц идёт','a hónap tart','month in progress'],['по дням','naponta','by day'],['прошлые недели','korábbi hetek','past weeks'],['прошлые месяцы','korábbi hónapok','past months'],
+  ['Прошлые годы','Korábbi évek','Past years'],['По неделям','Hetente','By week'],['По месяцам','Havonta','By month'],['По дням','Naponta','By day'],['год','év','year'],
+  ['смена','műszak','shift'],['смены','műszak','shifts'],['смен','műszak','shifts'],['бригада','brigád','crew'],['бригады','brigád','crews'],['бригад','brigád','crews'],['человека','fő','people'],
+  ['отметок пока нет','még nincs jelölés','no marks yet'],['За этот период смен нет.','Ebben az időszakban nem volt műszak.','No shifts in this period.'],
+  ['Январь','Január','January'],['Февраль','Február','February'],['Март','Március','March'],['Апрель','Április','April'],['Май','Május','May'],['Июнь','Június','June'],
+  ['Июль','Július','July'],['Август','Augusztus','August'],['Сентябрь','Szeptember','September'],['Ноябрь','November','November'],['Декабрь','December','December'],
+  ['янв','jan.','Jan'],['фев','febr.','Feb'],['мар','márc.','Mar'],['апр','ápr.','Apr'],['мая','máj.','May'],['июн','jún.','Jun'],['июл','júl.','Jul'],['авг','aug.','Aug'],
+  ['сен','szept.','Sep'],['окт','okt.','Oct'],['ноя','nov.','Nov'],['дек','dec.','Dec'],
+  ['Приход и уход','Érkezés és távozás','Check-in and check-out'],['мои смены','műszakjaim','my shifts'],['Смены дня','A nap műszakjai','Shifts of the day'],['все объекты','minden munkaterület','all sites'],
+  ['Нажмите на месяц, неделю или день — откроется с кнопкой «Назад». День выглядит так же, как «Сегодня».','Koppints egy hónapra, hétre vagy napra — «Vissza» gombbal nyílik meg. A nap ugyanúgy néz ki, mint a «Ma».','Tap a month, week or day — it opens with a «Back» button. A day looks just like «Today».'],
+  /* закрыть смену без ухода и правило часов */
+  ['по правилу: не считается','szabály szerint: nem számít','by rule: not counted'],['по правилу: минимум','szabály szerint: legalább','by rule: minimum'],['по правилу: до закрытия смены','szabály szerint: a műszak zárásáig','by rule: until the shift closed'],
+  ['без отметки ухода','távozás jelölése nélkül','without check-out'],['На объекте','A helyszínen','On site'],['На объекте ещё','A helyszínen még','Still on site'],
+  ['Отсканировать уход','Távozás beolvasása','Scan check-out'],['Закрыть без их ухода','Lezárás a távozásuk nélkül','Close without their check-out'],
+  ['У',''  ,''],['будет отметка «уход не отмечен».','«távozás nincs jelölve» jelölést kap.','will get a «no check-out» mark.'],
+  ['Чтобы закрыть смену, напишите отчёт.','A műszak lezárásához írd meg a jelentést.','Write the report to close the shift.'],
+  ['— закрыть можно, у них будет отметка «уход не отмечен».','— lezárható, náluk «távozás nincs jelölve» lesz.','— you can close, they will get a «no check-out» mark.'],
+  ['Им засчитается минимальный день —','Minimális nap számít nekik —','They get the minimum day —'],['Часы им посчитаются до закрытия смены.','Az órák a műszak zárásáig számítanak.','Hours count until the shift closed.'],
+  ['Часы без ухода не считаются.','Távozás nélkül az órák nem számítanak.','Hours without check-out are not counted.'],['Правило — в настройках Дорина.','A szabály Dorin beállításaiban van.','The rule is in Dorin’s settings.'],
+  ['Часы без отметки ухода','Órák távozás jelölése nélkül','Hours without check-out'],['Не считать','Nem számít','Do not count'],['Минимальный день','Minimális nap','Minimum day'],['До закрытия смены','A műszak zárásáig','Until the shift closed'],
+];
+function translate(root){
+  if (S.lang==='ru') return;
+  const i = S.lang==='hu' ? 1 : 2;
+  /* замена только целыми словами: «мин» не трогает «минуту», «ч» — «через» */
+  const rx = T.slice().sort((a,b)=>b[0].length-a[0].length).map(p=>[new RegExp(`(?<![\\p{L}])${p[0].replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}(?![\\p{L}])`,'gu'), p[i]]);
+  const tr = s => rx.reduce((acc,[r,v])=>acc.replace(r,v), s);
+  const walk = n => {
+    if (n.nodeType===3) n.nodeValue = tr(n.nodeValue);
+    else if (n.nodeName!=='svg' && n.nodeName!=='SCRIPT'){ if (n.placeholder) n.placeholder = tr(n.placeholder); n.childNodes.forEach(walk); }
+  };
+  walk(root);
+}
+
+/* ══ ПУЛЬТ ══ */
+function renderBoss(){ renderOwner(); translate(document.getElementById('boss')); }
+function renderRight(){
+  renderForeman();
+}
+function renderPanel(){
+  document.getElementById('clock').textContent = hm(S.now);
+  document.getElementById('clock-m').textContent = hm(S.now);
+  document.getElementById('seg-worker').innerHTML = PULT_W.map(w=>`<button data-v="${w.id}" aria-pressed="${S.worker===w.id}">${w.name}</button>`).join('');
+  document.getElementById('seg-foreman').innerHTML = FOREMEN.map(f=>`<button data-v="${f.id}" aria-pressed="${S.foreman===f.id}">${f.name}</button>`).join('');
+  document.querySelectorAll('#seg-scan button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.scan));
+  document.getElementById('scan-note').innerHTML = S.scan==='app'
+    ? '<b>Совет.</b> Кнопка «Сканировать» в приложении: камера открывается сразу, вход бригадира всегда под рукой. На iPhone ярлык сайта на главном экране живёт отдельно от Safari, поэтому обычная камера открыла бы ссылку там, где бригадир не вошёл.'
+    : '<b>Тоже работает.</b> В QR — ссылка: системная камера Android покажет «Открыть», и откроется приложение с подтверждением. Удобно, если бригадир привык к камере; на iPhone — см. совет.';
+  document.querySelectorAll('#seg-worker button').forEach(b=>b.onclick=()=>{S.worker=b.dataset.v;renderAll();});
+  document.querySelectorAll('#seg-foreman button').forEach(b=>b.onclick=()=>{S.foreman=b.dataset.v;S.sheetR=null;S.fNav=[];renderAll();});
+}
+function renderAll(){ PLAN.sync(); renderPanel(); renderLeft(); renderRight(); renderBoss(); }
+const _rl = renderLeft, _rr = renderRight;
+renderLeft = function(){ _rl(); translate(document.getElementById('left')); };
+renderRight = function(){ _rr(); translate(document.getElementById('right')); };
+
+document.querySelectorAll('.panel [data-t]').forEach(b=>b.onclick=()=>{
+  const t = b.dataset.t; S.now = t==='+5' ? S.now+5 : +t; renderAll();
+});
+document.querySelectorAll('#wp button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#wp button').forEach(x=>x.setAttribute('aria-pressed', x===b));
+  document.querySelectorAll('.ph').forEach(ph=>ph.classList.toggle('on', ph.dataset.wp===b.dataset.v));
+});
+document.querySelectorAll('#seg-scan button').forEach(b=>b.onclick=()=>{S.scan=b.dataset.v;S.sysStep=null;renderAll();});
+document.getElementById('p-expire').onclick=()=>{ S.tokens[S.worker].born = Date.now()-TTL*1000; renderLeft(); };
+document.getElementById('p-reuse').onclick=()=>{
+  const sh = S.shifts[S.foreman];
+  if (!S.lastUsed || !sh || sh.closed){ S.tabR='site'; renderAll(); return; }
+  S.tabR='scan'; renderAll(); scan(S.lastUsed);
+};
+/* пульт на телефоне — шторкой за плавающей кнопкой */
+const pult = on => document.body.classList.toggle('pult-open', on);
+document.getElementById('fab').onclick=()=>pult(true);
+document.getElementById('pult-close').onclick=()=>pult(false);
+document.getElementById('pult-scrim').onclick=()=>pult(false);
+document.getElementById('p-restart').onclick=()=>{ fresh(); renderAll(); };
+document.getElementById('p-login').onclick=()=>{ S.login=true; renderAll(); };
+document.querySelectorAll('#seg-lang button').forEach(b=>b.onclick=()=>{ S.lang=b.dataset.v; document.querySelectorAll('#seg-lang button').forEach(x=>x.setAttribute('aria-pressed', x===b)); renderAll(); });
+document.querySelectorAll('#seg-late button').forEach(b=>b.onclick=()=>{ S.lateFrom=b.dataset.v; document.querySelectorAll('#seg-late button').forEach(x=>x.setAttribute('aria-pressed', x===b)); renderAll(); });
+
+/* код обновляется сам: раз в секунду — полоска, по истечении — новый код */
+setInterval(()=>{
+  if (S.tabL!=='code') return;
+  const tok = S.tokens[S.worker];
+  if (leftSec(tok)===0 && !S._renew){ S._renew = setTimeout(()=>{ S.tokens[S.worker]=mint(S.worker); S._renew=null; renderLeft(); }, 1500); }
+  const bar = document.querySelector('#left .ttl i'), t = document.querySelector('#left .qrbox .muted');
+  if (bar && leftSec(tok)>0 && !tok.used){ bar.style.width = `${leftSec(tok)/TTL*100}%`; t.textContent = `Обновится через ${leftSec(tok)} с · одноразовый`; translate(t); }
+  else if (leftSec(tok)===0 && !document.querySelector('#qr.dead')) renderLeft();
+}, 1000);
+
+fresh(); renderAll();
+</script>
+<script>
+  /* сервис-воркер: оболочка открывается и без сети */
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+  }
+</script>
+</body>
+</html>
