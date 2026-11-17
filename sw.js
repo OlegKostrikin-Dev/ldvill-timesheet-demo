@@ -2,11 +2,13 @@
    Свои файлы — «сначала сеть, при обрыве кэш» (правка макета видна сразу после выкладки).
    Внешние шрифт и библиотека QR — «сначала кэш», кладутся туда при первом запросе.
    Новая версия оболочки — поднять номер в CACHE. */
-const CACHE = 'ldvill-v8';
+const CACHE = 'ldvill-v9';
 const SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './my-code.html',          /* прототип «Мой код» (TG-411) — второе приложение в той же папке */
+  './my-code.webmanifest',
   './icons/apple-touch-icon.png',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -55,7 +57,9 @@ self.addEventListener('fetch', (e) => {
       return res;
     }).catch(() =>
       caches.match(req, { ignoreSearch: true }).then((hit) =>
-        hit || (req.mode === 'navigate' ? caches.match('./index.html') : Response.error())
+        hit || (req.mode === 'navigate'
+          ? caches.match(url.pathname.endsWith('my-code.html') ? './my-code.html' : './index.html')
+          : Response.error())
       )
     )
   );
