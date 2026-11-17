@@ -251,6 +251,7 @@
   html.standalone{background:var(--c-ground)}
   body.standalone .tabs span{box-sizing:border-box;height:49px;justify-content:center;gap:2px;padding:0}
   body.standalone .tabs:empty{display:none}
+  body.standalone .sheet{bottom:calc(var(--safe-bottom) + 49px + 14px)}
 </style>
 </head>
 <body>
@@ -491,7 +492,8 @@ function phone(st, code, size, native){
   // native — установленное приложение: размеры и безопасные зоны даёт сам телефон (CSS body.standalone), здесь только QR
   const vars = native ? `--qr:${d.qr}px`
     : `--ph-w:${d.w}px;--ph-h:${d.h}px;--safe-top:${d.top}px;--safe-bottom:${d.bottom}px;--qr:${d.qr}px`;
-  const bottom = ins
+  // Рисованная панель Safari — только в макете-доске: на настоящем телефоне Safari свой, светлая полоса снизу была бы лишней
+  const bottom = ins && !native
     ? `<div class="safari"><span>‹</span><span>›</span><span class="hl">${ic('share')}</span><span>${ic('book')}</span><span>${ic('tabs')}</span></div>`
     : login ? '<div class="tabs"></div>'
     : `<nav class="tabs"><span class="on">${ic('qr')}${t('tab.code')}</span><span>${ic('list')}${t('tab.days')}</span></nav>`;
