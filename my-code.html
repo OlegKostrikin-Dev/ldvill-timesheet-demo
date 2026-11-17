@@ -3,8 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>«Мой код» — чистовой макет · LD Vill</title>
+<title>LD Kód — «Мой код» · LD Vill</title>
 <meta name="theme-color" content="#213946">
+<!-- Ставится на телефон как приложение (PWA): на iPhone — «Поделиться → На экран „Домой“», на Android — «Установить». -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LD Kód">
+<link rel="manifest" href="my-code.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <!--
   Чистовой макет одного экрана мобильного приложения LD Vill — «Мой код» рабочего (TG-411).
@@ -218,6 +225,27 @@
     .pult .pin{overflow:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
     .log{max-height:none}
   }
+
+  /* Установленное приложение (с экрана «Домой»): только телефонный вид на весь экран. Нарисованной строки
+     состояния нет — настоящая поверх тёмной полосы; безопасные зоны даёт телефон. Пульт — за кнопкой в углу. */
+  #corner{display:none}
+  body.standalone{background:var(--c-dark);overscroll-behavior:none}
+  body.standalone .deck{padding:0;max-width:none}
+  body.standalone .deck > h1, body.standalone .deck > .sub, body.standalone .controls, body.standalone .notes{display:none}
+  body.standalone .phone{width:100vw;height:100dvh;outline:0;border-radius:0;box-shadow:none;
+    --safe-top:env(safe-area-inset-top, 20px);--safe-bottom:env(safe-area-inset-bottom, 0px)}
+  body.standalone .proto .phone{height:100dvh}
+  body.standalone .sb{padding:0}
+  body.standalone .sb span{display:none}
+  body.standalone #corner{display:block;position:fixed;z-index:11;top:calc(env(safe-area-inset-top, 0px) + 10px);right:10px;
+    width:34px;height:34px;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:17px;line-height:34px;padding:0}
+  body.standalone .pult{position:fixed;left:0;right:0;bottom:0;width:auto;z-index:10;border:0;box-shadow:0 -8px 24px rgba(0,0,0,.3);
+    max-height:78dvh;display:flex;flex-direction:column;transform:translateY(105%);transition:transform .25s}
+  body.standalone .pult.open{transform:none}
+  body.standalone .pult .handle{display:block;flex:none;height:44px;border:0;background:var(--c-lime);color:var(--c-dark);font-weight:800;font-size:15px;width:100%}
+  body.standalone .pult .ptitle{display:none}
+  body.standalone .pult .pin{overflow:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px))}
+  body.standalone .log{max-height:none}
 </style>
 </head>
 <body>
@@ -236,6 +264,7 @@
 
   <div class="stage">
     <div class="work"><div id="screens"></div><aside id="pult" hidden></aside></div>
+    <button id="corner" data-act="drawer" aria-label="Пульт">⚙︎</button>
     <aside class="notes" id="notes"></aside>
   </div>
 </div>
@@ -362,6 +391,12 @@ const S = {
   view: qs.get('view')==='all' ? 'all' : 'proto',   // по умолчанию — живой прототип
   size: DEV[qs.get('size')] ? qs.get('size') : 'm',
 };
+/* Открыт с экрана «Домой» (установленное приложение) — телефонный вид на весь экран, пульт за кнопкой в углу.
+   ?standalone — тот же вид в обычном браузере, чтобы посмотреть его без установки. */
+const STANDALONE = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true || qs.has('standalone');
+if (STANDALONE){ S.view = 'proto'; document.body.classList.add('standalone'); }
+/* В установленном приложении размер экрана — настоящий; ключ размера нужен только для стороны QR и сжатой шапки. */
+const nativeSize = () => innerWidth < 380 || innerHeight < 700 ? 's' : innerWidth < 420 ? 'm' : 'l';
 const DEBUG = qs.has('debug'); // ?debug — красная рамка у телефона, где содержимое не влезло
 function t(k, v={}){ const row=T[k]; if(!row) return k; let s=row[LI[S.lang]]; for(const [a,b] of Object.entries(v)) s=s.replace('{'+a+'}', b); return s; }
 function newCode(){ const a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789_-'; let s=''; for(let i=0;i<32;i++) s+=a[Math.floor(Math.random()*a.length)]; return s; }
@@ -442,9 +477,11 @@ function installSheet(){
     <button class="ghost" data-act="later">${t('ins.ok')}</button><div class="arrow"></div></div>`;
 }
 const loginOf = n => n.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(' ','.');
-function phone(st, code, size){
+function phone(st, code, size, native){
   const d = DEV[size], ins = st.id==='install' || !!st.install, login = st.id==='login';
-  const vars = `--ph-w:${d.w}px;--ph-h:${d.h}px;--safe-top:${d.top}px;--safe-bottom:${d.bottom}px;--qr:${d.qr}px`;
+  // native — установленное приложение: размеры и безопасные зоны даёт сам телефон (CSS body.standalone), здесь только QR
+  const vars = native ? `--qr:${d.qr}px`
+    : `--ph-w:${d.w}px;--ph-h:${d.h}px;--safe-top:${d.top}px;--safe-bottom:${d.bottom}px;--qr:${d.qr}px`;
   const bottom = ins
     ? `<div class="safari"><span>‹</span><span>›</span><span class="hl">${ic('share')}</span><span>${ic('book')}</span><span>${ic('tabs')}</span></div>`
     : login ? '<div class="tabs"></div>'
@@ -487,7 +524,7 @@ const NOTES = `
 
 /* ══ РЕНДЕР ══ */
 function screenHtml(){
-  if (S.view==='proto') return `<div class="proto">${phone(protoState(), P.code, S.size)}</div>`;
+  if (S.view==='proto') return `<div class="proto">${STANDALONE ? phone(protoState(), P.code, nativeSize(), true) : phone(protoState(), P.code, S.size)}</div>`;
   const main = STATES.find(s=>s.id==='code');
   const sizes = Object.keys(DEV).map(k=>`<figure class="cell">${phone(main, 'demo-size-'+k+'-Qx7Lr2mVb9TzKp4N', k)}
       <figcaption><b>${t('dev.'+k)}</b><code>my-code · code · ${DEV[k].w}×${DEV[k].h}</code></figcaption></figure>`).join('');
@@ -537,8 +574,10 @@ function fetchCode(){
     logEv(`Движок выдал код на ${TTL} с (POST …/passes).`);
   });
 }
+/* Шторка «как установить» — только в браузере на iPhone-размере; в установленном приложении её нет. */
+const needHint = () => !STANDALONE && S.size!=='s';
 const ACT = {
-  login(){ P.screen='app'; P.hint = S.size!=='s'; logEv('Вход выполнен.'+(P.hint?' Открыто в Safari на iPhone — шторка «как установить».':'')); fetchCode(); },
+  login(){ P.screen='app'; P.hint = needHint(); logEv('Вход выполнен.'+(P.hint?' Открыто в Safari на iPhone — шторка «как установить».':STANDALONE?' Приложение открыто с экрана «Домой» — шторки установки нет.':'')); fetchCode(); },
   later(){ P.hint=false; logEv('Рабочий нажал «Позже» — шторка спрятана до следующего открытия.'); },
   retry(){ logEv('Рабочий нажал «Попробовать снова».'); fetchCode(); },
   scan(){
@@ -567,7 +606,7 @@ const ACT = {
   },
   restart(){
     if (P.screen!=='app'){ logEv('Приложение и так на экране входа.'); return; }
-    P.onSite = null; P.done = null; P.pending = null; P.hint = S.size!=='s';
+    P.onSite = null; P.done = null; P.pending = null; P.hint = needHint();
     logEv(P.serverOn
       ? 'Приложение перезапущено. Открытую отметку рабочего движок пока не отдаёт — экран покажет «не отмечены», хотя рабочий на объекте. Скан всё равно даст уход: решает движок.'
       : 'Приложение перезапущено.');
@@ -627,6 +666,7 @@ function renderPult(){
 }
 function ctlHtml(){
   const seg = (id, items, cur) => `<span class="seg" data-seg="${id}">${items.map(([v,l])=>`<button data-v="${v}" aria-pressed="${v===cur}">${l}</button>`).join('')}</span>`;
+  if (STANDALONE) return seg('lang', [['hu','hu'],['ru','ru'],['en','en']], S.lang); // размер — настоящий, доска — на компьютере
   return seg('lang', [['hu','hu'],['ru','ru'],['en','en']], S.lang) + seg('size', [['s','360'],['m','390'],['l','430']], S.size)
     + seg('view', [['proto',t('ctl.one')],['all',t('ctl.all')]], S.view);
 }
@@ -637,7 +677,7 @@ document.addEventListener('click', e=>{
   const a = e.target.closest('[data-act]');
   if (a && ACT[a.dataset.act]){
     // на телефоне пульт после действия сворачивается — сразу видно, что стало с экраном
-    if (a.dataset.act!=='drawer' && matchMedia('(max-width:460px)').matches) P.drawer = false;
+    if (a.dataset.act!=='drawer' && (STANDALONE || matchMedia('(max-width:460px)').matches)) P.drawer = false;
     ACT[a.dataset.act](); renderScreens(); renderPult(); return;
   }
   const b = e.target.closest('[data-seg] button, #seg-lang button, #seg-view button, #seg-size button');
@@ -645,6 +685,8 @@ document.addEventListener('click', e=>{
 });
 resetProto();
 render();
+/* Как у чернового приложения: оболочка в кэше, открывается и без сети (sw.js рядом). */
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
