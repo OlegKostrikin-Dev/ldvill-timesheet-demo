@@ -246,6 +246,12 @@
   body.standalone .pult .ptitle{display:none}
   body.standalone .pult .pin{overflow:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px))}
   body.standalone .log{max-height:none}
+  /* Отступы по краям (замечание Oleg с iPhone): нижний безопасный отступ — один раз и только под меню.
+     Меню — как таббар iPhone (49pt) + ровно safe-area; на экране входа меню нет вовсе, тёмной полосы снизу нет.
+     Подложка страницы тёмная, чтобы при оттяжке и под строкой состояния не проступал белый. */
+  html.standalone{background:var(--c-dark)}
+  body.standalone .tabs span{box-sizing:border-box;height:49px;justify-content:center;gap:2px;padding:0}
+  body.standalone .tabs:empty{display:none}
 </style>
 </head>
 <body>
@@ -393,8 +399,12 @@ const S = {
 };
 /* Открыт с экрана «Домой» (установленное приложение) — телефонный вид на весь экран, пульт за кнопкой в углу.
    ?standalone — тот же вид в обычном браузере, чтобы посмотреть его без установки. */
-const STANDALONE = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true || qs.has('standalone');
-if (STANDALONE){ S.view = 'proto'; document.body.classList.add('standalone'); }
+const INSTALLED = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true || qs.has('standalone');
+/* Телефон в обычном браузере (сенсорный экран без наведения — и стоя, и повёрнутый) — тот же вид на весь экран, без таблиц и заметок; служебное — только на компьютере.
+   ?desktop — вернуть служебный вид, чтобы проверить его с телефона. */
+const PHONE = !qs.has('desktop') && matchMedia('(pointer:coarse) and (hover:none)').matches;
+const STANDALONE = INSTALLED || PHONE;
+if (STANDALONE){ S.view = 'proto'; document.body.classList.add('standalone'); document.documentElement.classList.add('standalone'); }
 /* В установленном приложении размер экрана — настоящий; ключ размера нужен только для стороны QR и сжатой шапки. */
 const nativeSize = () => innerWidth < 380 || innerHeight < 700 ? 's' : innerWidth < 420 ? 'm' : 'l';
 const DEBUG = qs.has('debug'); // ?debug — красная рамка у телефона, где содержимое не влезло
@@ -575,9 +585,9 @@ function fetchCode(){
   });
 }
 /* Шторка «как установить» — только в браузере на iPhone-размере; в установленном приложении её нет. */
-const needHint = () => !STANDALONE && S.size!=='s';
+const needHint = () => !INSTALLED && S.size!=='s';
 const ACT = {
-  login(){ P.screen='app'; P.hint = needHint(); logEv('Вход выполнен.'+(P.hint?' Открыто в Safari на iPhone — шторка «как установить».':STANDALONE?' Приложение открыто с экрана «Домой» — шторки установки нет.':'')); fetchCode(); },
+  login(){ P.screen='app'; P.hint = needHint(); logEv('Вход выполнен.'+(P.hint?' Открыто в Safari на iPhone — шторка «как установить».':INSTALLED?' Приложение открыто с экрана «Домой» — шторки установки нет.':'')); fetchCode(); },
   later(){ P.hint=false; logEv('Рабочий нажал «Позже» — шторка спрятана до следующего открытия.'); },
   retry(){ logEv('Рабочий нажал «Попробовать снова».'); fetchCode(); },
   scan(){
