@@ -11,11 +11,12 @@
   По нему пишется первый настоящий экран приложения. Черновик всех экранов — index.html рядом.
 
   Что здесь:
-    · телефон 390×844 (CSS-пиксели iPhone 14/15) с безопасными зонами 47/34;
-    · восемь состояний экрана, каждое с текстами hu / ru / en;
-    · переключатели вверху: язык, состояние, вид «один экран» или «все состояния»;
+    · три размера экрана: узкий Android 360×640, iPhone 390×844, большой iPhone 430×932;
+    · девять состояний экрана (восьмое — ошибка, девятое — подсказка установки на iPhone), тексты hu / ru / en;
+    · переключатели вверху: язык, вид «один экран» или «все состояния», размер, состояние;
     · блок «Данные экрана»: какое поле откуда берётся у движка (PR движка #601, задача TG-408).
-  Адрес принимает ?lang=hu|ru|en&state=<имя>&view=one|all — для ссылок и снимков.
+  Адрес принимает ?lang=hu|ru|en&view=one|all&size=s|m|l&state=<имя> — для ссылок и снимков;
+  ?debug красит рамку телефона, где содержимое не влезло без прокрутки.
 
   Палитра и шрифт — ldvill.com: лаймовый #C7FF00 и графит #343A42 сверены с логотипом и иконками
   сайта 17.11.2026; остальные токены — из чернового макета (index.html). Прямые углы — бренд.
@@ -48,7 +49,7 @@
   button{font:inherit;color:inherit;cursor:pointer}
 
   /* ══ ПУЛЬТ МАКЕТА (не часть экрана) ══ */
-  .deck{max-width:1320px;margin:0 auto;padding:20px 20px 40px}
+  .deck{max-width:1440px;margin:0 auto;padding:20px 20px 40px}
   .deck h1{font-size:22px;margin:0 0 4px;font-weight:800}
   .deck .sub{color:var(--c-muted);margin:0 0 16px;font-size:14px}
   .controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;margin-bottom:20px}
@@ -59,7 +60,9 @@
   select{font:inherit;font-size:13px;padding:6px 8px;border:1px solid #C9D2D6;background:#fff;border-radius:0}
 
   .stage{display:flex;flex-direction:column;gap:36px}
-  .board{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--ph-w),1fr));gap:28px 24px;justify-items:center}
+  .board{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:28px 24px;justify-items:center}
+  .sizes{display:flex;flex-wrap:wrap;gap:28px 40px;align-items:flex-end;margin-bottom:12px}
+  .sec{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);font-family:ui-monospace,Menlo,monospace;margin:8px 0 20px}
   .cell figcaption{margin-top:8px;font-size:13px;max-width:var(--ph-w)}
   .cell figcaption b{display:block;font-size:14px}
   .cell figcaption code{font-size:11px;color:var(--c-muted)}
@@ -108,9 +111,9 @@
   .banner b{display:block;font-size:14px}
 
   .qrbox{background:#fff;border:1px solid var(--c-line);padding:18px 18px 14px;display:flex;flex-direction:column;align-items:center;gap:12px}
-  .qr{width:236px;height:236px;position:relative;display:grid;place-items:center}
-  .qr svg{width:236px;height:236px;display:block}
-  .qr .fallback{width:236px;height:236px;display:grid;place-items:center;background:repeating-conic-gradient(#343A42 0 25%,#fff 0 50%) 0 0/24px 24px;opacity:.85}
+  .qr{width:var(--qr);height:var(--qr);position:relative;display:grid;place-items:center}
+  .qr svg{width:var(--qr);height:var(--qr);display:block}
+  .qr .fallback{width:var(--qr);height:var(--qr);display:grid;place-items:center;background:repeating-conic-gradient(#343A42 0 25%,#fff 0 50%) 0 0/24px 24px;opacity:.85}
   .qr .veil{position:absolute;inset:0;background:rgba(255,255,255,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;font-weight:700;padding:0 18px}
   .qr .veil.bad{color:var(--c-bad)}
   .qr .veil svg{width:40px;height:40px}
@@ -138,6 +141,33 @@
   .err b{font-size:19px}
   .err p{margin:0;font-size:14px;color:var(--c-muted)}
   .err small{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--c-muted)}
+  /* узкий экран (360×640): шапка и отступы сжимаются, QR меньше — всё влезает без прокрутки */
+  .compact .appbar{padding:6px 16px 10px} .compact .appbar h2{font-size:21px;margin-top:8px}
+  .compact .logo{width:28px;height:28px;font-size:12px}
+  .compact .body{padding:10px 16px;gap:10px}
+  .compact .state{padding:8px 12px} .compact .state span{font-size:12px}
+  .compact .qrbox{padding:12px 12px 10px;gap:8px}
+  .compact .banner{padding:7px 10px;font-size:12px}
+  .compact .tabs span{padding:7px 0 5px}
+  .compact .done .time{font-size:46px} .compact .done .big{width:68px;height:68px;margin-bottom:4px}
+  .compact .err .big{width:56px;height:56px}
+  .phone.overflow{outline-color:var(--c-bad)}
+
+  /* установка на iPhone */
+  .safari{flex:none;display:flex;justify-content:space-around;align-items:center;background:#F2F2F4;border-top:1px solid #D6D6DA;padding:10px 0 calc(var(--safe-bottom) + 4px);color:#0A84FF;font-size:22px}
+  .safari svg{width:22px;height:22px}
+  .safari .hl{outline:2px solid var(--c-lime-ink);outline-offset:5px;border-radius:4px}
+  .dim{position:absolute;inset:0;background:rgba(17,24,28,.45)}
+  .sheet{position:absolute;left:12px;right:12px;bottom:calc(var(--safe-bottom) + 64px);background:#fff;padding:18px 18px 12px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .sheet .st{font-size:18px;display:block}
+  .sheet p{margin:4px 0 12px;font-size:13px;color:var(--c-muted)}
+  .sheet ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+  .sheet li{display:flex;gap:10px;align-items:center;font-size:14px}
+  .sheet .n{flex:none;width:24px;height:24px;background:var(--c-dark);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px}
+  .sheet .inl{width:18px;height:18px;vertical-align:-4px;color:#0A84FF}
+  .ghost{border:0;background:none;color:var(--c-muted);font-weight:700;font-size:14px;padding:12px 0 2px;width:100%}
+  .sheet .arrow{position:absolute;left:50%;bottom:-10px;margin-left:-10px;width:20px;height:20px;background:#fff;transform:rotate(45deg)}
+
   .btn{border:0;background:var(--c-lime);color:var(--c-dark);font-weight:800;font-size:16px;padding:14px 22px;width:100%;margin-top:10px;border-radius:var(--radius)}
 
   /* На узком экране (телефон Oleg) — один телефон на всю ширину, без рамки */
@@ -160,11 +190,13 @@
       <button data-v="hu">hu</button><button data-v="ru">ru</button><button data-v="en">en</button></span></span>
     <span><span class="ctl-l" data-t="ctl.view"></span><span class="seg" id="seg-view">
       <button data-v="all" data-t="ctl.all"></button><button data-v="one" data-t="ctl.one"></button></span></span>
+    <span><span class="ctl-l" data-t="ctl.size"></span><span class="seg" id="seg-size">
+      <button data-v="s">360</button><button data-v="m">390</button><button data-v="l">430</button></span></span>
     <span id="state-ctl"><span class="ctl-l" data-t="ctl.state"></span><select id="sel-state"></select></span>
   </div>
 
   <div class="stage">
-    <div id="screens" class="board"></div>
+    <div id="screens"></div>
     <aside class="notes" id="notes"></aside>
   </div>
 </div>
@@ -174,6 +206,14 @@
 const WORKER = {name:'Horváth Ádám'};
 const FOREMAN = 'Kovács Péter';
 const TTL = 60; // ttl_sec из ответа выдачи; экран берёт его из ответа, а не держит у себя
+
+/* Размеры экрана в CSS-пикселях: узкий Android, обычный iPhone, большой iPhone.
+   top/bottom — безопасные зоны (полоса статуса, полоска «домой»); qr — сторона QR; compact — сжатая шапка. */
+const DEV = {
+  s: {w:360, h:640, top:24, bottom:0,  qr:188, compact:true},
+  m: {w:390, h:844, top:47, bottom:34, qr:236},
+  l: {w:430, h:932, top:59, bottom:34, qr:264},
+};
 
 /* Состояния экрана. at — что показать на «доске» (застывший миг); live — для режима «один экран». */
 const STATES = [
@@ -185,14 +225,15 @@ const STATES = [
   {id:'onsite',          clock:'12:40', left:51, since:'08:02'},
   {id:'done-out',        clock:'17:10', mark:'17:10'},
   {id:'error',           clock:'07:58'},
+  {id:'install',         clock:'07:55', left:57},
 ];
 
 /* ══ ТЕКСТЫ hu / ru / en — единственное место переводов ══ */
 const T = {
   'deck.title': ['«Kódom» — végleges terv · LD Vill','«Мой код» — чистовой макет · LD Vill','“My code” — final mockup · LD Vill'],
-  'deck.sub':   ['A dolgozó képernyője, ahol a QR-kódot mutatja a brigádvezetőnek. Telefon 390×844, minden állapot.',
-                 'Экран рабочего, где он показывает QR-код бригадиру. Телефон 390×844, все состояния.',
-                 'The worker’s screen that shows the QR code to the foreman. Phone 390×844, every state.'],
+  'deck.sub':   ['A dolgozó képernyője, ahol a QR-kódot mutatja a brigádvezetőnek. Android és iPhone, három méret, minden állapot.',
+                 'Экран рабочего, где он показывает QR-код бригадиру. Android и iPhone, три размера, все состояния.',
+                 'The worker’s screen that shows the QR code to the foreman. Android and iPhone, three sizes, every state.'],
   'ctl.lang':['nyelv','язык','language'], 'ctl.view':['nézet','вид','view'], 'ctl.state':['állapot','состояние','state'],
   'ctl.all':['minden állapot','все состояния','all states'], 'ctl.one':['egy képernyő','один экран','one screen'],
 
@@ -214,7 +255,7 @@ const T = {
   'hint.out':['Távozás — ugyanitt, a brigádvezetőnél.','Уход — тем же экраном, у бригадира.','Check-out — same screen, at the foreman.'],
 
   'off.t':['Nincs hálózat','Нет связи','No connection'],
-  'off.s':['A kód még {s} mp-ig érvényes — a brigádvezető a saját telefonján ellenőrzi.','Код ещё действует {s} с — бригадир проверит его у себя.','The code is valid for {s} more s — the foreman checks it on their phone.'],
+  'off.s':['A kód még {s} mp-ig érvényes — a brigádvezető így is be tudja olvasni.','Код ещё действует {s} с — бригадир всё равно может его отсканировать.','The code is valid for {s} more s — the foreman can still scan it.'],
   'off2.s':['A kód lejárt, újat csak hálózattal kapsz. Menj oda, ahol van térerő.','Код истёк, новый — только при связи. Подойдите туда, где ловит сеть.','The code expired; a new one needs a connection. Move to where there is signal.'],
 
   'done.in':['Érkezés rögzítve','Приход отмечен','Checked in'],
@@ -225,6 +266,9 @@ const T = {
   'err.t':['Nem sikerült kódot kérni','Не удалось получить код','Couldn’t get a code'],
   'err.s':['A szerver hibát adott. Nem a te hibád — próbáld újra.','Сервер ответил ошибкой. Вы ничего не сломали — попробуйте ещё раз.','The server returned an error. It’s not your fault — try again.'],
   'err.btn':['Újra','Попробовать снова','Try again'],
+  /* 403 PASS_ISSUER_FORBIDDEN: тот же экран ошибки, но без кнопки — повтор не поможет */
+  'err.403.t':['Neked nem jár kód','Вам код не выдаётся','No code for you'],
+  'err.403.s':['Kérdezd a brigádvezetőt — ő tudja beállítatni.','Обратитесь к бригадиру — он попросит это настроить.','Ask your foreman — they can get it set up.'],
 
   /* подписи состояний на доске */
   'c.code':['1 · Kód, visszaszámlálás','1 · Код и обратный отсчёт','1 · Code and countdown'],
@@ -232,7 +276,7 @@ const T = {
   'c.refresh':['2 · Lejárt, frissül','2 · Код истёк и обновляется','2 · Expired, refreshing'],
   'c.refresh.d':['Nullánál a képernyő magától kér új kódot; a régit nem mutatja érvényesnek.','На нуле экран сам берёт новый код; старый не выглядит годным.','At zero the screen fetches a new code; the old one never looks valid.'],
   'c.offline':['3 · Nincs hálózat, a kód még él','3 · Нет связи, код ещё действует','3 · Offline, code still valid'],
-  'c.offline.d':['A lejáratot a brigádvezető telefonja ellenőrzi, ezért a kód a lejáratig használható.','Срок проверяет телефон бригадира, поэтому код годен до конца срока и без сети у рабочего.','Expiry is checked on the foreman’s phone, so the code stays usable until it expires.'],
+  'c.offline.d':['A lejáratot a szerver ellenőrzi beolvasáskor, a brigádvezető hálózatán át — ezért a kód a lejáratig használható.','Срок проверяет сервер, когда бригадир сканирует, — по сети бригадира; поэтому код годен до конца срока и без сети у рабочего.','The server checks expiry when the foreman scans, over the foreman’s network — so the code stays usable until it expires.'],
   'c.offline-expired':['4 · Nincs hálózat, a kód lejárt','4 · Нет связи, код истёк','4 · Offline, code expired'],
   'c.offline-expired.d':['Kód nincs; a képernyő vár a hálózatra és magától frissül.','Кода нет; экран ждёт сеть и обновится сам.','No code; the screen waits for the network and refreshes itself.'],
   'c.done-in':['5 · Érkezés rögzítve','5 · Отметка прихода прошла','5 · Check-in recorded'],
@@ -243,6 +287,23 @@ const T = {
   'c.done-out.d':['Mint az 5., csak távozás.','Как 5, только уход.','Like 5, but check-out.'],
   'c.error':['8 · Hiba','8 · Ошибка','8 · Error'],
   'c.error.d':['A szerver nem adott kódot. Gomb — újra kér.','Сервер не выдал код. Кнопка — запросить снова.','The server gave no code. The button asks again.'],
+  'c.install':['9 · Első belépés iPhone-on: telepítés','9 · Первый вход на iPhone: установка','9 · First visit on iPhone: install'],
+  'c.install.d':['Csak Safariban, ha az alkalmazás még nincs a főképernyőn. Androidon a Chrome maga ajánlja fel a telepítést.','Только в Safari, пока приложения нет на экране «Домой». На Android установку Chrome предлагает сам.','Only in Safari while the app isn’t on the Home Screen. On Android, Chrome offers the install itself.'],
+
+  /* установка на iPhone: названия пунктов — как в меню iOS на этом языке */
+  'ins.t':['Tedd ki a főképernyőre','Добавьте на экран «Домой»','Add to your Home Screen'],
+  'ins.s':['Így a kód egy érintéssel nyílik, mint egy alkalmazás.','Так код откроется одним касанием, как приложение.','Then the code opens with one tap, like an app.'],
+  'ins.1':['Koppints lent a <b>Megosztás</b> gombra','Нажмите внизу <b>Поделиться</b>','Tap <b>Share</b> at the bottom'],
+  'ins.2':['Válaszd: <b>Főképernyőhöz adás</b>','Выберите <b>На экран «Домой»</b>','Choose <b>Add to Home Screen</b>'],
+  'ins.3':['Koppints a <b>Hozzáadás</b> gombra','Нажмите <b>Добавить</b>','Tap <b>Add</b>'],
+  'ins.ok':['Később','Позже','Later'],
+
+  'dev.s':['Szűk Android · 360×640','Узкий Android · 360×640','Narrow Android · 360×640'],
+  'dev.m':['iPhone 14/15 · 390×844','iPhone 14/15 · 390×844','iPhone 14/15 · 390×844'],
+  'dev.l':['Nagy iPhone · 430×932','Большой iPhone · 430×932','Large iPhone · 430×932'],
+  'sec.sizes':['Fő nézet három méretben','Главный вид в трёх размерах','Main view in three sizes'],
+  'sec.states':['Minden állapot · {size}','Все состояния · {size}','All states · {size}'],
+  'ctl.size':['méret','размер','size'],
 };
 const LI = {hu:0, ru:1, en:2};
 
@@ -252,8 +313,10 @@ const S = {
   lang: LI[qs.get('lang')] !== undefined ? qs.get('lang') : 'ru',
   view: qs.get('view')==='one' ? 'one' : 'all',
   state: STATES.some(s=>s.id===qs.get('state')) ? qs.get('state') : 'code',
-  live: {left:TTL, phase:'code', code:newCode()},
+  size: DEV[qs.get('size')] ? qs.get('size') : 'm',
+  live: {left:TTL, code:newCode()},
 };
+const DEBUG = qs.has('debug'); // ?debug — красная рамка у телефона, где содержимое не влезло
 function t(k, v={}){ const row=T[k]; if(!row) return k; let s=row[LI[S.lang]]; for(const [a,b] of Object.entries(v)) s=s.replace('{'+a+'}', b); return s; }
 function newCode(){ const a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789_-'; let s=''; for(let i=0;i<32;i++) s+=a[Math.floor(Math.random()*a.length)]; return s; }
 
@@ -266,6 +329,10 @@ const IC = {
   checkc:'<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
   wifioff:'<path d="M12 20h.01"/><path d="M8.5 16.43a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 13a10 10 0 0 1 5.24-2.76"/><path d="m2 2 20 20"/>',
   alert:'<path d="M12 8v4"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="10"/>',
+  share:'<path d="M12 2v13"/><path d="m16 6-4-4-4 4"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>',
+  plusq:'<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/>',
+  book:'<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  tabs:'<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
 };
 const ic = (n, cls='') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</svg>`;
 
@@ -310,13 +377,27 @@ function body(st, code){
   h += `<p class="hint">${t(onSite?'hint.out':'hint.in')}</p>`;
   return h;
 }
-function phone(st, code){
-  return `<div class="phone" data-screen="my-code" data-state="${st.id}">
+/* Подсказка установки (iPhone, Safari, не с экрана «Домой»): шторка над экраном, стрелка — на кнопку «Поделиться» панели Safari. */
+function installSheet(){
+  return `<div class="dim"></div><div class="sheet">
+    <b class="st">${t('ins.t')}</b><p>${t('ins.s')}</p>
+    <ol><li><span class="n">1</span><span>${t('ins.1')} ${ic('share','inl')}</span></li>
+        <li><span class="n">2</span><span>${t('ins.2')} ${ic('plusq','inl')}</span></li>
+        <li><span class="n">3</span><span>${t('ins.3')}</span></li></ol>
+    <button class="ghost">${t('ins.ok')}</button><div class="arrow"></div></div>`;
+}
+function phone(st, code, size){
+  const d = DEV[size], ins = st.id==='install';
+  const vars = `--ph-w:${d.w}px;--ph-h:${d.h}px;--safe-top:${d.top}px;--safe-bottom:${d.bottom}px;--qr:${d.qr}px`;
+  const bottom = ins
+    ? `<div class="safari"><span>‹</span><span>›</span><span class="hl">${ic('share')}</span><span>${ic('book')}</span><span>${ic('tabs')}</span></div>`
+    : `<nav class="tabs"><span class="on">${ic('qr')}${t('tab.code')}</span><span>${ic('list')}${t('tab.days')}</span></nav>`;
+  return `<div class="phone ${d.compact?'compact':''}" style="${vars}" data-screen="my-code" data-state="${st.id}" data-size="${d.w}x${d.h}">
     <div class="sb"><span>${st.clock}</span><span class="net">${st.net===false ? t('net.off') : '5G ▮▮▮'}</span></div>
     <div class="appbar"><div class="row"><span class="logo">LD</span><div class="who"><b>${WORKER.name}</b><span>${t('app.role')}</span></div></div>
       <h2>${t('app.title')}</h2></div>
-    <div class="body">${body(st, code)}</div>
-    <nav class="tabs"><span class="on">${ic('qr')}${t('tab.code')}</span><span>${ic('list')}${t('tab.days')}</span></nav>
+    <div class="body">${body(ins ? {...st, id:'code'} : st, code)}</div>
+    ${bottom}${ins ? installSheet() : ''}
   </div>`;
 }
 
@@ -335,13 +416,33 @@ const NOTES = `
 <h2>Как экран переходит из состояния в состояние</h2>
 <p>Экран открыт — берёт код (1). Пока код на экране, раз в 2–3 секунды спрашивает, что с ним стало. Бригадир погасил код — экран показывает отметку (5 или 7) несколько секунд и возвращается к новому коду: после прихода — с плашкой «на объекте» (6), после ухода — «не отмечены» (1). Срок вышел — сам берёт новый код (2), без кнопки.</p>
 <p>Связь пропала — код остаётся на экране, пока не вышел срок (3): срок и одноразовость проверяет движок в момент гашения по сети бригадира, так что код годен. Срок вышел без связи — кода нет, экран ждёт сеть (4) и обновится сам.</p>
-<p>Ошибка выдачи (8): 5xx и обрыв по таймауту — «попробовать снова»; <code>403 PASS_ISSUER_FORBIDDEN</code> — человеку не положен код («обратитесь к бригадиру»); <code>404 PASS_NOT_CONFIGURED</code> — ошибка настройки стенда, текст тот же, что у 5xx.</p>
+<p>Ошибка выдачи (8): 5xx и обрыв по таймауту — «попробовать снова»; <code>403 PASS_ISSUER_FORBIDDEN</code> — человеку не положен код: тот же экран без кнопки, тексты <code>err.403.t</code> и <code>err.403.s</code> в таблице переводов; <code>404 PASS_NOT_CONFIGURED</code> — ошибка настройки стенда, текст тот же, что у 5xx.</p>
 
-<h2>Размеры</h2>
-<p>Телефон 390×844 CSS-пикселей, безопасные зоны сверху 47 и снизу 34. QR 236×236 — со 40–60 см читается камерой бригадира. Шрифт Plus Jakarta Sans; лайм <code>#C7FF00</code> и графит <code>#343A42</code> — с ldvill.com; углы прямые.</p>
+<h2>Размеры: экран подстраивается</h2>
+<p>Приложение — для Android и iPhone, поэтому экран не привязан к одному размеру. В макете три опорных: узкий Android 360×640, iPhone 14/15 390×844 и большой iPhone 430×932 (CSS-пиксели). Безопасные зоны берутся у системы (<code>env(safe-area-inset-*)</code>); в макете — 24/0, 47/34 и 59/34.</p>
+<p>Правило: всё на экране кода видно без прокрутки. QR — самый большой квадрат, который влезает: 188 на узком, 236 на обычном, 264 на большом; меньше 180 не делать — с 40–60 см его хуже читает камера бригадира. На узком экране (по высоте меньше 700) шапка и отступы сжимаются. Ширина текста — по экрану, длинные венгерские фразы переносятся.</p>
+<p>Шрифт Plus Jakarta Sans; лайм <code>#C7FF00</code> и графит <code>#343A42</code> — с ldvill.com; углы прямые.</p>
+
+<h2>Первый вход на iPhone: установка (9)</h2>
+<p>На iPhone приложение ставится только из Safari через «Поделиться», затем «На экран „Домой“». Экран показывает шторку с тремя шагами, когда открыт в Safari на iOS и не с экрана «Домой» (<code>navigator.standalone === false</code>). Код под шторкой продолжает жить: бригадир может сканировать и до установки. «Позже» прячет шторку до следующего открытия. Названия пунктов в шагах — как в меню iOS на языке телефона. На Android установку предлагает сам Chrome (<code>beforeinstallprompt</code>), отдельной подсказки не нужно.</p>
 `;
 
 /* ══ РЕНДЕР ══ */
+function screenHtml(){
+  if (S.view==='one'){
+    return `<figure class="cell">${phone(liveState(), S.live.code, S.size)}<figcaption><b>${t('c.'+S.state)}</b>${t('c.'+S.state+'.d')}<br><code>my-code · ${S.state} · ${DEV[S.size].w}×${DEV[S.size].h}</code></figcaption></figure>`;
+  }
+  const sizes = Object.keys(DEV).map(k=>`<figure class="cell">${phone(STATES[0], 'demo-size-'+k+'-Qx7Lr2mVb9TzKp4N', k)}
+      <figcaption><b>${t('dev.'+k)}</b><code>my-code · code · ${DEV[k].w}×${DEV[k].h}</code></figcaption></figure>`).join('');
+  const states = STATES.map(s=>`<figure class="cell" id="cell-${s.id}">${phone(s, 'demo-'+s.id+'-Qx7Lr2mVb9TzKp4N', S.size)}
+      <figcaption><b>${t('c.'+s.id)}</b>${t('c.'+s.id+'.d')}<br><code>my-code · ${s.id} · ${DEV[S.size].w}×${DEV[S.size].h}</code></figcaption></figure>`).join('');
+  return `<h3 class="sec">${t('sec.sizes')}</h3><div class="sizes">${sizes}</div>
+    <h3 class="sec">${t('sec.states',{size:DEV[S.size].w+'×'+DEV[S.size].h})}</h3><div class="board">${states}</div>`;
+}
+function renderScreens(){
+  document.getElementById('screens').innerHTML = screenHtml();
+  if (DEBUG) document.querySelectorAll('.phone .body').forEach(b=>{ if (b.scrollHeight > b.clientHeight + 1) b.closest('.phone').classList.add('overflow'); });
+}
 function render(){
   document.documentElement.lang = S.lang;
   document.querySelectorAll('[data-t]').forEach(el=>el.innerHTML=t(el.dataset.t));
@@ -349,37 +450,31 @@ function render(){
   document.querySelectorAll('#seg-view button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.view));
   const sel = document.getElementById('sel-state');
   sel.innerHTML = STATES.map(s=>`<option value="${s.id}" ${s.id===S.state?'selected':''}>${t('c.'+s.id)}</option>`).join('');
+  document.querySelectorAll('#seg-size button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.size));
   document.getElementById('state-ctl').style.display = S.view==='one' ? '' : 'none';
-  const box = document.getElementById('screens');
-  if (S.view==='all'){
-    box.className = 'board';
-    box.innerHTML = STATES.map(s=>`<figure class="cell" id="cell-${s.id}">${phone(s, 'demo-'+s.id+'-'+'Qx7Lr2mVb9TzKp4N')}
-      <figcaption><b>${t('c.'+s.id)}</b>${t('c.'+s.id+'.d')}<br><code>my-code · ${s.id}</code></figcaption></figure>`).join('');
-  } else {
-    box.className = '';
-    box.innerHTML = `<figure class="cell">${phone(liveState(), S.live.code)}<figcaption><b>${t('c.'+S.state)}</b>${t('c.'+S.state+'.d')}</figcaption></figure>`;
-  }
+  renderScreens();
   document.getElementById('notes').innerHTML = NOTES;
 }
 /* В режиме «один экран» отсчёт идёт по-настоящему: 1 и 6 тикают, на нуле — «обновляем», через 1,5 с новый код. */
 function liveState(){
   const base = STATES.find(s=>s.id===S.state);
   if (!('left' in base)) return base;
-  const tick = base.id==='code' || base.id==='onsite' || base.id==='offline';
-  return tick ? {...base, left:Math.max(0, S.live.left)} : base;
+  return TICKING.includes(base.id) ? {...base, left:Math.max(0, S.live.left)} : base;
 }
+/* Тик перерисовывает только экран: пульт (список состояний) не трогается и не закрывается на телефоне. */
+const TICKING = ['code','onsite','offline','install'];
 setInterval(()=>{
-  if (S.view!=='one') return;
-  if (!['code','onsite','offline'].includes(S.state)) return;
-  if (S.live.left>0){ S.live.left--; render(); return; }
-  if (S.state==='offline') return; // без сети новый код не получить
-  setTimeout(()=>{ S.live = {left:TTL, code:newCode()}; render(); }, 1500);
-  S.live.left = -1; // ждём новый код, не перезапускаем таймер
+  if (S.view!=='one' || !TICKING.includes(S.state)) return;
+  if (S.live.left>0){ S.live.left--; renderScreens(); return; }
+  if (S.live.left<0 || S.state==='offline') return; // уже ждём новый код / без сети новый код не получить
+  S.live.left = -1;
+  setTimeout(()=>{ S.live = {left:TTL, code:newCode()}; renderScreens(); }, 1500);
 }, 1000);
 
-function syncUrl(){ const p = new URLSearchParams({lang:S.lang, view:S.view}); if (S.view==='one') p.set('state', S.state); history.replaceState(null,'','?'+p); }
+function syncUrl(){ const p = new URLSearchParams({lang:S.lang, view:S.view, size:S.size}); if (S.view==='one') p.set('state', S.state); history.replaceState(null,'','?'+p); }
 document.querySelectorAll('#seg-lang button').forEach(b=>b.onclick=()=>{S.lang=b.dataset.v; syncUrl(); render();});
 document.querySelectorAll('#seg-view button').forEach(b=>b.onclick=()=>{S.view=b.dataset.v; syncUrl(); render();});
+document.querySelectorAll('#seg-size button').forEach(b=>b.onclick=()=>{S.size=b.dataset.v; syncUrl(); render();});
 document.getElementById('sel-state').onchange=e=>{S.state=e.target.value; S.live={left:STATES.find(s=>s.id===S.state).left ?? TTL, code:newCode()}; if(S.live.left===0) S.live.left=TTL; syncUrl(); render();};
 if (S.view==='one') S.live.left = STATES.find(s=>s.id===S.state).left || TTL;
 render();
