@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>«Мой код» — чистовой макет · LD Vill</title>
+<meta name="theme-color" content="#213946">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<!--
+  Чистовой макет одного экрана мобильного приложения LD Vill — «Мой код» рабочего (TG-411).
+  По нему пишется первый настоящий экран приложения. Черновик всех экранов — index.html рядом.
+
+  Что здесь:
+    · телефон 390×844 (CSS-пиксели iPhone 14/15) с безопасными зонами 47/34;
+    · восемь состояний экрана, каждое с текстами hu / ru / en;
+    · переключатели вверху: язык, состояние, вид «один экран» или «все состояния»;
+    · блок «Данные экрана»: какое поле откуда берётся у движка (PR движка #601, задача TG-408).
+  Адрес принимает ?lang=hu|ru|en&state=<имя>&view=one|all — для ссылок и снимков.
+
+  Палитра и шрифт — ldvill.com: лаймовый #C7FF00 и графит #343A42 сверены с логотипом и иконками
+  сайта 17.11.2026; остальные токены — из чернового макета (index.html). Прямые углы — бренд.
+  Данные выдуманы, сервера нет.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<style>
+  /* ══ ТОКЕНЫ LD VILL — кандидаты в brand/tokens.json ══ */
+  :root{
+    --c-dark:#213946;      /* шапка, нижняя панель */
+    --c-ink:#343A42;       /* основной текст (графит с ldvill.com) */
+    --c-muted:#6B7680;     /* вторичный текст */
+    --c-line:#E2E7E9;      /* рамки */
+    --c-surface:#FFFFFF;   /* карточки */
+    --c-ground:#F5F7F7;    /* фон экрана */
+    --c-lime:#C7FF00;      /* акцент: активная вкладка, полоса срока (лайм с ldvill.com) */
+    --c-lime-ink:#7FA300;  /* акцент на светлом фоне */
+    --c-warn:#E8A100;      --c-warn-bg:#FFF6DD; --c-warn-ink:#7A5400;
+    --c-bad:#D64545;       --c-bad-bg:#FDECEC;
+    --c-ok:#2E9E5B;        --c-ok-bg:#E7F6EE;
+    --font:"Plus Jakarta Sans","Segoe UI",Arial,sans-serif;
+    --radius:2px;          /* бренд — прямые углы */
+    /* размеры телефона */
+    --ph-w:390px; --ph-h:844px; --safe-top:47px; --safe-bottom:34px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#E9EEF0;color:var(--c-ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  button{font:inherit;color:inherit;cursor:pointer}
+
+  /* ══ ПУЛЬТ МАКЕТА (не часть экрана) ══ */
+  .deck{max-width:1320px;margin:0 auto;padding:20px 20px 40px}
+  .deck h1{font-size:22px;margin:0 0 4px;font-weight:800}
+  .deck .sub{color:var(--c-muted);margin:0 0 16px;font-size:14px}
+  .controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;margin-bottom:20px}
+  .seg{display:inline-flex;border:1px solid #C9D2D6;background:#fff}
+  .seg button{border:0;background:none;padding:7px 12px;font-size:13px;font-weight:600}
+  .seg button[aria-pressed="true"]{background:var(--c-dark);color:#fff}
+  .ctl-l{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--c-muted);margin-right:6px;font-family:ui-monospace,Menlo,monospace}
+  select{font:inherit;font-size:13px;padding:6px 8px;border:1px solid #C9D2D6;background:#fff;border-radius:0}
+
+  .stage{display:flex;flex-direction:column;gap:36px}
+  .board{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--ph-w),1fr));gap:28px 24px;justify-items:center}
+  .cell figcaption{margin-top:8px;font-size:13px;max-width:var(--ph-w)}
+  .cell figcaption b{display:block;font-size:14px}
+  .cell figcaption code{font-size:11px;color:var(--c-muted)}
+  figure{margin:0}
+
+  .notes{max-width:860px;background:#fff;border:1px solid var(--c-line);padding:18px 20px;font-size:14px;line-height:1.5}
+  .notes h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);margin:18px 0 6px;font-family:ui-monospace,Menlo,monospace}
+  .notes h2:first-child{margin-top:0}
+  .notes table{border-collapse:collapse;width:100%;font-size:13px}
+  .notes td,.notes th{border-top:1px solid var(--c-line);padding:5px 6px 5px 0;vertical-align:top;text-align:left}
+  .notes code{font-size:12px;background:var(--c-ground);padding:0 3px}
+  .tag{display:inline-block;font-size:10px;font-weight:700;padding:1px 5px;letter-spacing:.04em;text-transform:uppercase}
+  .tag.have{background:var(--c-ok-bg);color:var(--c-ok)}
+  .tag.ask{background:var(--c-warn-bg);color:var(--c-warn-ink)}
+  .tag.cli{background:var(--c-ground);color:var(--c-muted)}
+
+  /* ══ ТЕЛЕФОН ══ */
+  .phone{width:var(--ph-w);height:var(--ph-h);background:var(--c-ground);position:relative;overflow:hidden;
+    outline:10px solid #11181C;border-radius:44px;box-shadow:0 18px 40px rgba(0,0,0,.18);display:flex;flex-direction:column}
+  .sb{height:var(--safe-top);background:var(--c-dark);color:#fff;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 8px;font-size:15px;font-weight:600;flex:none}
+  .sb .net{font-size:12px;letter-spacing:.05em}
+  .appbar{background:var(--c-dark);color:#fff;padding:10px 20px 16px;flex:none}
+  .appbar .row{display:flex;align-items:center;gap:12px}
+  .logo{width:34px;height:34px;background:var(--c-lime);color:var(--c-dark);display:grid;place-items:center;font-weight:800;font-size:14px;letter-spacing:-.02em}
+  .who{line-height:1.2}
+  .who b{display:block;font-size:15px}
+  .who span{font-size:12px;opacity:.7}
+  .appbar h2{margin:14px 0 0;font-size:26px;font-weight:800;letter-spacing:-.01em}
+
+  .body{flex:1;overflow:hidden;padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+  .tabs{flex:none;display:flex;background:var(--c-dark);padding-bottom:var(--safe-bottom)}
+  .tabs span{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 6px;font-size:12px;font-weight:600;color:rgba(255,255,255,.6);border-top:3px solid transparent}
+  .tabs span.on{color:#fff;border-top-color:var(--c-lime)}
+  .tabs svg{width:22px;height:22px}
+
+  .state{display:flex;gap:12px;align-items:flex-start;background:var(--c-surface);border:1px solid var(--c-line);padding:12px 14px}
+  .state svg{flex:none;width:22px;height:22px;margin-top:1px}
+  .state b{display:block;font-size:15px}
+  .state span{font-size:13px;color:var(--c-muted)}
+  .state.on{border-left:4px solid var(--c-ok)} .state.on svg{color:var(--c-ok)}
+  .state.off svg{color:var(--c-muted)}
+
+  .banner{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;font-size:13px;line-height:1.35}
+  .banner svg{flex:none;width:20px;height:20px}
+  .banner.warn{background:var(--c-warn-bg);color:var(--c-warn-ink);border-left:4px solid var(--c-warn)}
+  .banner b{display:block;font-size:14px}
+
+  .qrbox{background:#fff;border:1px solid var(--c-line);padding:18px 18px 14px;display:flex;flex-direction:column;align-items:center;gap:12px}
+  .qr{width:236px;height:236px;position:relative;display:grid;place-items:center}
+  .qr svg{width:236px;height:236px;display:block}
+  .qr .fallback{width:236px;height:236px;display:grid;place-items:center;background:repeating-conic-gradient(#343A42 0 25%,#fff 0 50%) 0 0/24px 24px;opacity:.85}
+  .qr .veil{position:absolute;inset:0;background:rgba(255,255,255,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;font-weight:700;padding:0 18px}
+  .qr .veil.bad{color:var(--c-bad)}
+  .qr .veil svg{width:40px;height:40px}
+  .qr .veil small{font-weight:500;color:var(--c-muted);font-size:13px}
+  .spin{width:28px;height:28px;border:3px solid var(--c-line);border-top-color:var(--c-dark);border-radius:50%;animation:sp 0.9s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .ttl{width:100%;height:6px;background:var(--c-line)}
+  .ttl i{display:block;height:100%;background:var(--c-lime-ink);transition:width .9s linear}
+  .ttl.low i{background:var(--c-warn)}
+  .count{font-size:14px;color:var(--c-muted);font-variant-numeric:tabular-nums}
+  .count b{color:var(--c-ink)}
+  .hint{margin:0;text-align:center;font-size:13px;color:var(--c-muted)}
+
+  .done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;background:var(--c-ok-bg);border:1px solid #BFE5CF}
+  .done .big{width:84px;height:84px;border-radius:50%;background:var(--c-ok);color:#fff;display:grid;place-items:center;margin-bottom:10px}
+  .done .big svg{width:46px;height:46px}
+  .done .what{font-size:16px;font-weight:700;color:var(--c-ok)}
+  .done .time{font-size:56px;font-weight:800;letter-spacing:-.02em;line-height:1}
+  .done .by{font-size:15px;margin-top:6px}
+  .done .back{font-size:13px;color:var(--c-muted);margin-top:18px}
+
+  .err{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:0 10px}
+  .err .big{width:72px;height:72px;border-radius:50%;background:var(--c-bad-bg);color:var(--c-bad);display:grid;place-items:center}
+  .err .big svg{width:38px;height:38px}
+  .err b{font-size:19px}
+  .err p{margin:0;font-size:14px;color:var(--c-muted)}
+  .err small{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--c-muted)}
+  .btn{border:0;background:var(--c-lime);color:var(--c-dark);font-weight:800;font-size:16px;padding:14px 22px;width:100%;margin-top:10px;border-radius:var(--radius)}
+
+  /* На узком экране (телефон Oleg) — один телефон на всю ширину, без рамки */
+  @media (max-width:460px){
+    .deck{padding:12px 0 30px}
+    .deck h1,.deck .sub,.controls,.notes{margin-left:12px;margin-right:12px}
+    .phone{outline:0;border-radius:0;box-shadow:none;width:100vw}
+    .board{grid-template-columns:1fr}
+    .cell figcaption{padding:0 12px}
+  }
+</style>
+</head>
+<body>
+<div class="deck">
+  <h1 data-t="deck.title"></h1>
+  <p class="sub" data-t="deck.sub"></p>
+
+  <div class="controls">
+    <span><span class="ctl-l" data-t="ctl.lang"></span><span class="seg" id="seg-lang">
+      <button data-v="hu">hu</button><button data-v="ru">ru</button><button data-v="en">en</button></span></span>
+    <span><span class="ctl-l" data-t="ctl.view"></span><span class="seg" id="seg-view">
+      <button data-v="all" data-t="ctl.all"></button><button data-v="one" data-t="ctl.one"></button></span></span>
+    <span id="state-ctl"><span class="ctl-l" data-t="ctl.state"></span><select id="sel-state"></select></span>
+  </div>
+
+  <div class="stage">
+    <div id="screens" class="board"></div>
+    <aside class="notes" id="notes"></aside>
+  </div>
+</div>
+
+<script>
+/* ══ ДАННЫЕ (выдуманы; формы — как у движка, PR #601) ══ */
+const WORKER = {name:'Horváth Ádám'};
+const FOREMAN = 'Kovács Péter';
+const TTL = 60; // ttl_sec из ответа выдачи; экран берёт его из ответа, а не держит у себя
+
+/* Состояния экрана. at — что показать на «доске» (застывший миг); live — для режима «один экран». */
+const STATES = [
+  {id:'code',            clock:'07:58', left:42},
+  {id:'refresh',         clock:'07:59', left:0},
+  {id:'offline',         clock:'07:59', left:35, net:false},
+  {id:'offline-expired', clock:'08:00', left:0,  net:false},
+  {id:'done-in',         clock:'08:02', mark:'08:02'},
+  {id:'onsite',          clock:'12:40', left:51, since:'08:02'},
+  {id:'done-out',        clock:'17:10', mark:'17:10'},
+  {id:'error',           clock:'07:58'},
+];
+
+/* ══ ТЕКСТЫ hu / ru / en — единственное место переводов ══ */
+const T = {
+  'deck.title': ['«Kódom» — végleges terv · LD Vill','«Мой код» — чистовой макет · LD Vill','“My code” — final mockup · LD Vill'],
+  'deck.sub':   ['A dolgozó képernyője, ahol a QR-kódot mutatja a brigádvezetőnek. Telefon 390×844, minden állapot.',
+                 'Экран рабочего, где он показывает QR-код бригадиру. Телефон 390×844, все состояния.',
+                 'The worker’s screen that shows the QR code to the foreman. Phone 390×844, every state.'],
+  'ctl.lang':['nyelv','язык','language'], 'ctl.view':['nézet','вид','view'], 'ctl.state':['állapot','состояние','state'],
+  'ctl.all':['minden állapot','все состояния','all states'], 'ctl.one':['egy képernyő','один экран','one screen'],
+
+  'app.title':['Kódom','Мой код','My code'], 'app.role':['dolgozó','рабочий','worker'],
+  'tab.code':['Kódom','Мой код','My code'], 'tab.days':['Műszakjaim','Мои смены','My shifts'],
+  'net.off':['Nincs hálózat','Нет сети','No network'],
+
+  'st.notin.t':['Most nem vagy bejelentkezve','Вы сейчас не отмечены','You are not checked in'],
+  'st.notin.s':['Mutasd a kódot a brigádvezetőnek — ő beolvassa az érkezést','Покажите код бригадиру — он отсканирует приход','Show the code to the foreman — they scan your arrival'],
+  'st.on.t':['A munkaterületen vagy {since} óta','Вы на объекте с {since}','On site since {since}'],
+  'st.on.s':['Az érkezést {foreman} rögzítette','Приход отметил бригадир {foreman}','Check-in by foreman {foreman}'],
+
+  'qr.count':['Frissül <b>{s} mp</b> múlva · egyszer használható','Обновится через <b>{s} с</b> · одноразовый','Refreshes in <b>{s} s</b> · single use'],
+  'qr.expired':['A kód lejárt','Код истёк','Code expired'],
+  'qr.getting':['Új kódot kérünk…','Получаем новый код…','Getting a new code…'],
+  'qr.cantget':['Nem tudunk új kódot kérni','Новый код не получить','Can’t get a new code'],
+  'qr.cantget.s':['A képernyő magától frissül, amint lesz hálózat','Экран обновится сам, как только появится сеть','The screen refreshes itself once the network is back'],
+  'hint.in':['A kód személyes: csak a saját telefonodról mutatható meg.','Код личный: показать его можно только с вашего телефона.','The code is personal: it only shows on your phone.'],
+  'hint.out':['Távozás — ugyanitt, a brigádvezetőnél.','Уход — тем же экраном, у бригадира.','Check-out — same screen, at the foreman.'],
+
+  'off.t':['Nincs hálózat','Нет связи','No connection'],
+  'off.s':['A kód még {s} mp-ig érvényes — a brigádvezető a saját telefonján ellenőrzi.','Код ещё действует {s} с — бригадир проверит его у себя.','The code is valid for {s} more s — the foreman checks it on their phone.'],
+  'off2.s':['A kód lejárt, újat csak hálózattal kapsz. Menj oda, ahol van térerő.','Код истёк, новый — только при связи. Подойдите туда, где ловит сеть.','The code expired; a new one needs a connection. Move to where there is signal.'],
+
+  'done.in':['Érkezés rögzítve','Приход отмечен','Checked in'],
+  'done.out':['Távozás rögzítve','Уход отмечен','Checked out'],
+  'done.by':['rögzítette: {foreman} brigádvezető','отметил бригадир {foreman}','by foreman {foreman}'],
+  'done.back':['Néhány másodperc múlva visszatér a kódhoz','Через несколько секунд экран вернётся к коду','Back to the code in a few seconds'],
+
+  'err.t':['Nem sikerült kódot kérni','Не удалось получить код','Couldn’t get a code'],
+  'err.s':['A szerver hibát adott. Nem a te hibád — próbáld újra.','Сервер ответил ошибкой. Вы ничего не сломали — попробуйте ещё раз.','The server returned an error. It’s not your fault — try again.'],
+  'err.btn':['Újra','Попробовать снова','Try again'],
+
+  /* подписи состояний на доске */
+  'c.code':['1 · Kód, visszaszámlálás','1 · Код и обратный отсчёт','1 · Code and countdown'],
+  'c.code.d':['Az érkezés előtt. A sáv és a másodpercek a lejáratig fogynak.','До прихода. Полоса и секунды тают до конца срока.','Before check-in. The bar and seconds run down to expiry.'],
+  'c.refresh':['2 · Lejárt, frissül','2 · Код истёк и обновляется','2 · Expired, refreshing'],
+  'c.refresh.d':['Nullánál a képernyő magától kér új kódot; a régit nem mutatja érvényesnek.','На нуле экран сам берёт новый код; старый не выглядит годным.','At zero the screen fetches a new code; the old one never looks valid.'],
+  'c.offline':['3 · Nincs hálózat, a kód még él','3 · Нет связи, код ещё действует','3 · Offline, code still valid'],
+  'c.offline.d':['A lejáratot a brigádvezető telefonja ellenőrzi, ezért a kód a lejáratig használható.','Срок проверяет телефон бригадира, поэтому код годен до конца срока и без сети у рабочего.','Expiry is checked on the foreman’s phone, so the code stays usable until it expires.'],
+  'c.offline-expired':['4 · Nincs hálózat, a kód lejárt','4 · Нет связи, код истёк','4 · Offline, code expired'],
+  'c.offline-expired.d':['Kód nincs; a képernyő vár a hálózatra és magától frissül.','Кода нет; экран ждёт сеть и обновится сам.','No code; the screen waits for the network and refreshes itself.'],
+  'c.done-in':['5 · Érkezés rögzítve','5 · Отметка прихода прошла','5 · Check-in recorded'],
+  'c.done-in.d':['A brigádvezető beolvasta. Idő — a szerveré, név — a beolvasóé.','Бригадир отсканировал. Время — сервера, имя — того, кто гасил.','The foreman scanned. Time is the server’s, the name is the scanner’s.'],
+  'c.onsite':['6 · A munkaterületen, kód távozáshoz','6 · На объекте, код для ухода','6 · On site, code for check-out'],
+  'c.onsite.d':['Ugyanaz a képernyő; a motor maga dönti el, hogy távozás.','Тот же экран; что это уход, движок решает сам.','Same screen; the engine decides it is a check-out.'],
+  'c.done-out':['7 · Távozás rögzítve','7 · Отметка ухода прошла','7 · Check-out recorded'],
+  'c.done-out.d':['Mint az 5., csak távozás.','Как 5, только уход.','Like 5, but check-out.'],
+  'c.error':['8 · Hiba','8 · Ошибка','8 · Error'],
+  'c.error.d':['A szerver nem adott kódot. Gomb — újra kér.','Сервер не выдал код. Кнопка — запросить снова.','The server gave no code. The button asks again.'],
+};
+const LI = {hu:0, ru:1, en:2};
+
+/* ══ СОСТОЯНИЕ МАКЕТА ══ */
+const qs = new URLSearchParams(location.search);
+const S = {
+  lang: LI[qs.get('lang')] !== undefined ? qs.get('lang') : 'ru',
+  view: qs.get('view')==='one' ? 'one' : 'all',
+  state: STATES.some(s=>s.id===qs.get('state')) ? qs.get('state') : 'code',
+  live: {left:TTL, phase:'code', code:newCode()},
+};
+function t(k, v={}){ const row=T[k]; if(!row) return k; let s=row[LI[S.lang]]; for(const [a,b] of Object.entries(v)) s=s.replace('{'+a+'}', b); return s; }
+function newCode(){ const a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789_-'; let s=''; for(let i=0;i<32;i++) s+=a[Math.floor(Math.random()*a.length)]; return s; }
+
+/* ══ ИКОНКИ (lucide, ISC) ══ */
+const IC = {
+  qr:'<rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>',
+  list:'<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  checkc:'<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+  wifioff:'<path d="M12 20h.01"/><path d="M8.5 16.43a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 13a10 10 0 0 1 5.24-2.76"/><path d="m2 2 20 20"/>',
+  alert:'<path d="M12 8v4"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="10"/>',
+};
+const ic = (n, cls='') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</svg>`;
+
+/* ══ ЭКРАН ══ */
+function qrSvg(code){
+  // В QR — сам код, без адреса: код ходит только в теле запроса (правило движка К-18), сканер встроен в приложение бригадира.
+  if (!window.qrcode) return '<div class="fallback"></div>';
+  const q = qrcode(0,'M'); q.addData(code); q.make(); return q.createSvgTag({cellSize:6, margin:0, scalable:true});
+}
+function qrBlock(st, code){
+  const left = st.left, net = st.net !== false;
+  let veil = '';
+  if (left===0 && net)  veil = `<div class="veil"><div class="spin"></div>${t('qr.getting')}<small>${t('qr.expired')}</small></div>`;
+  if (left===0 && !net) veil = `<div class="veil bad">${ic('wifioff')}${t('qr.cantget')}<small>${t('qr.cantget.s')}</small></div>`;
+  const qr = left===0 ? '<div class="fallback" style="opacity:.25"></div>' : qrSvg(code);
+  const pct = Math.max(0, left/TTL*100);
+  return `<div class="qrbox"><div class="qr">${qr}${veil}</div>
+    <div class="ttl ${left<=10?'low':''}"><i style="width:${pct}%"></i></div>
+    <div class="count">${left>0 ? t('qr.count',{s:left}) : '&nbsp;'}</div></div>`;
+}
+function body(st, code){
+  const onSite = st.id==='onsite';
+  if (st.id==='done-in' || st.id==='done-out'){
+    return `<div class="done"><div class="big">${ic('check')}</div>
+      <div class="what">${t(st.id==='done-in'?'done.in':'done.out')}</div>
+      <div class="time">${st.mark}</div>
+      <div class="by">${t('done.by',{foreman:'<b>'+FOREMAN+'</b>'})}</div>
+      <div class="back">${t('done.back')}</div></div>`;
+  }
+  if (st.id==='error'){
+    return `<div class="state off">${ic('clock')}<div><b>${t('st.notin.t')}</b><span>${t('st.notin.s')}</span></div></div>
+      <div class="err"><div class="big">${ic('alert')}</div><b>${t('err.t')}</b><p>${t('err.s')}</p>
+      <button class="btn">${t('err.btn')}</button><small>HTTP 503</small></div>`;
+  }
+  let h = onSite
+    ? `<div class="state on">${ic('checkc')}<div><b>${t('st.on.t',{since:st.since})}</b><span>${t('st.on.s',{foreman:FOREMAN})}</span></div></div>`
+    : `<div class="state off">${ic('clock')}<div><b>${t('st.notin.t')}</b><span>${t('st.notin.s')}</span></div></div>`;
+  if (st.net===false){
+    h += `<div class="banner warn">${ic('wifioff')}<div><b>${t('off.t')}</b>${st.left>0 ? t('off.s',{s:st.left}) : t('off2.s')}</div></div>`;
+  }
+  h += qrBlock(st, code);
+  h += `<p class="hint">${t(onSite?'hint.out':'hint.in')}</p>`;
+  return h;
+}
+function phone(st, code){
+  return `<div class="phone" data-screen="my-code" data-state="${st.id}">
+    <div class="sb"><span>${st.clock}</span><span class="net">${st.net===false ? t('net.off') : '5G ▮▮▮'}</span></div>
+    <div class="appbar"><div class="row"><span class="logo">LD</span><div class="who"><b>${WORKER.name}</b><span>${t('app.role')}</span></div></div>
+      <h2>${t('app.title')}</h2></div>
+    <div class="body">${body(st, code)}</div>
+    <nav class="tabs"><span class="on">${ic('qr')}${t('tab.code')}</span><span>${ic('list')}${t('tab.days')}</span></nav>
+  </div>`;
+}
+
+/* ══ ЗАПИСКА ДЛЯ РАЗРАБОТЧИКА (на русском: читатель — команда) ══ */
+const NOTES = `
+<h2>Данные экрана</h2>
+<table>
+<tr><th>Что на экране</th><th>Откуда</th></tr>
+<tr><td>QR-код</td><td><span class="tag have">есть</span> <code>code</code> из <code>POST /api/modules/{process}/passes</code>. В QR — сам код, без адреса: код ходит только в теле запроса (К-18); движок про QR не знает, рисует клиент.</td></tr>
+<tr><td>Секунды и полоса срока</td><td><span class="tag have">есть</span> <code>expires_at − now</code>, доля — от <code>ttl_sec</code>. Срок задаёт контракт процесса, 60 с — не константа клиента.</td></tr>
+<tr><td>Имя и роль в шапке</td><td><span class="tag cli">клиент</span> вошедший человек (Keycloak). Код всегда свой: выдача не отдаёт, чей он, — он того, кто спросил.</td></tr>
+<tr><td>«Отметка прошла», время, бригадир</td><td><span class="tag ask">запрошено</span> точка «что стало с моим кодом»: <code>POST …/passes/status {pass_code}</code> → <code>state</code> (active / used / expired), <code>redeemed_at</code>, <code>redeemed_by.label</code>, <code>action</code> (open — приход, close — уход). Просьба — заметка №1 в TG-408; <code>lookup</code> и <code>redeem</code> рабочему закрыты (404).</td></tr>
+<tr><td>«Вы на объекте с 08:02»</td><td><span class="tag ask">запрошено</span> после отметки — из той же точки; после перезапуска приложения нужна ещё и открытая отметка рабочего — вариант в той же заметке.</td></tr>
+</table>
+
+<h2>Как экран переходит из состояния в состояние</h2>
+<p>Экран открыт — берёт код (1). Пока код на экране, раз в 2–3 секунды спрашивает, что с ним стало. Бригадир погасил код — экран показывает отметку (5 или 7) несколько секунд и возвращается к новому коду: после прихода — с плашкой «на объекте» (6), после ухода — «не отмечены» (1). Срок вышел — сам берёт новый код (2), без кнопки.</p>
+<p>Связь пропала — код остаётся на экране, пока не вышел срок (3): срок и одноразовость проверяет движок в момент гашения по сети бригадира, так что код годен. Срок вышел без связи — кода нет, экран ждёт сеть (4) и обновится сам.</p>
+<p>Ошибка выдачи (8): 5xx и обрыв по таймауту — «попробовать снова»; <code>403 PASS_ISSUER_FORBIDDEN</code> — человеку не положен код («обратитесь к бригадиру»); <code>404 PASS_NOT_CONFIGURED</code> — ошибка настройки стенда, текст тот же, что у 5xx.</p>
+
+<h2>Размеры</h2>
+<p>Телефон 390×844 CSS-пикселей, безопасные зоны сверху 47 и снизу 34. QR 236×236 — со 40–60 см читается камерой бригадира. Шрифт Plus Jakarta Sans; лайм <code>#C7FF00</code> и графит <code>#343A42</code> — с ldvill.com; углы прямые.</p>
+`;
+
+/* ══ РЕНДЕР ══ */
+function render(){
+  document.documentElement.lang = S.lang;
+  document.querySelectorAll('[data-t]').forEach(el=>el.innerHTML=t(el.dataset.t));
+  document.querySelectorAll('#seg-lang button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.lang));
+  document.querySelectorAll('#seg-view button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.view));
+  const sel = document.getElementById('sel-state');
+  sel.innerHTML = STATES.map(s=>`<option value="${s.id}" ${s.id===S.state?'selected':''}>${t('c.'+s.id)}</option>`).join('');
+  document.getElementById('state-ctl').style.display = S.view==='one' ? '' : 'none';
+  const box = document.getElementById('screens');
+  if (S.view==='all'){
+    box.className = 'board';
+    box.innerHTML = STATES.map(s=>`<figure class="cell" id="cell-${s.id}">${phone(s, 'demo-'+s.id+'-'+'Qx7Lr2mVb9TzKp4N')}
+      <figcaption><b>${t('c.'+s.id)}</b>${t('c.'+s.id+'.d')}<br><code>my-code · ${s.id}</code></figcaption></figure>`).join('');
+  } else {
+    box.className = '';
+    box.innerHTML = `<figure class="cell">${phone(liveState(), S.live.code)}<figcaption><b>${t('c.'+S.state)}</b>${t('c.'+S.state+'.d')}</figcaption></figure>`;
+  }
+  document.getElementById('notes').innerHTML = NOTES;
+}
+/* В режиме «один экран» отсчёт идёт по-настоящему: 1 и 6 тикают, на нуле — «обновляем», через 1,5 с новый код. */
+function liveState(){
+  const base = STATES.find(s=>s.id===S.state);
+  if (!('left' in base)) return base;
+  const tick = base.id==='code' || base.id==='onsite' || base.id==='offline';
+  return tick ? {...base, left:Math.max(0, S.live.left)} : base;
+}
+setInterval(()=>{
+  if (S.view!=='one') return;
+  if (!['code','onsite','offline'].includes(S.state)) return;
+  if (S.live.left>0){ S.live.left--; render(); return; }
+  if (S.state==='offline') return; // без сети новый код не получить
+  setTimeout(()=>{ S.live = {left:TTL, code:newCode()}; render(); }, 1500);
+  S.live.left = -1; // ждём новый код, не перезапускаем таймер
+}, 1000);
+
+function syncUrl(){ const p = new URLSearchParams({lang:S.lang, view:S.view}); if (S.view==='one') p.set('state', S.state); history.replaceState(null,'','?'+p); }
+document.querySelectorAll('#seg-lang button').forEach(b=>b.onclick=()=>{S.lang=b.dataset.v; syncUrl(); render();});
+document.querySelectorAll('#seg-view button').forEach(b=>b.onclick=()=>{S.view=b.dataset.v; syncUrl(); render();});
+document.getElementById('sel-state').onchange=e=>{S.state=e.target.value; S.live={left:STATES.find(s=>s.id===S.state).left ?? TTL, code:newCode()}; if(S.live.left===0) S.live.left=TTL; syncUrl(); render();};
+if (S.view==='one') S.live.left = STATES.find(s=>s.id===S.state).left || TTL;
+render();
+</script>
+</body>
+</html>
