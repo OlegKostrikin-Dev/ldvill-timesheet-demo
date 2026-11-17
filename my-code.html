@@ -11,11 +11,14 @@
   По нему пишется первый настоящий экран приложения. Черновик всех экранов — index.html рядом.
 
   Что здесь:
-    · три размера экрана: узкий Android 360×640, iPhone 390×844, большой iPhone 430×932;
-    · девять состояний экрана (восьмое — ошибка, девятое — подсказка установки на iPhone), тексты hu / ru / en;
-    · переключатели вверху: язык, вид «один экран» или «все состояния», размер, состояние;
+    · живой прототип (вид по умолчанию): вход, «Мой код» с настоящим отсчётом минуты; пульт играет
+      остальной мир — бригадир сканирует, связь пропала и вернулась, перемотка к концу минуты, ошибка
+      сервера, перезапуск приложения; журнал пульта говорит, что произошло и какую точку движка звал экран.
+      На телефоне пульт — выдвижная панель снизу;
+    · доска всех состояний для обзора на компьютере (вид «все состояния»);
+    · три размера экрана: узкий Android 360×640, iPhone 390×844, большой iPhone 430×932; тексты hu / ru / en;
     · блок «Данные экрана»: какое поле откуда берётся у движка (PR движка #601, задача TG-408).
-  Адрес принимает ?lang=hu|ru|en&view=one|all&size=s|m|l&state=<имя> — для ссылок и снимков;
+  Адрес принимает ?lang=hu|ru|en&view=proto|all&size=s|m|l — для ссылок и снимков;
   ?debug красит рамку телефона, где содержимое не влезло без прокрутки.
 
   Палитра и шрифт — ldvill.com: лаймовый #C7FF00 и графит #343A42 сверены с логотипом и иконками
@@ -170,13 +173,50 @@
 
   .btn{border:0;background:var(--c-lime);color:var(--c-dark);font-weight:800;font-size:16px;padding:14px 22px;width:100%;margin-top:10px;border-radius:var(--radius)}
 
-  /* На узком экране (телефон Oleg) — один телефон на всю ширину, без рамки */
+  /* вход */
+  .login{flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:0 6px}
+  .login .logo.big{width:64px;height:64px;font-size:24px;margin-bottom:6px}
+  .login > b{font-size:26px;font-weight:800} .login > span{color:var(--c-muted);margin-bottom:18px}
+  .login label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--c-muted)}
+  .login input{font:inherit;font-size:16px;color:var(--c-ink);padding:12px;border:1px solid var(--c-line);background:#fff;border-radius:0}
+
+  /* живой прототип: телефон и пульт рядом */
+  .work{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap}
+  body[data-view="proto"] .controls{display:none}
+  body[data-view="proto"] .notes{margin-top:8px}
+  .pult{width:420px;max-width:100%;background:#fff;border:1px solid var(--c-line);font-size:14px}
+  .pult .handle{display:none}
+  .pult .pin{padding:16px 18px}
+  .pult .ptitle{display:block;font-size:16px;margin-bottom:4px}
+  .pult .how{margin:0 0 12px;color:var(--c-muted);font-size:13px;line-height:1.45}
+  .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .acts button{border:1px solid #C9D2D6;background:#fff;padding:11px 10px;font-weight:700;font-size:13px;text-align:left}
+  .acts button.main{grid-column:1/-1;background:var(--c-dark);color:#fff;border-color:var(--c-dark);font-size:15px;text-align:center}
+  .acts button:active{transform:translateY(1px)}
+  .pctl{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+  .log{border-top:1px solid var(--c-line);padding-top:10px;font-size:12.5px;line-height:1.4;max-height:360px;overflow:auto}
+  .log b{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);margin-bottom:6px;font-family:ui-monospace,Menlo,monospace}
+  .log div{padding:4px 0;border-bottom:1px dashed var(--c-line)}
+  .log div:first-of-type{color:var(--c-ink);font-weight:600}
+  .log time{font-family:ui-monospace,Menlo,monospace;color:var(--c-muted);margin-right:6px;font-weight:400}
+
+  /* На узком экране (телефон Oleg) — один телефон на всю ширину, без рамки; пульт — выдвижная панель снизу */
   @media (max-width:460px){
     .deck{padding:12px 0 30px}
     .deck h1,.deck .sub,.controls,.notes{margin-left:12px;margin-right:12px}
     .phone{outline:0;border-radius:0;box-shadow:none;width:100vw}
     .board{grid-template-columns:1fr}
     .cell figcaption{padding:0 12px}
+    body[data-view="proto"] .deck{padding:0 0 60px}
+    body[data-view="proto"] .deck > h1, body[data-view="proto"] .deck > .sub{display:none}
+    body[data-view="proto"] .proto .phone{height:calc(100dvh - 48px)}
+    .pult{position:fixed;left:0;right:0;bottom:0;width:auto;z-index:10;border:0;box-shadow:0 -8px 24px rgba(0,0,0,.2);
+      max-height:72dvh;display:flex;flex-direction:column;transform:translateY(calc(100% - 48px));transition:transform .25s}
+    .pult.open{transform:none}
+    .pult .handle{display:block;flex:none;height:48px;border:0;background:var(--c-lime);color:var(--c-dark);font-weight:800;font-size:15px;width:100%}
+    .pult .ptitle{display:none}
+    .pult .pin{overflow:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+    .log{max-height:none}
   }
 </style>
 </head>
@@ -189,14 +229,13 @@
     <span><span class="ctl-l" data-t="ctl.lang"></span><span class="seg" id="seg-lang">
       <button data-v="hu">hu</button><button data-v="ru">ru</button><button data-v="en">en</button></span></span>
     <span><span class="ctl-l" data-t="ctl.view"></span><span class="seg" id="seg-view">
-      <button data-v="all" data-t="ctl.all"></button><button data-v="one" data-t="ctl.one"></button></span></span>
+      <button data-v="proto" data-t="ctl.one"></button><button data-v="all" data-t="ctl.all"></button></span></span>
     <span><span class="ctl-l" data-t="ctl.size"></span><span class="seg" id="seg-size">
       <button data-v="s">360</button><button data-v="m">390</button><button data-v="l">430</button></span></span>
-    <span id="state-ctl"><span class="ctl-l" data-t="ctl.state"></span><select id="sel-state"></select></span>
   </div>
 
   <div class="stage">
-    <div id="screens"></div>
+    <div class="work"><div id="screens"></div><aside id="pult" hidden></aside></div>
     <aside class="notes" id="notes"></aside>
   </div>
 </div>
@@ -217,12 +256,14 @@ const DEV = {
 
 /* Состояния экрана. at — что показать на «доске» (застывший миг); live — для режима «один экран». */
 const STATES = [
+  {id:'login',           clock:'07:57'},
   {id:'code',            clock:'07:58', left:42},
   {id:'refresh',         clock:'07:59', left:0},
   {id:'offline',         clock:'07:59', left:35, net:false},
   {id:'offline-expired', clock:'08:00', left:0,  net:false},
   {id:'done-in',         clock:'08:02', mark:'08:02'},
   {id:'onsite',          clock:'12:40', left:51, since:'08:02'},
+  /* since — рабочий на объекте: плашка «на объекте с …» вместо «не отмечены» */
   {id:'done-out',        clock:'17:10', mark:'17:10'},
   {id:'error',           clock:'07:58'},
   {id:'install',         clock:'07:55', left:57},
@@ -230,12 +271,12 @@ const STATES = [
 
 /* ══ ТЕКСТЫ hu / ru / en — единственное место переводов ══ */
 const T = {
-  'deck.title': ['«Kódom» — végleges terv · LD Vill','«Мой код» — чистовой макет · LD Vill','“My code” — final mockup · LD Vill'],
+  'deck.title': ['«Kódom» — prototípus · LD Vill','«Мой код» — прототип · LD Vill','“My code” — prototype · LD Vill'],
   'deck.sub':   ['A dolgozó képernyője, ahol a QR-kódot mutatja a brigádvezetőnek. Android és iPhone, három méret, minden állapot.',
                  'Экран рабочего, где он показывает QR-код бригадиру. Android и iPhone, три размера, все состояния.',
                  'The worker’s screen that shows the QR code to the foreman. Android and iPhone, three sizes, every state.'],
   'ctl.lang':['nyelv','язык','language'], 'ctl.view':['nézet','вид','view'], 'ctl.state':['állapot','состояние','state'],
-  'ctl.all':['minden állapot','все состояния','all states'], 'ctl.one':['egy képernyő','один экран','one screen'],
+  'ctl.all':['minden állapot','все состояния','all states'], 'ctl.one':['élő prototípus','живой прототип','live prototype'],
 
   'app.title':['Kódom','Мой код','My code'], 'app.role':['dolgozó','рабочий','worker'],
   'tab.code':['Kódom','Мой код','My code'], 'tab.days':['Műszakjaim','Мои смены','My shifts'],
@@ -270,7 +311,14 @@ const T = {
   'err.403.t':['Neked nem jár kód','Вам код не выдаётся','No code for you'],
   'err.403.s':['Kérdezd a brigádvezetőt — ő tudja beállítatni.','Обратитесь к бригадиру — он попросит это настроить.','Ask your foreman — they can get it set up.'],
 
+  'login.sub':['Műszaknyilvántartás','Учёт смен','Shift tracking'],
+  'login.user':['Felhasználónév','Логин','Username'],
+  'login.pass':['Jelszó','Пароль','Password'],
+  'login.btn':['Belépés','Войти','Sign in'],
+
   /* подписи состояний на доске */
+  'c.login':['0 · Belépés','0 · Вход','0 · Sign in'],
+  'c.login.d':['Első indításkor; utána az alkalmazás emlékszik a belépésre.','При первом запуске; дальше приложение помнит вход.','On first launch; afterwards the app remembers the sign-in.'],
   'c.code':['1 · Kód, visszaszámlálás','1 · Код и обратный отсчёт','1 · Code and countdown'],
   'c.code.d':['Az érkezés előtt. A sáv és a másodpercek a lejáratig fogynak.','До прихода. Полоса и секунды тают до конца срока.','Before check-in. The bar and seconds run down to expiry.'],
   'c.refresh':['2 · Lejárt, frissül','2 · Код истёк и обновляется','2 · Expired, refreshing'],
@@ -311,10 +359,8 @@ const LI = {hu:0, ru:1, en:2};
 const qs = new URLSearchParams(location.search);
 const S = {
   lang: LI[qs.get('lang')] !== undefined ? qs.get('lang') : 'ru',
-  view: qs.get('view')==='one' ? 'one' : 'all',
-  state: STATES.some(s=>s.id===qs.get('state')) ? qs.get('state') : 'code',
+  view: qs.get('view')==='all' ? 'all' : 'proto',   // по умолчанию — живой прототип
   size: DEV[qs.get('size')] ? qs.get('size') : 'm',
-  live: {left:TTL, code:newCode()},
 };
 const DEBUG = qs.has('debug'); // ?debug — красная рамка у телефона, где содержимое не влезло
 function t(k, v={}){ const row=T[k]; if(!row) return k; let s=row[LI[S.lang]]; for(const [a,b] of Object.entries(v)) s=s.replace('{'+a+'}', b); return s; }
@@ -353,8 +399,19 @@ function qrBlock(st, code){
     <div class="ttl ${left<=10?'low':''}"><i style="width:${pct}%"></i></div>
     <div class="count">${left>0 ? t('qr.count',{s:left}) : '&nbsp;'}</div></div>`;
 }
+function stateCard(st){
+  return st.since
+    ? `<div class="state on">${ic('checkc')}<div><b>${t('st.on.t',{since:st.since})}</b><span>${t('st.on.s',{foreman:FOREMAN})}</span></div></div>`
+    : `<div class="state off">${ic('clock')}<div><b>${t('st.notin.t')}</b><span>${t('st.notin.s')}</span></div></div>`;
+}
 function body(st, code){
-  const onSite = st.id==='onsite';
+  const onSite = !!st.since;
+  if (st.id==='login'){
+    return `<div class="login"><div class="logo big">LD</div><b>LD Vill</b><span>${t('login.sub')}</span>
+      <label>${t('login.user')}<input value="${loginOf(WORKER.name)}" readonly></label>
+      <label>${t('login.pass')}<input type="password" value="12345678" readonly></label>
+      <button class="btn" data-act="login">${t('login.btn')}</button></div>`;
+  }
   if (st.id==='done-in' || st.id==='done-out'){
     return `<div class="done"><div class="big">${ic('check')}</div>
       <div class="what">${t(st.id==='done-in'?'done.in':'done.out')}</div>
@@ -363,13 +420,11 @@ function body(st, code){
       <div class="back">${t('done.back')}</div></div>`;
   }
   if (st.id==='error'){
-    return `<div class="state off">${ic('clock')}<div><b>${t('st.notin.t')}</b><span>${t('st.notin.s')}</span></div></div>
+    return `${stateCard(st)}
       <div class="err"><div class="big">${ic('alert')}</div><b>${t('err.t')}</b><p>${t('err.s')}</p>
-      <button class="btn">${t('err.btn')}</button><small>HTTP 503</small></div>`;
+      <button class="btn" data-act="retry">${t('err.btn')}</button><small>HTTP 503</small></div>`;
   }
-  let h = onSite
-    ? `<div class="state on">${ic('checkc')}<div><b>${t('st.on.t',{since:st.since})}</b><span>${t('st.on.s',{foreman:FOREMAN})}</span></div></div>`
-    : `<div class="state off">${ic('clock')}<div><b>${t('st.notin.t')}</b><span>${t('st.notin.s')}</span></div></div>`;
+  let h = stateCard(st);
   if (st.net===false){
     h += `<div class="banner warn">${ic('wifioff')}<div><b>${t('off.t')}</b>${st.left>0 ? t('off.s',{s:st.left}) : t('off2.s')}</div></div>`;
   }
@@ -384,19 +439,22 @@ function installSheet(){
     <ol><li><span class="n">1</span><span>${t('ins.1')} ${ic('share','inl')}</span></li>
         <li><span class="n">2</span><span>${t('ins.2')} ${ic('plusq','inl')}</span></li>
         <li><span class="n">3</span><span>${t('ins.3')}</span></li></ol>
-    <button class="ghost">${t('ins.ok')}</button><div class="arrow"></div></div>`;
+    <button class="ghost" data-act="later">${t('ins.ok')}</button><div class="arrow"></div></div>`;
 }
+const loginOf = n => n.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(' ','.');
 function phone(st, code, size){
-  const d = DEV[size], ins = st.id==='install';
+  const d = DEV[size], ins = st.id==='install' || !!st.install, login = st.id==='login';
   const vars = `--ph-w:${d.w}px;--ph-h:${d.h}px;--safe-top:${d.top}px;--safe-bottom:${d.bottom}px;--qr:${d.qr}px`;
   const bottom = ins
     ? `<div class="safari"><span>‹</span><span>›</span><span class="hl">${ic('share')}</span><span>${ic('book')}</span><span>${ic('tabs')}</span></div>`
+    : login ? '<div class="tabs"></div>'
     : `<nav class="tabs"><span class="on">${ic('qr')}${t('tab.code')}</span><span>${ic('list')}${t('tab.days')}</span></nav>`;
+  const bar = login ? '' : `<div class="appbar"><div class="row"><span class="logo">LD</span><div class="who"><b>${WORKER.name}</b><span>${t('app.role')}</span></div></div>
+      <h2>${t('app.title')}</h2></div>`;
   return `<div class="phone ${d.compact?'compact':''}" style="${vars}" data-screen="my-code" data-state="${st.id}" data-size="${d.w}x${d.h}">
     <div class="sb"><span>${st.clock}</span><span class="net">${st.net===false ? t('net.off') : '5G ▮▮▮'}</span></div>
-    <div class="appbar"><div class="row"><span class="logo">LD</span><div class="who"><b>${WORKER.name}</b><span>${t('app.role')}</span></div></div>
-      <h2>${t('app.title')}</h2></div>
-    <div class="body">${body(ins ? {...st, id:'code'} : st, code)}</div>
+    ${bar}
+    <div class="body">${body(st, code)}</div>
     ${bottom}${ins ? installSheet() : ''}
   </div>`;
 }
@@ -429,10 +487,9 @@ const NOTES = `
 
 /* ══ РЕНДЕР ══ */
 function screenHtml(){
-  if (S.view==='one'){
-    return `<figure class="cell">${phone(liveState(), S.live.code, S.size)}<figcaption><b>${t('c.'+S.state)}</b>${t('c.'+S.state+'.d')}<br><code>my-code · ${S.state} · ${DEV[S.size].w}×${DEV[S.size].h}</code></figcaption></figure>`;
-  }
-  const sizes = Object.keys(DEV).map(k=>`<figure class="cell">${phone(STATES[0], 'demo-size-'+k+'-Qx7Lr2mVb9TzKp4N', k)}
+  if (S.view==='proto') return `<div class="proto">${phone(protoState(), P.code, S.size)}</div>`;
+  const main = STATES.find(s=>s.id==='code');
+  const sizes = Object.keys(DEV).map(k=>`<figure class="cell">${phone(main, 'demo-size-'+k+'-Qx7Lr2mVb9TzKp4N', k)}
       <figcaption><b>${t('dev.'+k)}</b><code>my-code · code · ${DEV[k].w}×${DEV[k].h}</code></figcaption></figure>`).join('');
   const states = STATES.map(s=>`<figure class="cell" id="cell-${s.id}">${phone(s, 'demo-'+s.id+'-Qx7Lr2mVb9TzKp4N', S.size)}
       <figcaption><b>${t('c.'+s.id)}</b>${t('c.'+s.id+'.d')}<br><code>my-code · ${s.id} · ${DEV[S.size].w}×${DEV[S.size].h}</code></figcaption></figure>`).join('');
@@ -448,35 +505,145 @@ function render(){
   document.querySelectorAll('[data-t]').forEach(el=>el.innerHTML=t(el.dataset.t));
   document.querySelectorAll('#seg-lang button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.lang));
   document.querySelectorAll('#seg-view button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.view));
-  const sel = document.getElementById('sel-state');
-  sel.innerHTML = STATES.map(s=>`<option value="${s.id}" ${s.id===S.state?'selected':''}>${t('c.'+s.id)}</option>`).join('');
   document.querySelectorAll('#seg-size button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.size));
-  document.getElementById('state-ctl').style.display = S.view==='one' ? '' : 'none';
+  document.body.dataset.view = S.view;
   renderScreens();
+  renderPult();
   document.getElementById('notes').innerHTML = NOTES;
 }
-/* В режиме «один экран» отсчёт идёт по-настоящему: 1 и 6 тикают, на нуле — «обновляем», через 1,5 с новый код. */
-function liveState(){
-  const base = STATES.find(s=>s.id===S.state);
-  if (!('left' in base)) return base;
-  return TICKING.includes(base.id) ? {...base, left:Math.max(0, S.live.left)} : base;
+/* ══ ЖИВОЙ ПРОТОТИП ══
+   Телефон рабочего ведёт себя как настоящий экран, а пульт играет «остальной мир»: бригадира, сеть, сервер.
+   Всё, что делает телефон, — то же, что будет делать приложение: берёт код у движка, раз в 2–3 с
+   спрашивает «что стало с моим кодом» и по ответу показывает отметку. Время — часы сервера. */
+const P = {};
+function resetProto(){
+  // onSite — что знает телефон (плашка «на объекте»); serverOn — что знает движок (открыта ли отметка).
+  // Они расходятся, пока у телефона нет связи и после перезапуска приложения.
+  Object.assign(P, {screen:'login', phase:'none', online:true, code:'', left:0, consumed:false,
+    onSite:null, serverOn:null, done:null, pending:null, failNext:false, hint:false, clock:8*3600+60+55, log:[], drawer:P.drawer||false});
+  logEv('Рабочий открыл приложение — экран входа.');
 }
-/* Тик перерисовывает только экран: пульт (список состояний) не трогается и не закрывается на телефоне. */
-const TICKING = ['code','onsite','offline','install'];
+const hhmm = s => String(Math.floor(s/3600)%24).padStart(2,'0')+':'+String(Math.floor(s/60)%60).padStart(2,'0');
+function logEv(text){ P.log.unshift({at:hhmm(P.clock)+':'+String(P.clock%60).padStart(2,'0'), text}); if (P.log.length>30) P.log.pop(); renderPult(); }
+const later = (ms, fn) => setTimeout(()=>{ fn(); if (S.view==='proto') renderScreens(); }, ms);
+
+function fetchCode(){
+  if (!P.online){ P.phase='nocode'; logEv('Новый код не получить: у телефона нет сети. Экран ждёт связь.'); return; }
+  P.phase='refreshing';
+  later(1200, ()=>{
+    if (!P.online){ P.phase='nocode'; logEv('Сеть пропала, пока ждали код.'); return; }
+    if (P.failNext){ P.failNext=false; P.phase='error'; logEv('Движок ответил 503 на выдачу кода — экран ошибки.'); return; }
+    P.code=newCode(); P.left=TTL; P.consumed=false; P.phase='live';
+    logEv(`Движок выдал код на ${TTL} с (POST …/passes).`);
+  });
+}
+const ACT = {
+  login(){ P.screen='app'; P.hint = S.size!=='s'; logEv('Вход выполнен.'+(P.hint?' Открыто в Safari на iPhone — шторка «как установить».':'')); fetchCode(); },
+  later(){ P.hint=false; logEv('Рабочий нажал «Позже» — шторка спрятана до следующего открытия.'); },
+  retry(){ logEv('Рабочий нажал «Попробовать снова».'); fetchCode(); },
+  scan(){
+    if (P.screen!=='app' || P.phase!=='live'){ logEv('Бригадир навёл камеру — на экране рабочего сейчас нет кода.'); return; }
+    if (P.consumed){ logEv('Бригадир сканирует — движок: «код уже использован». Пусть рабочий дождётся нового кода.'); return; }
+    const action = P.serverOn ? 'close' : 'open', time = hhmm(P.clock);
+    P.consumed = true;
+    P.serverOn = action==='open' ? {since:time} : null;
+    logEv(`Бригадир ${FOREMAN} отсканировал код. Движок сам выбрал ${action==='open'?'ПРИХОД (открытой отметки нет)':'УХОД (отметка открыта)'}, время сервера ${time}.`);
+    if (P.online) later(1500, ()=>showDone({action, time}));
+    else { P.pending = {action, time}; logEv('У телефона рабочего нет сети — он узнает об отметке, когда связь вернётся.'); }
+  },
+  net(){
+    P.online = !P.online;
+    logEv(P.online ? 'Связь у телефона рабочего вернулась.' : 'Связь у телефона рабочего пропала. Код на экране ещё годен до конца срока.');
+    if (P.online && P.pending){ const p=P.pending; P.pending=null; later(1500, ()=>showDone(p)); }
+    else if (P.online && P.phase==='nocode') fetchCode();
+  },
+  rewind(){
+    if (P.phase!=='live' || P.left<=4){ logEv('Перематывать нечего: код сейчас не идёт.'); return; }
+    P.clock += P.left-4; P.left = 4; logEv('Перемотали к концу минуты.');
+  },
+  fail(){
+    P.failNext = true; logEv('Сервер сломался: следующая выдача кода получит 503.');
+    if (P.screen==='app' && ['live','nocode'].includes(P.phase)) fetchCode();
+  },
+  restart(){
+    if (P.screen!=='app'){ logEv('Приложение и так на экране входа.'); return; }
+    P.onSite = null; P.done = null; P.pending = null; P.hint = S.size!=='s';
+    logEv(P.serverOn
+      ? 'Приложение перезапущено. Открытую отметку рабочего движок пока не отдаёт — экран покажет «не отмечены», хотя рабочий на объекте. Скан всё равно даст уход: решает движок.'
+      : 'Приложение перезапущено.');
+    fetchCode();
+  },
+  reset(){ resetProto(); },
+  drawer(){ P.drawer = !P.drawer; renderPult(); },
+};
+function showDone(d){
+  P.phase='done'; P.done=d; P.onSite = d.action==='open' ? {since:d.time} : null;
+  logEv(`Экран спросил «что стало с моим кодом» (POST /api/passes/status) — consumed: ${d.action==='open'?'приход':'уход'} ${d.time}, ${FOREMAN}.`);
+  later(4000, ()=>{ if (P.phase==='done') fetchCode(); });
+}
+function protoState(){
+  const base = {clock:hhmm(P.clock), net:P.online?undefined:false, since:P.onSite?.since, install:P.hint};
+  if (P.screen==='login') return {...base, id:'login', install:false};
+  switch (P.phase){
+    case 'live':       return {...base, id: P.online ? (P.onSite?'onsite':'code') : 'offline', left:P.left};
+    case 'refreshing': return {...base, id:'refresh', left:0};
+    case 'nocode':     return {...base, id:'offline-expired', left:0, net:false};
+    case 'done':       return {...base, id: P.done.action==='open'?'done-in':'done-out', mark:P.done.time, install:false};
+    case 'error':      return {...base, id:'error'};
+    default:           return {...base, id:'refresh', left:0};
+  }
+}
 setInterval(()=>{
-  if (S.view!=='one' || !TICKING.includes(S.state)) return;
-  if (S.live.left>0){ S.live.left--; renderScreens(); return; }
-  if (S.live.left<0 || S.state==='offline') return; // уже ждём новый код / без сети новый код не получить
-  S.live.left = -1;
-  setTimeout(()=>{ S.live = {left:TTL, code:newCode()}; renderScreens(); }, 1500);
+  if (S.view!=='proto') return;
+  P.clock++;
+  if (P.screen==='app' && P.phase==='live'){
+    P.left--;
+    if (P.left<=0){ logEv('Срок кода вышел.'+(P.online?' Экран сам берёт новый.':'')); fetchCode(); }
+  }
+  renderScreens();
 }, 1000);
 
-function syncUrl(){ const p = new URLSearchParams({lang:S.lang, view:S.view, size:S.size}); if (S.view==='one') p.set('state', S.state); history.replaceState(null,'','?'+p); }
-document.querySelectorAll('#seg-lang button').forEach(b=>b.onclick=()=>{S.lang=b.dataset.v; syncUrl(); render();});
-document.querySelectorAll('#seg-view button').forEach(b=>b.onclick=()=>{S.view=b.dataset.v; syncUrl(); render();});
-document.querySelectorAll('#seg-size button').forEach(b=>b.onclick=()=>{S.size=b.dataset.v; syncUrl(); render();});
-document.getElementById('sel-state').onchange=e=>{S.state=e.target.value; S.live={left:STATES.find(s=>s.id===S.state).left ?? TTL, code:newCode()}; if(S.live.left===0) S.live.left=TTL; syncUrl(); render();};
-if (S.view==='one') S.live.left = STATES.find(s=>s.id===S.state).left || TTL;
+const BTN = [
+  ['scan',   '📷 Бригадир сканирует код'],
+  ['net',    null],
+  ['rewind', '⏩ Перемотать к концу минуты'],
+  ['fail',   '💥 Ошибка сервера'],
+  ['restart','🔄 Перезапуск приложения'],
+  ['reset',  '↺ Начать сначала'],
+];
+function renderPult(){
+  const el = document.getElementById('pult'); if (!el) return;
+  if (S.view!=='proto'){ el.hidden = true; return; }
+  el.hidden = false;
+  el.className = 'pult' + (P.drawer ? ' open' : '');
+  el.innerHTML = `<button class="handle" data-act="drawer">Пульт — остальной мир ${P.drawer?'▼':'▲'}</button>
+    <div class="pin">
+      <b class="ptitle">Пульт — остальной мир</b>
+      <p class="how">Войдите и покажите код. Кнопки ниже — то, что делают другие: бригадир, сеть, сервер. Первый скан — приход, второй — уход.</p>
+      <div class="acts">${BTN.map(([a,l])=>`<button data-act="${a}" class="${a==='scan'?'main':''}">${a==='net' ? (P.online?'📵 Связь пропала':'📶 Связь вернулась') : l}</button>`).join('')}</div>
+      <div class="pctl">${ctlHtml()}</div>
+      <div class="log"><b>Что произошло</b>${P.log.map(e=>`<div><time>${e.at}</time>${e.text}</div>`).join('')}</div>
+    </div>`;
+}
+function ctlHtml(){
+  const seg = (id, items, cur) => `<span class="seg" data-seg="${id}">${items.map(([v,l])=>`<button data-v="${v}" aria-pressed="${v===cur}">${l}</button>`).join('')}</span>`;
+  return seg('lang', [['hu','hu'],['ru','ru'],['en','en']], S.lang) + seg('size', [['s','360'],['m','390'],['l','430']], S.size)
+    + seg('view', [['proto',t('ctl.one')],['all',t('ctl.all')]], S.view);
+}
+
+function syncUrl(){ history.replaceState(null,'','?'+new URLSearchParams({lang:S.lang, view:S.view, size:S.size})); }
+function setOpt(kind, v){ S[kind]=v; syncUrl(); render(); }
+document.addEventListener('click', e=>{
+  const a = e.target.closest('[data-act]');
+  if (a && ACT[a.dataset.act]){
+    // на телефоне пульт после действия сворачивается — сразу видно, что стало с экраном
+    if (a.dataset.act!=='drawer' && matchMedia('(max-width:460px)').matches) P.drawer = false;
+    ACT[a.dataset.act](); renderScreens(); renderPult(); return;
+  }
+  const b = e.target.closest('[data-seg] button, #seg-lang button, #seg-view button, #seg-size button');
+  if (b){ const kind = b.parentElement.dataset.seg || b.parentElement.id.replace('seg-',''); setOpt(kind, b.dataset.v); }
+});
+resetProto();
 render();
 </script>
 </body>
