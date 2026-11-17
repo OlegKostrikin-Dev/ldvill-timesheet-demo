@@ -229,12 +229,11 @@
   /* Установленное приложение (с экрана «Домой»): только телефонный вид на весь экран. Нарисованной строки
      состояния нет — настоящая поверх тёмной полосы; безопасные зоны даёт телефон. Пульт — за кнопкой в углу. */
   #corner{display:none}
-  body.standalone{background:var(--c-dark);overscroll-behavior:none}
+  body.standalone{background:var(--c-ground);overscroll-behavior:none}
   body.standalone .deck{padding:0;max-width:none}
   body.standalone .deck > h1, body.standalone .deck > .sub, body.standalone .controls, body.standalone .notes{display:none}
-  body.standalone .phone{width:100vw;height:100dvh;outline:0;border-radius:0;box-shadow:none;
+  body.standalone .phone{position:fixed;top:0;right:0;bottom:0;left:0;width:auto;height:auto;outline:0;border-radius:0;box-shadow:none;
     --safe-top:env(safe-area-inset-top, 20px);--safe-bottom:env(safe-area-inset-bottom, 0px)}
-  body.standalone .proto .phone{height:100dvh}
   body.standalone .sb{padding:0}
   body.standalone .sb span{display:none}
   body.standalone #corner{display:block;position:fixed;z-index:11;top:calc(env(safe-area-inset-top, 0px) + 10px);right:10px;
@@ -248,8 +247,8 @@
   body.standalone .log{max-height:none}
   /* Отступы по краям (замечание Oleg с iPhone): нижний безопасный отступ — один раз и только под меню.
      Меню — как таббар iPhone (49pt) + ровно safe-area; на экране входа меню нет вовсе, тёмной полосы снизу нет.
-     Подложка страницы тёмная, чтобы при оттяжке и под строкой состояния не проступал белый. */
-  html.standalone{background:var(--c-dark)}
+     Резиновая вёрстка: телефон прибит к краям экрана (position:fixed, без фиксированных высот), шапка — контент flex:1 — меню у нижнего края; подложка светлая. */
+  html.standalone{background:var(--c-ground)}
   body.standalone .tabs span{box-sizing:border-box;height:49px;justify-content:center;gap:2px;padding:0}
   body.standalone .tabs:empty{display:none}
 </style>
