@@ -254,13 +254,10 @@
   body.standalone .tabs:empty{display:none}
   body.standalone .top{position:fixed;top:0;left:0;right:0;z-index:5}
   body.standalone .tabs{position:absolute;left:0;right:0;bottom:0;z-index:5;background:var(--c-dark)}
-  /* Полоса под меню (TG-425, снята на симуляторе iPhone): со значка окно страницы короче экрана на строку состояния
-     (873 точки из 932), ниже окна iOS не рисует ничего и красит пустоту фоном корня. Телефон — ровно окно (правило
-     узкого экрана выше его больше не укорачивает), меню — у низа телефона; у короткого окна (short-window ставит
-     скрипт ниже) фон корня — цвет меню, и пустота служит меню отступом над полосой «домой» вместо safe-area. */
+  /* Телефон держат края экрана, а не высота (TG-428): правило узкого экрана выше его больше не укорачивает. Со значка
+     (black-translucent) окно — весь экран, 932 из 932 на iPhone 16 Pro Max, а высота корня страницы — 873: всё, что
+     держится за высоту корня (height:100%), обрезалось бы на 59 точек снизу. Меню — у низа экрана над полосой «домой». */
   body.standalone[data-view] .proto .phone, body.standalone[data-view] .phone{height:auto}
-  html.short-window, html.short-window body.standalone{background:var(--c-dark)}
-  html.short-window body.standalone .phone{--safe-bottom:0px}
   body.standalone .body{padding-top:calc(var(--top-h, 0px) + 16px);padding-bottom:calc(49px + var(--safe-bottom) + 16px)}
   body.standalone .pult:not(.open){visibility:hidden}
   body.standalone .sheet{bottom:calc(var(--safe-bottom) + 49px + 14px)}
@@ -417,13 +414,6 @@ const INSTALLED = matchMedia('(display-mode: standalone)').matches || navigator.
 const PHONE = !qs.has('desktop') && matchMedia('(pointer:coarse) and (hover:none)').matches;
 const STANDALONE = INSTALLED || PHONE;
 if (STANDALONE){ S.view = 'proto'; document.body.classList.add('standalone'); document.documentElement.classList.add('standalone'); }
-/* Со значка окно может быть короче экрана (TG-425) — тогда класс short-window: пустота под окном цвета меню.
-   Тот же признак, что shortWindow в app/www/fit.js приложения; макет — один файл без модулей, поэтому здесь своя строка. */
-const fitInstalled = () => {
-  const full = matchMedia('(orientation: portrait)').matches ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
-  document.documentElement.classList.toggle('short-window', innerHeight < full);
-};
-if (INSTALLED && !qs.has('standalone')){ fitInstalled(); addEventListener('resize', fitInstalled); }
 /* В установленном приложении размер экрана — настоящий; ключ размера нужен только для стороны QR и сжатой шапки. */
 const nativeSize = () => innerWidth < 380 || innerHeight < 700 ? 's' : innerWidth < 420 ? 'm' : 'l';
 // ?debug — красная рамка у телефона, где содержимое не влезло, и замер окна. Значок на «Домой» запоминает адрес без
@@ -573,7 +563,7 @@ function renderScreens(){
   if (DEBUG) measure();
 }
 /* ?debug — замер окна поверх экрана: высота окна, экрана и безопасного отступа снизу, где кончаются меню и телефон.
-   По этим числам на снимке симулятора ищут полосу у нижнего края (TG-425), а не правят вслепую. */
+   По этим числам на снимке симулятора ищут полосу у нижнего края (TG-425, TG-428), а не правят вслепую. */
 function measure(){
   let box = document.getElementById('measure');
   if (!box){ box = document.createElement('pre'); box.id = 'measure';
@@ -589,7 +579,6 @@ function measure(){
     `safe top ${cs.paddingTop} bottom ${cs.paddingBottom}`,
     `phone.bottom ${rect('.phone')}  tabs.bottom ${rect('.tabs')}`,
     `standalone ${matchMedia('(display-mode: standalone)').matches} nav ${navigator.standalone}`,
-    `short-window ${document.documentElement.classList.contains('short-window')}`,
   ].join('\n');
   probe.remove();
 }

@@ -218,10 +218,10 @@
     /* отступы от выреза и нижней полосы — внутри шапки и вкладок, а не снаружи:
        тёмная шапка уходит под часы своим цветом, вкладки тёмные до самого низа экрана */
     :root{--sat:env(safe-area-inset-top, 0px);--sab:env(safe-area-inset-bottom, 0px)}
-    /* в установленном приложении на iOS height:100% не захватывает зону полосы «домой» —
-       под вкладками просвечивал светлый фон; фон тёмный, высота — весь экран */
-    html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#213946}
-    .wrap{padding:0;max-width:none;height:100vh;height:100dvh;display:flex;flex-direction:column}
+    /* экран прибит к краям окна (TG-428), у корня нет ни height:100%, ни overflow:hidden: со значка на iPhone
+       (black-translucent) высота корня — 873 из 932, а окно — 932, и корень срезал экран снизу на 59 точек */
+    html,body{overscroll-behavior:none;background:#213946}
+    .wrap{padding:0;max-width:none;position:fixed;inset:0;display:flex;flex-direction:column}
     .eyebrow,h1,.lede{display:none}
     .stage{display:flex;flex:1;min-height:0;align-items:stretch;flex-wrap:nowrap}
     .ph.on{align-items:stretch}
@@ -298,11 +298,6 @@
       right:calc(12px + env(safe-area-inset-right, 0px));bottom:calc(66px + var(--sab));
       background:var(--c-lime);color:var(--c-dark);box-shadow:0 6px 16px rgba(0,0,0,.3)}
     .fab .ic{width:20px;height:20px}
-  }
-  /* установленное приложение на iOS: height:100% у html/body не захватывает зону полосы «домой»,
-     поэтому растягиваем на весь экран явно — 100vh здесь и есть весь экран; 100dvh — запасной */
-  @media (display-mode: standalone){
-    html,body,.wrap{height:100dvh;height:100vh}
   }
   @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
 </style>
