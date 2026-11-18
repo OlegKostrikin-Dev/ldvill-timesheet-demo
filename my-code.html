@@ -92,6 +92,7 @@
   /* ══ ТЕЛЕФОН ══ */
   .phone{width:var(--ph-w);height:var(--ph-h);background:var(--c-ground);position:relative;overflow:hidden;
     outline:10px solid #11181C;border-radius:44px;box-shadow:0 18px 40px rgba(0,0,0,.18);display:flex;flex-direction:column}
+  .top{flex:none}
   .sb{height:var(--safe-top);background:var(--c-dark);color:#fff;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 8px;font-size:15px;font-weight:600;flex:none}
   .sb .net{font-size:12px;letter-spacing:.05em}
   .appbar{background:var(--c-dark);color:#fff;padding:10px 20px 16px;flex:none}
@@ -251,6 +252,10 @@
   html.standalone{background:var(--c-ground)}
   body.standalone .tabs span{box-sizing:border-box;height:49px;justify-content:center;gap:2px;padding:0}
   body.standalone .tabs:empty{display:none}
+  body.standalone .top{position:fixed;top:0;left:0;right:0;z-index:5}
+  body.standalone .tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--c-dark)}
+  body.standalone .body{padding-top:calc(var(--top-h, 0px) + 16px);padding-bottom:calc(49px + var(--safe-bottom) + 16px)}
+  body.standalone .pult:not(.open){visibility:hidden}
   body.standalone .sheet{bottom:calc(var(--safe-bottom) + 49px + 14px)}
 </style>
 </head>
@@ -500,8 +505,8 @@ function phone(st, code, size, native){
   const bar = login ? '' : `<div class="appbar"><div class="row"><span class="logo">LD</span><div class="who"><b>${WORKER.name}</b><span>${t('app.role')}</span></div></div>
       <h2>${t('app.title')}</h2></div>`;
   return `<div class="phone ${d.compact?'compact':''}" style="${vars}" data-screen="my-code" data-state="${st.id}" data-size="${d.w}x${d.h}">
-    <div class="sb"><span>${st.clock}</span><span class="net">${st.net===false ? t('net.off') : '5G ▮▮▮'}</span></div>
-    ${bar}
+    <header class="top"><div class="sb"><span>${st.clock}</span><span class="net">${st.net===false ? t('net.off') : '5G ▮▮▮'}</span></div>
+    ${bar}</header>
     <div class="body">${body(st, code)}</div>
     ${bottom}${ins ? installSheet() : ''}
   </div>`;
@@ -546,6 +551,8 @@ function screenHtml(){
 }
 function renderScreens(){
   document.getElementById('screens').innerHTML = screenHtml();
+  // В режиме приложения шапка и меню прибиты к краям экрана (position:fixed), контенту нужны отступы на высоту шапки
+  document.querySelectorAll('body.standalone .phone').forEach(ph => ph.style.setProperty('--top-h', ph.querySelector('.top').offsetHeight + 'px'));
   if (DEBUG) document.querySelectorAll('.phone .body').forEach(b=>{ if (b.scrollHeight > b.clientHeight + 1) b.closest('.phone').classList.add('overflow'); });
 }
 function render(){
