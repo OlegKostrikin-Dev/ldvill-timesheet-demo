@@ -1,0 +1,37 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Проба A">
+<link rel="manifest" href="probe-a.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>Проба A</title>
+<style>
+html{background:#ff00ff;margin:0}
+body{margin:0;background:#eeeeee;min-height:100vh;font:15px/1.35 -apple-system,sans-serif;color:#111}
+#top{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:#0050ff}
+#bar{position:fixed;left:0;right:0;bottom:0;height:40px;background:#00b000;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+#out{padding:calc(env(safe-area-inset-top) + 12px) 16px 80px;white-space:pre;font:14px/1.4 ui-monospace,monospace}
+.p{position:absolute;top:0;left:0;width:1px;visibility:hidden}
+</style></head><body>
+<div id="top"></div>
+<div id="out">…</div>
+<div class="p" id="vh" style="height:100vh"></div><div class="p" id="dvh" style="height:100dvh"></div>
+<div class="p" id="lvh" style="height:100lvh"></div><div class="p" id="svh" style="height:100svh"></div>
+<div class="p" id="st" style="height:env(safe-area-inset-top)"></div><div class="p" id="sb" style="height:env(safe-area-inset-bottom)"></div>
+<div id="bar">зелёная полоса прибита к низу</div>
+<script>
+const h=id=>Math.round(document.getElementById(id).getBoundingClientRect().height);
+function m(){document.getElementById('out').textContent=
+'Проба A\n'+
+'значок: '+(navigator.standalone?'да':'нет (Safari)')+'\n'+
+'экран: '+screen.width+'×'+screen.height+'\n'+
+'окно innerHeight: '+innerHeight+'\n'+
+'clientHeight: '+document.documentElement.clientHeight+'\n'+
+'visualViewport: '+Math.round(visualViewport.height)+'\n'+
+'100vh '+h('vh')+' · 100dvh '+h('dvh')+'\n100lvh '+h('lvh')+' · 100svh '+h('svh')+'\n'+
+'отступ сверху '+h('st')+' · снизу '+h('sb')+'\n'+
+'зелёная полоса низ: '+Math.round(document.getElementById('bar').getBoundingClientRect().bottom)+'\n\n'+
+'Цвета: малиновый — то, что iOS не отдал странице;\nсиний — под строкой состояния; серый — страница.';}
+m();addEventListener('resize',m);setTimeout(m,800);
+</script></body></html>
