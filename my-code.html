@@ -253,7 +253,14 @@
   body.standalone .tabs span{box-sizing:border-box;height:49px;justify-content:center;gap:2px;padding:0}
   body.standalone .tabs:empty{display:none}
   body.standalone .top{position:fixed;top:0;left:0;right:0;z-index:5}
-  body.standalone .tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--c-dark)}
+  body.standalone .tabs{position:absolute;left:0;right:0;bottom:0;z-index:5;background:var(--c-dark)}
+  /* Полоса под меню (TG-425, снята на симуляторе iPhone): со значка окно страницы короче экрана на строку состояния
+     (873 точки из 932), ниже окна iOS не рисует ничего и красит пустоту фоном корня. Телефон — ровно окно (правило
+     узкого экрана выше его больше не укорачивает), меню — у низа телефона; у короткого окна (short-window ставит
+     скрипт ниже) фон корня — цвет меню, и пустота служит меню отступом над полосой «домой» вместо safe-area. */
+  body.standalone[data-view] .proto .phone, body.standalone[data-view] .phone{height:auto}
+  html.short-window, html.short-window body.standalone{background:var(--c-dark)}
+  html.short-window body.standalone .phone{--safe-bottom:0px}
   body.standalone .body{padding-top:calc(var(--top-h, 0px) + 16px);padding-bottom:calc(49px + var(--safe-bottom) + 16px)}
   body.standalone .pult:not(.open){visibility:hidden}
   body.standalone .sheet{bottom:calc(var(--safe-bottom) + 49px + 14px)}
@@ -410,9 +417,18 @@ const INSTALLED = matchMedia('(display-mode: standalone)').matches || navigator.
 const PHONE = !qs.has('desktop') && matchMedia('(pointer:coarse) and (hover:none)').matches;
 const STANDALONE = INSTALLED || PHONE;
 if (STANDALONE){ S.view = 'proto'; document.body.classList.add('standalone'); document.documentElement.classList.add('standalone'); }
+/* Со значка окно может быть короче экрана (TG-425) — тогда класс short-window: пустота под окном цвета меню.
+   Тот же признак, что shortWindow в app/www/fit.js приложения; макет — один файл без модулей, поэтому здесь своя строка. */
+const fitInstalled = () => {
+  const full = matchMedia('(orientation: portrait)').matches ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+  document.documentElement.classList.toggle('short-window', innerHeight < full);
+};
+if (INSTALLED && !qs.has('standalone')){ fitInstalled(); addEventListener('resize', fitInstalled); }
 /* В установленном приложении размер экрана — настоящий; ключ размера нужен только для стороны QR и сжатой шапки. */
 const nativeSize = () => innerWidth < 380 || innerHeight < 700 ? 's' : innerWidth < 420 ? 'm' : 'l';
-const DEBUG = qs.has('debug'); // ?debug — красная рамка у телефона, где содержимое не влезло
+// ?debug — красная рамка у телефона, где содержимое не влезло, и замер окна. Значок на «Домой» запоминает адрес без
+// ?debug, поэтому значок, поставленный с localhost (проверка на симуляторе), показывает замер всегда; на GitHub Pages — нет.
+const DEBUG = qs.has('debug') || (INSTALLED && location.hostname === 'localhost');
 function t(k, v={}){ const row=T[k]; if(!row) return k; let s=row[LI[S.lang]]; for(const [a,b] of Object.entries(v)) s=s.replace('{'+a+'}', b); return s; }
 function newCode(){ const a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789_-'; let s=''; for(let i=0;i<32;i++) s+=a[Math.floor(Math.random()*a.length)]; return s; }
 
@@ -554,7 +570,30 @@ function renderScreens(){
   // В режиме приложения шапка и меню прибиты к краям экрана (position:fixed), контенту нужны отступы на высоту шапки
   document.querySelectorAll('body.standalone .phone').forEach(ph => ph.style.setProperty('--top-h', ph.querySelector('.top').offsetHeight + 'px'));
   if (DEBUG) document.querySelectorAll('.phone .body').forEach(b=>{ if (b.scrollHeight > b.clientHeight + 1) b.closest('.phone').classList.add('overflow'); });
+  if (DEBUG) measure();
 }
+/* ?debug — замер окна поверх экрана: высота окна, экрана и безопасного отступа снизу, где кончаются меню и телефон.
+   По этим числам на снимке симулятора ищут полосу у нижнего края (TG-425), а не правят вслепую. */
+function measure(){
+  let box = document.getElementById('measure');
+  if (!box){ box = document.createElement('pre'); box.id = 'measure';
+    box.style.cssText = 'position:fixed;z-index:30;left:8px;top:45%;margin:0;padding:6px 8px;font:11px/1.35 monospace;background:rgba(255,255,255,.92);color:#000;border:1px solid red;pointer-events:none';
+    document.body.appendChild(box); }
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;padding-bottom:env(safe-area-inset-bottom, 0px);padding-top:env(safe-area-inset-top, 0px)';
+  document.body.appendChild(probe);
+  const cs = getComputedStyle(probe), rect = sel => { const el = document.querySelector(sel); return el ? Math.round(el.getBoundingClientRect().bottom) : '—'; };
+  box.textContent = [
+    `screen ${screen.width}×${screen.height}`, `inner ${innerWidth}×${innerHeight}`,
+    `visual ${Math.round(visualViewport?.height ?? 0)}`, `html ${document.documentElement.clientHeight}`,
+    `safe top ${cs.paddingTop} bottom ${cs.paddingBottom}`,
+    `phone.bottom ${rect('.phone')}  tabs.bottom ${rect('.tabs')}`,
+    `standalone ${matchMedia('(display-mode: standalone)').matches} nav ${navigator.standalone}`,
+    `short-window ${document.documentElement.classList.contains('short-window')}`,
+  ].join('\n');
+  probe.remove();
+}
+if (DEBUG){ addEventListener('resize', measure); setTimeout(measure, 1000); }
 function render(){
   document.documentElement.lang = S.lang;
   document.querySelectorAll('[data-t]').forEach(el=>el.innerHTML=t(el.dataset.t));
