@@ -218,8 +218,10 @@
     /* отступы от выреза и нижней полосы — внутри шапки и вкладок, а не снаружи:
        тёмная шапка уходит под часы своим цветом, вкладки тёмные до самого низа экрана */
     :root{--sat:env(safe-area-inset-top, 0px);--sab:env(safe-area-inset-bottom, 0px)}
-    /* экран прибит к краям окна (TG-428), у корня нет ни height:100%, ни overflow:hidden: со значка на iPhone
-       (black-translucent) высота корня — 873 из 932, а окно — 932, и корень срезал экран снизу на 59 точек */
+    /* экран прибит к краям окна, фоны html и body — цвет вкладок, нижний отступ меньше на пустоту под окном значка
+       (100lvh − 100dvh): на iOS 18 ниже окна значка рисуется только фон body, и пустота сама служит отступом над
+       полосой «домой» (TG-428, как у приложения app/www/app.css; проба C — app/README.md, «Экран во весь телефон») */
+    @supports (height:100lvh){ :root{--sab:max(0px, calc(env(safe-area-inset-bottom, 0px) - (100lvh - 100dvh)))} }
     html,body{overscroll-behavior:none;background:#213946}
     .wrap{padding:0;max-width:none;position:fixed;inset:0;display:flex;flex-direction:column}
     .eyebrow,h1,.lede{display:none}

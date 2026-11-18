@@ -254,10 +254,16 @@
   body.standalone .tabs:empty{display:none}
   body.standalone .top{position:fixed;top:0;left:0;right:0;z-index:5}
   body.standalone .tabs{position:absolute;left:0;right:0;bottom:0;z-index:5;background:var(--c-dark)}
-  /* Телефон держат края экрана, а не высота (TG-428): правило узкого экрана выше его больше не укорачивает. Со значка
-     (black-translucent) окно — весь экран, 932 из 932 на iPhone 16 Pro Max, а высота корня страницы — 873: всё, что
-     держится за высоту корня (height:100%), обрезалось бы на 59 точек снизу. Меню — у низа экрана над полосой «домой». */
+  /* Телефон держат края окна (TG-428), так же, как экран приложения (app/www/app.css); правило узкого экрана выше его
+     больше не укорачивает. В окне значка (iOS 16.4 и 18, black-translucent) окно короче экрана на строку состояния, и
+     ниже окна iOS не рисует ничего, кроме фона body (проба C — app/README.md, «Экран во весь телефон»). Поэтому в
+     окне значка фоны html И body — цвет меню (html.installed, ставит скрипт; тёмного html мало — пустоту iOS красит
+     фоном body, кадр ios18-my-code.png с одним html тёмным — светлая полоса), а нижний отступ меню меньше на эту пустоту
+     (100lvh − 100dvh): она сама служит отступом над полосой «домой». Где окно во весь экран (браузер), разность 0 и
+     отступ — safe-area. */
   body.standalone[data-view] .proto .phone, body.standalone[data-view] .phone{height:auto}
+  @supports (height:100lvh){ body.standalone .phone{--safe-bottom:max(0px, calc(env(safe-area-inset-bottom, 0px) - (100lvh - 100dvh)))} }
+  html.installed, html.installed body.standalone{background:var(--c-dark)}
   body.standalone .body{padding-top:calc(var(--top-h, 0px) + 16px);padding-bottom:calc(49px + var(--safe-bottom) + 16px)}
   body.standalone .pult:not(.open){visibility:hidden}
   body.standalone .sheet{bottom:calc(var(--safe-bottom) + 49px + 14px)}
@@ -414,6 +420,9 @@ const INSTALLED = matchMedia('(display-mode: standalone)').matches || navigator.
 const PHONE = !qs.has('desktop') && matchMedia('(pointer:coarse) and (hover:none)').matches;
 const STANDALONE = INSTALLED || PHONE;
 if (STANDALONE){ S.view = 'proto'; document.body.classList.add('standalone'); document.documentElement.classList.add('standalone'); }
+/* Окно значка — фоны html и body цвета меню (TG-428): пустоту под окном iOS красит фоном body. По navigator.standalone, а не по
+   медиазапросу: в окне значка на iOS 16.4 и 18.2 display-mode: standalone не срабатывает (проба C). */
+if (INSTALLED) document.documentElement.classList.add('installed');
 /* В установленном приложении размер экрана — настоящий; ключ размера нужен только для стороны QR и сжатой шапки. */
 const nativeSize = () => innerWidth < 380 || innerHeight < 700 ? 's' : innerWidth < 420 ? 'm' : 'l';
 // ?debug — красная рамка у телефона, где содержимое не влезло, и замер окна. Значок на «Домой» запоминает адрес без
