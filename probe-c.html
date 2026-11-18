@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<!-- Проба TG-428: как iPhone в окне значка (black-translucent) растягивает блоки по высоте.
+     Те же мета, что у приложения LD Vill. Восемь цветных столбцов — восемь способов «во весь экран».
+     Фон страницы ярко-розовый: где столбец не дотянулся до низа, видна розовая полоса.
+     Цифры внизу каждого столбца — где он кончается (getBoundingClientRect().bottom), в точках. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Проба C">
+<title>Проба C — высота</title>
+<style>
+  html, body { margin: 0; background: #ff00c8; font: 11px/1.25 -apple-system, Helvetica, sans-serif; }
+  .col { position: fixed; width: 12.5%; box-sizing: border-box; border-right: 1px solid #000;
+         display: flex; flex-direction: column; justify-content: space-between; color: #fff; text-align: center; }
+  .col b { display: block; padding-top: 70px; font-size: 13px; }
+  .col i { display: block; font-style: normal; font-weight: 700; padding-bottom: 40px; font-size: 12px; }
+  /* 1 */ #c1 { left: 0;     top: 0; bottom: 0;            background: #1b5e20; }
+  /* 2 */ #c2 { left: 12.5%; top: 0; height: 100vh;        background: #0d47a1; }
+  /* 3 */ #c3 { left: 25%;   top: 0; height: 100lvh;       background: #4a148c; }
+  /* 4 */ #c4 { left: 37.5%; top: 0; height: 100dvh;       background: #bf360c; }
+  /* 5 */ #c5 { left: 50%;   bottom: 0; height: 100vh;     background: #006064; }
+  /* 6 */ #c6 { left: 62.5%; top: 0; height: calc(100% + env(safe-area-inset-top, 0px)); background: #3e2723; }
+  /* 7 */ #c7 { left: 75%;   top: 0; bottom: calc(-1 * env(safe-area-inset-top, 0px)); background: #263238; }
+  /* 8 */ #c8 { left: 87.5%; top: 0; height: 100svh;       background: #827717; }
+  .floor { position: fixed; left: 0; right: 0; bottom: 0; height: 6px; background: #ffeb3b; }
+  #out { position: fixed; left: 8px; right: 8px; top: 38%; background: rgba(255,255,255,.95); color: #000;
+         font: 12px/1.35 ui-monospace, Menlo, monospace; padding: 8px; border: 2px solid #000; white-space: pre-wrap; }
+  .probe-env { position: fixed; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .tall { height: 2000px; }
+</style>
+</head>
+<body>
+<div class="col" id="c1"><b>1<br>inset 0</b><i></i></div>
+<div class="col" id="c2"><b>2<br>100vh</b><i></i></div>
+<div class="col" id="c3"><b>3<br>100lvh</b><i></i></div>
+<div class="col" id="c4"><b>4<br>100dvh</b><i></i></div>
+<div class="col" id="c5"><b>5<br>bottom 0<br>100vh</b><i></i></div>
+<div class="col" id="c6"><b>6<br>100% +top</b><i></i></div>
+<div class="col" id="c7"><b>7<br>bottom −top</b><i></i></div>
+<div class="col" id="c8"><b>8<br>100svh</b><i></i></div>
+<div class="floor"></div>
+<pre id="out"></pre>
+<script>
+  // ?tall — страница длиннее экрана (как прототип с пультом и заметками), без него — короткая.
+  if (location.search.includes('tall')) { const t = document.createElement('div'); t.className = 'tall'; document.body.prepend(t); }
+  function measure() {
+    const env = document.createElement('div'); env.className = 'probe-env'; document.body.appendChild(env);
+    const cs = getComputedStyle(env);
+    const lines = [
+      `проба C  ${location.search.includes('tall') ? 'длинная' : 'короткая'} страница`,
+      `standalone ${matchMedia('(display-mode: standalone)').matches}  nav ${navigator.standalone}`,
+      `screen ${screen.width}×${screen.height}  inner ${innerWidth}×${innerHeight}`,
+      `visual ${Math.round(visualViewport ? visualViewport.height : 0)}  html.client ${document.documentElement.clientHeight}`,
+      `safe top ${cs.paddingTop}  bottom ${cs.paddingBottom}`,
+      `жёлтая черта (fixed bottom:0) низ ${Math.round(document.querySelector('.floor').getBoundingClientRect().bottom)}`,
+    ];
+    env.remove();
+    document.querySelectorAll('.col').forEach((c) => {
+      const r = c.getBoundingClientRect();
+      c.querySelector('i').textContent = `${Math.round(r.top)}…${Math.round(r.bottom)}`;
+      lines.push(`${c.id}: ${Math.round(r.top)} … ${Math.round(r.bottom)}`);
+    });
+    document.getElementById('out').textContent = lines.join('\n');
+  }
+  addEventListener('resize', measure);
+  addEventListener('load', () => { measure(); setTimeout(measure, 800); });
+</script>
+</body>
+</html>
