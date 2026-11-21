@@ -1,0 +1,18 @@
+{
+  "id": "./foreman.html",
+  "name": "LD Vill — Бригадир",
+  "short_name": "LD Brigád",
+  "description": "Прототип рабочего места бригадира: смена на объекте, скан пропусков, отчёт и закрытие смены.",
+  "lang": "hu",
+  "start_url": "./foreman.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#213946",
+  "theme_color": "#213946",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

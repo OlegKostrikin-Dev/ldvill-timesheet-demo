@@ -2,7 +2,9 @@
    Свои файлы — «сначала сеть, при обрыве кэш» (правка макета видна сразу после выкладки).
    Внешние шрифт и библиотека QR — «сначала кэш», кладутся туда при первом запросе.
    Новая версия оболочки — поднять номер в CACHE. */
-const CACHE = 'ldvill-v12';
+const CACHE = 'ldvill-v13';
+/* Отдельные прототипы-приложения в той же папке: страница открывается без сети своей, а не черновиком index.html. */
+const APPS = ['my-code.html', 'login-qr.html', 'foreman.html'];
 const SHELL = [
   './',
   './index.html',
@@ -11,6 +13,8 @@ const SHELL = [
   './my-code.webmanifest',
   './login-qr.html',         /* прототип входа по QR (TG-443) — третье */
   './login-qr.webmanifest',
+  './foreman.html',          /* прототип рабочего места бригадира (TG-444) — четвёртое */
+  './foreman.webmanifest',
   './icons/apple-touch-icon.png',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -60,8 +64,7 @@ self.addEventListener('fetch', (e) => {
     }).catch(() =>
       caches.match(req, { ignoreSearch: true }).then((hit) =>
         hit || (req.mode === 'navigate'
-          ? caches.match(url.pathname.endsWith('my-code.html') ? './my-code.html'
-              : url.pathname.endsWith('login-qr.html') ? './login-qr.html' : './index.html')
+          ? caches.match('./' + (APPS.find((p) => url.pathname.endsWith(p)) || 'index.html'))
           : Response.error())
       )
     )
