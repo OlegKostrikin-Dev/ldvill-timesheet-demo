@@ -372,34 +372,34 @@ const T = {
 
   'add.title':['Új ember','Новый человек','New person'],
   'add.sur':['Vezetéknév','Фамилия','Surname'], 'add.name':['Keresztnév','Имя','First name'], 'add.role':['Szerep','Роль','Role'],
-  'add.save':['Mentés és meghívás','Сохранить и пригласить','Save and invite'],
-  'add.note':['Jelszó nincs. Egyszeri kóddal lép be, amit te vagy a brigádvezető mutattok neki.','Пароля нет. Входить он будет по одноразовому коду, который покажете вы или бригадир.','No password. They sign in with a one-time code that you or the foreman show them.'],
+  'add.save':['Hozzáadás','Добавить','Add'],
+  'add.note':['Jelszó nincs. Utána telepíted neki az alkalmazást, és kiadod a hozzáférést.','Пароля нет. Дальше вы установите ему приложение и выдадите доступ.','No password. Next you install the app for them and grant access.'],
 
-  /* «Впустить в приложение» (замечание Oleg 21.11): кнопка в карточке → вопрос «значок уже есть?» → шаг 1 (поставить) и шаг 2 (войти) */
-  'let.title':['Beengedés','Впустить в приложение','Let into the app'],
-  'let.t':['{name} jelszó nélkül lép be az LD Vill alkalmazásba a saját telefonján. Te csak megmutatod neki a képernyődet.','{name} войдёт в приложение LD Vill на своём телефоне без пароля. От вас — только показать ему свой экран.','{name} signs in to the LD Vill app on their own phone, no password. You just show them your screen.'],
-  'let.q':['Kint van már az LD Vill ikon a telefonján?','Значок LD Vill на его телефоне уже есть?','Is the LD Vill icon already on their phone?'],
-  'let.yes':['Igen, kint van — beléptetés','Есть — впустить','Yes — let them in'],
-  'let.no':['Nincs — előbb telepíteni','Нет — сначала поставить приложение','No — install the app first'],
-  'let.unsure':['Nem tudod? Kezdd az 1. lépéssel: ha az ikon már kint van, az ember egyszerűen megnyitja.','Не знаете — начните с шага 1: если значок уже стоит, человек просто откроет его.','Not sure? Start with step 1: if the icon is already there, they simply open it.'],
-  'inv.title':['1/2 · Telepítés','Шаг 1 из 2 · Поставить','Step 1 of 2 · Install'],
+  /* Кнопки — прямым действием, тем, что даём человеку на этом шаге (правило Oleg 21.11): «Установить приложение»,
+     «Выдать доступ» (или «Выдать доступ заново»), «Заблокировать доступ» / «Разблокировать». Слово «пропуск» не используем:
+     оно занято кодом рабочего на объекте. */
+  'inv.title':['Alkalmazás telepítése','Установить приложение','Install the app'],
   'inv.t':['{name} nyissa meg a telefon kameráját, és irányítsa erre a kódra','Пусть {name} откроет камеру телефона и наведёт на этот код','Have {name} open their phone camera and point it at this code'],
   'inv.s':['Megnyílik a Safari, és megmutatja, hogyan tegye ki az ikont a főképernyőre. Belépni még nem kell.','Откроется Safari и подскажет, как поставить значок на экран «Домой». Входить пока не нужно.','Safari opens and shows how to add the icon to the Home Screen. No sign-in yet.'],
-  'inv.code':['Kint van az ikon — tovább, 2. lépés','Значок поставлен — дальше, шаг 2','Icon added — next, step 2'],
+  'inv.code':['Az ikon kint van — tovább: hozzáférés kiadása','Значок поставлен — дальше: выдать доступ','Icon added — next: grant access'],
 
   'card.role':['Szerep','Роль','Role'], 'card.phone':['Telefon','Телефон','Phone'],
   'card.since':['csatolva {d}','привязан {d}','linked {d}'], 'card.last':['Utoljára','Последний раз','Last used'],
-  'card.let':['Beengedés az alkalmazásba','Впустить в приложение','Let into the app'],
-  'card.let.s':['Első alkalommal, új vagy elveszett telefonnál, újratelepítés után: jelszó nélkül lép be a saját telefonján, a régi telefon magától kikapcsol.','Первый раз, новый или потерянный телефон, переустановил приложение — человек войдёт на своём телефоне без пароля, а старый телефон отключится сам.','First time, new or lost phone, reinstalled app — they sign in on their own phone, no password, and the old phone is switched off by itself.'],
-  'card.block':['Letiltás','Заблокировать','Block'], 'card.unblock':['Letiltás feloldása','Разблокировать','Unblock'],
+  'card.install':['Alkalmazás telepítése','Установить приложение','Install the app'],
+  'card.install.s':['QR a telefon kamerájához: kiteszi az LD Vill ikont a főképernyőre.','QR для камеры телефона: ставит значок LD Vill на экран «Домой».','A QR for the phone camera: puts the LD Vill icon on the Home Screen.'],
+  'card.access':['Hozzáférés kiadása','Выдать доступ','Grant access'],
+  'card.access.s':['QR és 6 számjegy: az ember beolvassa az ikonban, és jelszó nélkül belép.','QR и 6 цифр: человек сканирует их в значке и входит без пароля.','A QR and 6 digits: the person scans them in the app and signs in, no password.'],
+  'card.reaccess':['Hozzáférés újbóli kiadása','Выдать доступ заново','Grant access again'],
+  'card.reaccess.s':['Új vagy elveszett telefonhoz, újratelepítés után. A régi telefon nem fog működni.','Для нового или потерянного телефона, после переустановки. Старый телефон перестанет работать.','For a new or lost phone, or after reinstalling. The old phone will stop working.'],
+  'card.block':['Hozzáférés letiltása','Заблокировать доступ','Block access'], 'card.unblock':['Letiltás feloldása','Разблокировать','Unblock'],
   'card.state':['Állapot','Доступ','Access'], 'card.blocked':['letiltva','заблокирован','blocked'],
   'card.blocked.s':['Nem léphet be egyik telefonról sem, kódot nem kaphat.','Не входит ни с какого телефона, коды для него не выпускаются.','Can’t sign in from any phone; no codes are issued.'],
 
-  'conf.t':['Letiltod? {name}','Заблокировать: {name}?','Block {name}?'],
+  'conf.t':['Letiltod a hozzáférést? {name}','Заблокировать доступ: {name}?','Block access: {name}?'],
   'conf.s':['Például ha már nem dolgozik nálatok. Azonnal kilép minden telefonról, és új kódot sem kaphat, amíg fel nem oldod.','Например, если человек у вас больше не работает. Он сразу выйдет со всех телефонов и не получит новый код, пока не разблокируете.','For example, if they no longer work for you. They are signed out of every phone at once and get no new code until you unblock.'],
-  'conf.yes':['Letiltás','Заблокировать','Block'], 'conf.no':['Mégse','Отмена','Cancel'],
+  'conf.yes':['Hozzáférés letiltása','Заблокировать доступ','Block access'], 'conf.no':['Mégse','Отмена','Cancel'],
 
-  'code.title':['2/2 · Belépés','Шаг 2 из 2 · Войти','Step 2 of 2 · Sign in'],
+  'code.title':['Hozzáférés kiadása','Выдать доступ','Grant access'],
   'code.how':['{name} nyissa meg az LD Vill ikont, koppintson a «Kód beolvasása» gombra, és irányítsa a telefont erre a képernyőre.','Пусть {name} откроет значок LD Vill, нажмёт «Сканировать код» и наведёт телефон на этот экран.','Have {name} open the LD Vill icon, tap “Scan code” and point the phone at this screen.'],
   'code.or':['Nem megy a kamera? Írja be ezt a 6 számjegyet:','Камера не берёт — пусть введёт эти 6 цифр:','Camera won’t read it? Have them type these 6 digits:'],
   'code.ok':['{name} bent van az alkalmazásban','{name} в приложении','{name} is in the app'],
@@ -407,7 +407,7 @@ const T = {
   'code.expired':['A kód lejárt','Код истёк','Code expired'], 'code.new':['Új kód','Новый код','New code'],
   'code.ok.s':['A telefon csatolva. Ezzel a kóddal már nem lehet belépni.','Телефон привязан. Этим кодом больше не войти.','Phone linked. This code can’t be used again.'],
 
-  'team.hint':['Embert felvenni csak a tulajdonos tud. A brigádod tagjait te is beengedheted az alkalmazásba: koppints a nevére.','Заводит людей только владелец. Впустить в приложение людей своей бригады можете и вы: нажмите на человека.','Only the owner adds people. You can let your crew into the app too: tap a name.'],
+  'team.hint':['Embert felvenni csak a tulajdonos tud. A brigádod tagjainak te is telepítheted az alkalmazást és kiadhatod a hozzáférést: koppints a nevére.','Заводит людей только владелец. Установить приложение и выдать доступ людям своей бригады можете и вы: нажмите на человека.','Only the owner adds people. You can install the app and grant access for your crew too: tap a name.'],
 
   'home.camera':['Kamera','Камера','Camera'],
   'home.hint':['Koppints a Kamerára: az ember a bal oldali QR-ra irányítja.','Нажмите «Камера»: человек наведёт её на QR слева.','Tap Camera: the person points it at the QR on the left.'],
@@ -427,7 +427,7 @@ const T = {
   'ins.do':['Hozzáadás (a prototípusban)','Добавить (в прототипе)','Add (in the prototype)'],
 
   'first.t':['Belépés','Вход','Sign in'],
-  'first.s':['Kérd meg a tulajdonost vagy a brigádvezetőt, hogy engedjen be: a képernyőjén megmutatja a kódot.','Попросите владельца или бригадира впустить вас — они покажут код на своём экране.','Ask the owner or your foreman to let you in — they show a code on their screen.'],
+  'first.s':['Kérd meg a tulajdonost vagy a brigádvezetőt, hogy adjon hozzáférést: a képernyőjén megmutatja a kódot.','Попросите владельца или бригадира выдать вам доступ — они покажут код на своём экране.','Ask the owner or your foreman to grant you access — they show a code on their screen.'],
   'first.scan':['Kód beolvasása','Сканировать код','Scan code'], 'first.dig':['6 számjegy beírása','Ввести 6 цифр','Type 6 digits'],
   'first.nopass':['Jelszó nem kell.','Пароль не нужен.','No password needed.'],
   'cam.t':['Irányítsd a kamerát a kódra','Наведите камеру на код','Point the camera at the code'],
@@ -454,7 +454,7 @@ const T = {
   'err.again':['Újra','Ещё раз','Try again'],
   'rev.t':['A hozzáférés le van tiltva','Доступ отключён','Access disabled'],
   'rev.new':['Másik telefonon léptél be, ez kikapcsolt.','Вы вошли на другом телефоне — этот отключился.','You signed in on another phone — this one was switched off.'],
-  'rev.new.s':['Ha ez a te telefonod, kérj új kódot a tulajdonostól vagy a brigádvezetőtől.','Если это ваш телефон — попросите новый код у владельца или бригадира.','If this is your phone, ask the owner or foreman for a new code.'],
+  'rev.new.s':['Ha ez a te telefonod, kérd meg a tulajdonost vagy a brigádvezetőt, hogy adja ki újra a hozzáférést.','Если это ваш телефон — попросите владельца или бригадира выдать доступ заново.','If this is your phone, ask the owner or foreman to grant access again.'],
   'rev.blocked':['A tulajdonos letiltotta a belépésedet.','Владелец заблокировал ваш вход.','The owner has blocked your sign-in.'],
   'rev.blocked.s':['Kérdezd a tulajdonost.','Обратитесь к владельцу.','Talk to the owner.'],
   'rev.btn':['Belépés kóddal','Войти по коду','Sign in with a code'],
@@ -582,15 +582,8 @@ function leftPhone(L, W, size, native){
             <button type="button" data-act="setRole" data-v="foreman" aria-pressed="${L.draft.role==='foreman'}">${t('role.foreman')}</button></span></label>
           <button class="btn" data-act="save">${t('add.save')}</button>
           <p class="note">${t('add.note')}</p></div>`});
-    case 'let':
-      return frame({...base, bar:{...me, title:t('let.title'), back: owner?'toCardBack':'toTeam'}, tabs: owner?OWNER_TABS('people'):FOREMAN_TABS,
-        body:`<div class="pcard"><b style="font-size:17px">${esc(full(sel))}</b><span class="note">${t('let.t',{name:esc(sel.name)})}</span></div>
-          <p class="note" style="color:var(--c-ink);font-weight:700;font-size:16px">${t('let.q')}</p>
-          <button class="btn" data-act="showCode" data-id="${sel.id}">${ic('key')}${t('let.yes')}</button>
-          <button class="btn line" data-act="toInvite" data-id="${sel.id}">${ic('qr')}${t('let.no')}</button>
-          <p class="note">${t('let.unsure')}</p>`});
     case 'invite':
-      return frame({...base, bar:{...me, title:t('inv.title'), back:'toLetBack'}, tabs: owner?OWNER_TABS('people'):FOREMAN_TABS,
+      return frame({...base, bar:{...me, title:t('inv.title'), back:'toCardBack'}, tabs: owner?OWNER_TABS('people'):FOREMAN_TABS,
         body:`<p class="note" style="color:var(--c-ink);font-weight:700;font-size:15px">${t('inv.t',{name:esc(sel.name)})}</p>
           <div class="qrbox"><div class="qr">${qrSvg(`https://${INVITE_HOST}/app/join#${W.inviteTok}`)}</div>
             <div class="invlink">${INVITE_HOST}/app/join#${W.inviteTok}</div></div>
@@ -598,29 +591,34 @@ function leftPhone(L, W, size, native){
           <button class="btn" data-act="showCode" data-id="${sel.id}">${t('inv.code')}</button>`});
     case 'card': {
       const ph = sel.phone==='on' ? `<b class="on">${t('card.since',{d:sel.since})}</b>` : `<b>${t('ph.none')}</b>`;
-      return frame({...base, bar:{...me, title:esc(full(sel)), back:'toPeople'}, tabs:OWNER_TABS('people'),
+      // Кнопки — прямым действием (правило Oleg 21.11): у каждой подпись, что получит человек.
+      // Доступ уже выдан (телефон привязан) — «Выдать доступ заново», и подпись предупреждает про старый телефон.
+      const again = sel.phone==='on';
+      return frame({...base, bar:{...me, title:esc(full(sel)), back: owner?'toPeople':'toTeam'}, tabs: owner?OWNER_TABS('people'):FOREMAN_TABS,
         body:`<div class="pcard"><div class="kv"><span>${t('card.role')}</span><b>${t('role.'+sel.role)}</b></div>
             ${sel.blocked ? `<div class="kv"><span>${t('card.state')}</span><b class="off">${t('card.blocked')}</b></div>`
               : `<div class="kv"><span>${t('card.phone')}</span>${ph}</div>
             ${sel.phone==='on' && sel.last ? `<div class="kv"><span>${t('card.last')}</span><b>${when(sel.last)}</b></div>` : ''}`}</div>
           ${sel.blocked ? `<p class="note">${t('card.blocked.s')}</p>
-            <button class="btn" data-act="doUnblock">${ic('key')}${t('card.unblock')}</button>`
+            ${owner ? `<button class="btn" data-act="doUnblock">${ic('key')}${t('card.unblock')}</button>` : ''}`
           : `<div class="stack">
-            <button class="btn" data-act="toLet" data-id="${sel.id}">${ic('phone')}${t('card.let')}</button>
-            <p class="note">${t('card.let.s')}</p>
-            <button class="btn bad sm" data-act="askBlock">${ic('lock')}${t('card.block')}</button></div>`}`,
+            <button class="btn line" data-act="toInvite" data-id="${sel.id}">${ic('qr')}${t('card.install')}</button>
+            <p class="note">${t('card.install.s')}</p>
+            <button class="btn" data-act="showCode" data-id="${sel.id}">${ic('key')}${t(again?'card.reaccess':'card.access')}</button>
+            <p class="note">${t(again?'card.reaccess.s':'card.access.s')}</p>
+            ${owner ? `<button class="btn bad sm" data-act="askBlock">${ic('lock')}${t('card.block')}</button>` : ''}</div>`}`,
         over: L.dlg ? `<div class="dim"></div><div class="dialog"><b>${t('conf.t',{name:esc(full(sel))})}</b><p>${t('conf.s')}</p>
             <div class="row2"><button class="btn line sm" data-act="dlgNo">${t('conf.no')}</button>
             <button class="btn sm" style="background:var(--c-bad);color:#fff" data-act="doBlock">${t('conf.yes')}</button></div></div>` : ''});
     }
     case 'code':
-      return frame({...base, bar:{...me, title:t('code.title'), back:'toLetBack'}, tabs: owner?OWNER_TABS('people'):FOREMAN_TABS,
+      return frame({...base, bar:{...me, title:t('code.title'), back:'toCardBack'}, tabs: owner?OWNER_TABS('people'):FOREMAN_TABS,
         body:`<p class="note" style="color:var(--c-ink);font-weight:700;font-size:15px">${t('code.how',{name:esc(sel.name)})}</p>
           ${codeBlock(W, sel)}
           ${W.code.used ? '' : `<button class="btn line sm" data-act="showCode" data-id="${sel.id}">${t('code.new')}</button>`}`});
     case 'team':
       return frame({...base, bar:{...me, title:t('tab.team')}, tabs:FOREMAN_TABS,
-        body:`<div class="list">${W.people.filter(p=>p.role==='worker').map(p=>personRow(p,'toLet',W.newId)).join('')}</div>
+        body:`<div class="list">${W.people.filter(p=>p.role==='worker').map(p=>personRow(p,'toCard',W.newId)).join('')}</div>
           <p class="note">${t('team.hint')}</p>`});
   }
 }
@@ -770,21 +768,14 @@ const ACT = {
     P.people.unshift({id, sur:d.sur.trim(), name:d.name.trim(), role:d.role, phone:'none'});
     P.newId = id; P.L.sel = id; P.L.scr='invite'; P.inviteTok = tok(10);
     P.R.inviteFor = id;
-    logEv(`Владелец завёл ${full(person(id))} (${d.role==='worker'?'рабочий':'бригадир'}) — без пароля. Сразу «Впустить в приложение», шаг 1: QR, который ставит приложение (у нового человека значка ещё нет).`);
+    logEv(`Владелец добавил ${full(person(id))} (${d.role==='worker'?'рабочий':'бригадир'}) — без пароля. Сразу экран «Установить приложение»: у нового человека значка ещё нет.`);
   },
   toCard(el){ P.L.sel = +el.dataset.id; P.L.scr='card'; P.L.dlg=null; },
   toCardBack(){ P.L.scr='card'; },
-  toLet(el){
-    const id = +el.dataset.id;
-    if (person(id).blocked){ logEv(`${full(person(id))} заблокирован — впустить его нельзя, коды ему не выпускаются. Разблокировать может владелец.`); return; }
-    P.L.sel = id; P.L.scr='let';
-    logEv(`«Впустить в приложение» для ${full(person(id))}: экран спрашивает, есть ли уже значок LD Vill на его телефоне.`);
-  },
-  toLetBack(){ P.L.scr='let'; },
-  toInvite(el){ P.L.sel = +el.dataset.id; P.L.scr='invite'; P.R.inviteFor = P.L.sel; P.inviteTok = tok(10); logEv(`Значка нет — шаг 1: QR, который ставит приложение, для ${full(person(P.L.sel))}.`); },
+  toInvite(el){ P.L.sel = +el.dataset.id; P.L.scr='invite'; P.R.inviteFor = P.L.sel; P.inviteTok = tok(10); logEv(`«Установить приложение» для ${full(person(P.L.sel))}: QR, который ставит значок.`); },
   showCode(el){
     const id = +el.dataset.id;
-    if (person(id).blocked){ logEv(`${full(person(id))} заблокирован — впустить его нельзя (движок откажет). Разблокировать может владелец.`); return; }
+    if (person(id).blocked){ logEv(`${full(person(id))} заблокирован — выдать доступ нельзя (движок откажет). Разблокировать может владелец.`); return; }
     P.L.sel = id; P.L.scr='code'; newCode(id);
   },
   askBlock(){ P.L.dlg='conf'; }, dlgNo(){ P.L.dlg=null; },
@@ -822,7 +813,7 @@ const ACT = {
   toCam(){ P.R.scr='camera'; P.R.err=null; },
   toDig(){ P.R.scr='digits'; P.R.input=''; P.R.err=null; },
   scan(){
-    if (P.L.scr!=='code' || !P.code){ logEv('Камера в значке: на экране слева сейчас нет кода для входа. Владелец или бригадир: «Впустить в приложение», затем шаг 2.'); return; }
+    if (P.L.scr!=='code' || !P.code){ logEv('Камера в значке: на экране слева сейчас нет кода для входа. Владелец или бригадир: карточка человека — «Выдать доступ».'); return; }
     tryLogin(P.code.digits, 'scan');
   },
   key(el){ const R=P.R, k=el.dataset.k; if (R.err==='wrong') R.err=null;
@@ -832,14 +823,14 @@ const ACT = {
   /* пульт: остальной мир */
   who(){ P.L.who = P.L.who==='owner' ? 'foreman' : 'owner'; P.L.dlg=null;
     P.L.scr = P.L.who==='foreman' ? 'team' : (P.ownerIn ? 'people' : 'login');
-    logEv(P.L.who==='foreman' ? 'Слева теперь бригадир Kovács Péter: его вкладка «Бригада». Заводить людей он не может, впустить своих в приложение — может (решение 4).' : 'Слева снова владелец.'); },
+    logEv(P.L.who==='foreman' ? 'Слева теперь бригадир Kovács Péter: его вкладка «Бригада». Добавлять людей и блокировать доступ он не может; установить приложение и выдать доступ своим — может (решение 4).' : 'Слева снова владелец.'); },
   expire(){ if (!P.code || P.code.used || P.code.left<=0){ logEv('Живого кода для входа сейчас нет — истекать нечему.'); return; } P.clock += P.code.left; P.code.left=0; logEv('Прошло 2 минуты — код для входа истёк.'); },
   net(){ P.R.online = !P.R.online; logEv(P.R.online ? 'Связь у телефона человека вернулась.' : 'Связь у телефона человека пропала.'); },
   relaunch(){ if (!P.R.installed){ logEv('Значка ещё нет — перезапускать нечего.'); return; } P.R.scr='home'; logEv('Человек закрыл значок и вернулся на экран «Домой».'); },
   lost(){
     const was = P.R.personId, old = {...P.R};
     P.R = {scr:'home', installed:false, personId:null, inviteFor: was || P.R.inviteFor, err:null, tries:0, input:'', online:true, why:'new', sheetOff:false, old: was ? old : null};
-    logEv(was ? `${full(person(was))} потерял телефон (или сменил, или удалил приложение) — справа новый телефон. Ничего особенного: владелец или бригадир впустит его снова («Впустить в приложение»), человек войдёт, и потерянный телефон отключится сам.` : 'Справа теперь новый телефон.');
+    logEv(was ? `${full(person(was))} потерял телефон (или сменил, или удалил приложение) — справа новый телефон. Ничего особенного: владелец или бригадир нажмёт «Выдать доступ заново», человек войдёт, и потерянный телефон отключится сам.` : 'Справа теперь новый телефон.');
   },
   oldPhone(){
     const o = P.R.old;
@@ -877,15 +868,16 @@ function boardStates(){
       ['o-login',   'Владелец: вход', 'Логином и паролем (решение 3). Экран — тот же, что у приложения сейчас.', L({scr:'login'}), w()],
       ['o-people',  'Владелец: «Люди»', 'Кто заведён, роль, привязан ли телефон и когда им пользовались. Новый человек подсвечен.', L({scr:'people'}), w()],
       ['o-add',     'Владелец: новый человек', 'Фамилия, имя, роль — и всё. Пароля нет.', L({scr:'add'}), w()],
-      ['o-let',     '«Впустить в приложение»', 'Одна кнопка в карточке на все случаи: первый раз, новый или потерянный телефон, переустановка. Экран спрашивает, есть ли значок (замечание Oleg 21.11).', L({scr:'let'}), w()],
-      ['o-invite',  'Шаг 1: поставить приложение', 'Камера iPhone откроет ссылку в Safari. Ссылка только ставит приложение и здоровается по имени, входа не даёт.', L({scr:'invite'}), w()],
-      ['o-code',    'Шаг 2: войти', 'Человек сканирует экран из значка или вводит 6 цифр. Код живёт 2 минуты, срабатывает один раз.', L({scr:'code'}), w({code:code()})],
+      ['o-card-new','Карточка: доступа ещё нет', 'Две кнопки-действия: «Установить приложение» и «Выдать доступ», у каждой подпись, что получит человек (правило Oleg 21.11).', L({scr:'card'}), w()],
+      ['o-invite',  '«Установить приложение»', 'Камера iPhone откроет ссылку в Safari. Ссылка только ставит значок и здоровается по имени, доступа не даёт.', L({scr:'invite'}), w()],
+      ['o-code',    '«Выдать доступ»', 'Человек сканирует экран из значка или вводит 6 цифр. Код живёт 2 минуты, срабатывает один раз.', L({scr:'code'}), w({code:code()})],
       ['o-code-ok', 'Код сработал', 'Человек вошёл — код погашен, телефон привязан.', L({scr:'code'}), w({code:code({used:true})})],
       ['o-code-exp','Код истёк', 'Через 2 минуты — «Новый код».', L({scr:'code'}), w({code:code({left:0})})],
-      ['o-card',    'Карточка человека', 'Две кнопки: «Впустить в приложение» и «Заблокировать». Потерял или сменил телефон — просто впустить снова: старый телефон отключится сам (решение 2).', L({scr:'card'}), w({people:ppOn})],
+      ['o-card',    'Карточка: доступ уже выдан', 'Кнопка называется «Выдать доступ заново», подпись — «старый телефон перестанет работать» (решение 2). Ниже — «Заблокировать доступ».', L({scr:'card'}), w({people:ppOn})],
       ['o-block',   'Заблокировать?', 'Для уволенного: выходит со всех телефонов, коды ему не выпускаются (поправка Oleg 21.11).', L({scr:'card', dlg:'conf'}), w({people:ppOn})],
       ['o-blocked', 'Заблокирован', 'Кода нет, есть «Разблокировать». После — вход по новому коду.', L({scr:'card', sel:4}), w({people:ppOn})],
-      ['f-team',    'Бригадир: «Бригада»', 'Заводить людей не может, впустить своих в приложение — может (решение 4): касание по человеку — тот же экран «Впустить».', L({who:'foreman', scr:'team'}), w({people:ppOn})],
+      ['f-team',    'Бригадир: «Бригада»', 'Добавлять людей и блокировать доступ не может; касание по человеку — та же карточка с «Установить приложение» и «Выдать доступ» (решение 4).', L({who:'foreman', scr:'team'}), w({people:ppOn})],
+      ['f-card',    'Бригадир: карточка человека', 'Те же две кнопки-действия, без «Заблокировать доступ».', L({who:'foreman', scr:'card'}), w()],
     ],
     right: [
       ['p-home',    'Телефон человека: «Домой»', 'Камера iPhone — штатная. Наводится на QR-приглашение.', R({scr:'home', installed:false, personId:null}), w()],
@@ -954,7 +946,7 @@ function renderPult(){
   el.innerHTML = `<button class="handle" data-act="drawer">Пульт — остальной мир ${P.drawer?'▼':'▲'}</button>
     <div class="pin">
       <b class="ptitle">Пульт — остальной мир</b>
-      <p class="how">Путь: владелец входит, жмёт «Добавить человека» и сохраняет — на экране шаг 1. Справа «Камера», затем «Добавить» значок. Слева «Значок поставлен — дальше, шаг 2», справа значок LD Vill и «Сканировать код». Уже заведённого человека впускают из его карточки — «Впустить в приложение». Кнопки ниже — то, что делают время, сеть и люди вокруг.</p>
+      <p class="how">Путь: владелец входит, жмёт «Добавить человека» и сохраняет — на экране «Установить приложение». Справа «Камера», затем «Добавить» значок. Слева «Значок поставлен — дальше: выдать доступ», справа значок LD Vill и «Сканировать код». У уже добавленного человека обе кнопки — в его карточке. Кнопки ниже — то, что делают время, сеть и люди вокруг.</p>
       ${DECISIONS}
       <div class="acts">${showBtn}${BTN.map(([a,l])=>`<button data-act="${a}">${l()}</button>`).join('')}</div>
       <div class="pctl">${ctlHtml()}</div>
@@ -976,9 +968,9 @@ const NOTES = `
 <tr><td>1</td><td>QR-приглашение показывает владелец, новый человек наводит камеру iPhone. Камера открывает ссылку в Safari; у Safari и значка вход хранится раздельно, поэтому страница в Safari только здоровается и учит поставить значок, а вход — уже в значке, по одноразовому коду с экрана владельца или бригадира: QR (камера внутри значка) или те же 6 цифр.</td><td>Наоборот: значок показывает свой код, владелец сканирует или вводит его. Так из коробки умеет Keycloak («вход на устройстве по коду», Device Authorization Grant), но владельцу или бригадиру нужен сканер в приложении, а код длиннее (8 букв).</td></tr>
 <tr><td>2</td><td>Один телефон на человека. Потерял телефон, сменил, удалил приложение — обычный повторный вход: владелец или бригадир показывает новый код, человек входит на новом телефоне, старый отключается сам.</td><td>Несколько телефонов (например, бригадир с планшетом) — тогда в карточке список телефонов, и старый сам уже не отключается.</td></tr>
 <tr><td>3</td><td>Владелец (Дорин) входит логином и паролем; экран «Люди» — вкладка в том же приложении.</td><td>Владелец тоже по коду (кто тогда покажет ему код?) или «Люди» только в веб-интерфейсе с компьютера.</td></tr>
-<tr><td>4</td><td>Заводит людей только владелец; бригадир впускает в приложение людей своей бригады.</td><td>— (решение оркестратора 21.11)</td></tr>
-<tr><td>5</td><td>У владельца одна кнопка закрыть доступ — «Заблокировать» для уволенного: человек выходит со всех телефонов, коды ему не выпускаются. «Разблокировать» возвращает доступ — входит он по новому коду, как в первый раз. Удаления из списка нет: заблокированный остаётся в нём (табель прошлых смен).</td><td>— (поправка Oleg 21.11)</td></tr>
-<tr><td>6</td><td>Впустить человека — одна кнопка «Впустить в приложение» в карточке, с подписью, когда она нужна (первый раз, новый или потерянный телефон, переустановка). Дальше экран спрашивает «значок уже есть?»: нет — шаг 1, QR ставит приложение; есть — сразу шаг 2, QR и 6 цифр для входа. Слов «код для входа» на кнопке нет: владельцу важно, что человек окажется в приложении, а не как устроен вход.</td><td>— (замечание Oleg 21.11: «Код для входа» не считывался)</td></tr>
+<tr><td>4</td><td>Добавляет людей и блокирует доступ только владелец; бригадир людям своей бригады устанавливает приложение и выдаёт доступ.</td><td>— (решение оркестратора 21.11)</td></tr>
+<tr><td>5</td><td>У владельца одна кнопка закрыть доступ — «Заблокировать доступ» для уволенного: человек выходит со всех телефонов, доступ ему не выдаётся. «Разблокировать» снимает блок — дальше «Выдать доступ», как в первый раз. Удаления из списка нет: заблокированный остаётся в нём (табель прошлых смен).</td><td>— (поправка Oleg 21.11)</td></tr>
+<tr><td>6</td><td>Каждая кнопка называется прямым действием — тем, что мы даём человеку на этом шаге: «Добавить человека» (фамилия, имя, роль), «Установить приложение» (QR со ссылкой, которая ставит значок), «Выдать доступ» (QR и 6 цифр: человек сканирует их в значке и входит), «Заблокировать доступ» / «Разблокировать». Если доступ уже выдан, кнопка называется «Выдать доступ заново», и подпись предупреждает: старый телефон перестанет работать. Вопроса «значок уже есть?» нет — две отдельные кнопки. Слово «пропуск» не используется: оно занято кодом рабочего на объекте.</td><td>— (правило Oleg 21.11; до него были «Код для входа» и «Впустить в приложение» — не считывались)</td></tr>
 </table>
 
 <h2>Вопросы заказчику</h2>
@@ -994,7 +986,7 @@ const NOTES = `
 <tr><td>«Люди»: список, роль, телефон, «последний раз»</td><td><span class="tag ask">нет</span> У владельца в контрактах LD Vill сейчас только чтение смен. Нужны право «управлять людьми» у роли <code>owner</code> и точка списка людей картриджа; «последний раз» — время последнего обновления долгого входа значка (сессия Keycloak клиента <code>ldvill-app</code>).</td></tr>
 <tr><td>«Новый человек»: фамилия, имя, роль</td><td><span class="tag ask">нет</span> Заведение пользователя Keycloak без пароля и выдача роли <code>worker</code>/<code>foreman</code> от имени владельца — сейчас людей заводят руками в Keycloak, а роли раздаёт только <code>engine_admin</code> (<code>routers/admin_users.py</code>).</td></tr>
 <tr><td>QR-приглашение</td><td><span class="tag cli">клиент</span> Ссылка <code>/app/join#&lt;приглашение&gt;</code> на странице в <code>app/</code>: приглашение отдаёт только имя для приветствия и ничего не открывает. Часть после <code>#</code> не уходит на сервер и в журналы. Срок приглашения — на выбор (предложение: 7 дней).</td></tr>
-<tr><td>«Впустить в приложение», шаг 2: QR + 6 цифр, 2 минуты, один раз</td><td><span class="tag ask">нет</span> Новая точка «выдать код входа для человека» — владельцу для всех, бригадиру для своей бригады. Похожа на пропуск-код (<code>one_time_passes</code>), но это вход, а не отметка: отдельный вид кода. После 5 неверных вводов — код сгорает, пауза 5 минут на телефон.</td></tr>
+<tr><td>«Выдать доступ»: QR + 6 цифр, 2 минуты, один раз</td><td><span class="tag ask">нет</span> Новая точка «выдать код входа для человека» — владельцу для всех, бригадиру для своей бригады. Похожа на код отметки рабочего на объекте (<code>one_time_passes</code>), но это вход, а не отметка: отдельный вид кода. После 5 неверных вводов — код сгорает, пауза 5 минут на телефон.</td></tr>
 <tr><td>Вход в значке по коду</td><td><span class="tag ask">нет</span> Главная работа. Keycloak не умеет входить по чужому одноразовому коду «из коробки»: нужен свой шаг входа (authenticator) в теме <code>ldvill</code> либо обмен кода на токен через движок. Итог — тот же долгий вход значка, что сейчас (офлайн-токен <code>ldvill-app</code>, до 30 дней простоя).</td></tr>
 <tr><td>Один телефон на человека</td><td><span class="tag ask">нет</span> При входе по коду закрыть прежние офлайн-сессии клиента <code>ldvill-app</code> у этого человека (Keycloak admin API). Потерянный телефон узнаёт об этом на следующем обновлении токена — экран «Вы вошли на другом телефоне».</td></tr>
 <tr><td>Заблокировать / разблокировать</td><td><span class="tag ask">нет</span> Блок — выключить пользователя Keycloak (<code>enabled: false</code>) и закрыть его сессии; движок не выпускает ему коды. Уже выданный короткий токен доживает свой срок (минуты) — если нужно мгновенно, движок проверяет блок на каждом запросе. Разблокировать — включить пользователя; прежние сессии не возвращаются, вход по новому коду.</td></tr>

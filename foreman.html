@@ -29,8 +29,8 @@
   Адрес принимает ?lang=hu|ru|en&view=proto|all&size=s|m|l — для ссылок и снимков;
   ?debug красит рамку телефона, где содержимое не влезло (экраны со списками прокручиваются и не красятся).
 
-  Экран входа, «Бригада» и «Впустить в приложение» (вопрос про значок, шаг 1, шаг 2) — экраны first, team, let,
-  invite и code из login-qr.html (TG-443, вход по QR; «Впустить» — по замечанию Oleg 21.11)
+  Экран входа, «Бригада», карточка человека, «Установить приложение» и «Выдать доступ» — экраны first, team, card,
+  invite и code из login-qr.html (TG-443, вход по QR; кнопки — прямым действием, правило Oleg 21.11)
   один в один: тексты, QR с шестью цифрами, 2 минуты, «Код истёк» и «Новый код», заблокированному кода нет.
   Весь путь входа (камера, 6 цифр, ошибки) живёт там; здесь обе кнопки входа сразу открывают приложение.
   Данные выдуманы, сервера нет.
@@ -279,7 +279,7 @@
   .msheet .langs button{flex:1;border:1px solid #C9D2D6;background:#fff;padding:9px 0;font-weight:700;font-size:14px}
   .msheet .langs button[aria-pressed="true"]{background:var(--c-dark);color:#fff;border-color:var(--c-dark)}
   .msheet .btn{margin-top:6px}
-  /* «Бригада» и «Впустить в приложение» — один в один из login-qr.html (TG-443) */
+  /* «Бригада», «Установить приложение» и «Выдать доступ» — один в один из login-qr.html (TG-443) */
   .note{margin:0;font-size:13px;color:var(--c-muted);line-height:1.4}
   .note.c{text-align:center}
   .btn.sm{font-size:14px;padding:11px 14px}
@@ -412,7 +412,7 @@ const OBJECTS = [
 ];
 /* Рабочие, которые на пульте показывают код. Бригадир их заранее не выбирает: «свои» — те, кого он отметил на своей смене. */
 const WORKERS = ['Horváth Ádám','Иван Петров','Kiss Péter','Szabó Márk'];
-/* «Бригада» — заведённые владельцем рабочие, кого бригадир может впустить в приложение (как в login-qr.html, TG-443).
+/* «Бригада» — заведённые владельцем рабочие, кому бригадир может установить приложение и выдать доступ (как в login-qr.html, TG-443).
    Заблокированному код не выдаётся. */
 const TEAM = [
   {id:2, sur:'Horváth', name:'Ádám',  role:'worker', phone:'on',   last:{d:0,  t:'07:48'}},
@@ -459,7 +459,7 @@ const T = {
 
   /* вход в значке — экран «first» из login-qr.html (TG-443), тексты один в один */
   'first.t':['Belépés','Вход','Sign in'],
-  'first.s':['Kérd meg a tulajdonost vagy a brigádvezetőt, hogy engedjen be: a képernyőjén megmutatja a kódot.','Попросите владельца или бригадира впустить вас — они покажут код на своём экране.','Ask the owner or your foreman to let you in — they show a code on their screen.'],
+  'first.s':['Kérd meg a tulajdonost vagy a brigádvezetőt, hogy adjon hozzáférést: a képernyőjén megmutatja a kódot.','Попросите владельца или бригадира выдать вам доступ — они покажут код на своём экране.','Ask the owner or your foreman to grant you access — they show a code on their screen.'],
   'first.scan':['Kód beolvasása','Сканировать код','Scan code'], 'first.dig':['6 számjegy beírása','Ввести 6 цифр','Type 6 digits'],
   'first.nopass':['Jelszó nem kell.','Пароль не нужен.','No password needed.'],
 
@@ -540,32 +540,33 @@ const T = {
   'pd.photos':['Fotók: {n}','Фото: {n}','Photos: {n}'],
 
   'mn.t':['Menü','Меню','Menu'],
-  'mn.code':['Beengedés az alkalmazásba','Впустить в приложение','Let into the app'],
-  'mn.code.s':['Annak, akit a tulajdonos már felvett','Тому, кого владелец уже завёл','For someone the owner has already added'],
+  'mn.code':['Brigád','Бригада','Crew'],
+  'mn.code.s':['Alkalmazás telepítése és hozzáférés kiadása annak, akit a tulajdonos már felvett','Установить приложение и выдать доступ тому, кого владелец уже добавил','Install the app and grant access for someone the owner has added'],
   'mn.past':['Korábbi műszakok','Прошлые смены','Past shifts'],
   'mn.lang':['Nyelv','Язык','Language'],
   'mn.out':['Kilépés','Выйти','Sign out'],
   'mn.close':['Bezárás','Закрыть','Close'],
 
-  /* «Бригада» и «Впустить в приложение» — экраны «team», «let», «invite» и «code» из login-qr.html (TG-443), тексты один в один */
+  /* «Бригада», карточка человека, «Установить приложение» и «Выдать доступ» — экраны «team», «card», «invite» и «code»
+     из login-qr.html (TG-443), тексты один в один */
   'tab.team':['Brigád','Бригада','Crew'],
   'role.worker':['dolgozó','рабочий','worker'],
   'ph.on':['Telefon csatolva · {when}','Телефон привязан · {when}','Phone linked · {when}'],
   'ph.none':['Még nem lépett be','Ещё не входил','Not signed in yet'],
   'ph.blocked':['Letiltva — nem léphet be','Заблокирован — входить не может','Blocked — can’t sign in'],
   'when.today':['ma {t}','сегодня {t}','today {t}'], 'when.yday':['tegnap {t}','вчера {t}','yesterday {t}'],
-  'team.hint':['Embert felvenni csak a tulajdonos tud. A brigádod tagjait te is beengedheted az alkalmazásba: koppints a nevére.','Заводит людей только владелец. Впустить в приложение людей своей бригады можете и вы: нажмите на человека.','Only the owner adds people. You can let your crew into the app too: tap a name.'],
-  'let.title':['Beengedés','Впустить в приложение','Let into the app'],
-  'let.t':['{name} jelszó nélkül lép be az LD Vill alkalmazásba a saját telefonján. Te csak megmutatod neki a képernyődet.','{name} войдёт в приложение LD Vill на своём телефоне без пароля. От вас — только показать ему свой экран.','{name} signs in to the LD Vill app on their own phone, no password. You just show them your screen.'],
-  'let.q':['Kint van már az LD Vill ikon a telefonján?','Значок LD Vill на его телефоне уже есть?','Is the LD Vill icon already on their phone?'],
-  'let.yes':['Igen, kint van — beléptetés','Есть — впустить','Yes — let them in'],
-  'let.no':['Nincs — előbb telepíteni','Нет — сначала поставить приложение','No — install the app first'],
-  'let.unsure':['Nem tudod? Kezdd az 1. lépéssel: ha az ikon már kint van, az ember egyszerűen megnyitja.','Не знаете — начните с шага 1: если значок уже стоит, человек просто откроет его.','Not sure? Start with step 1: if the icon is already there, they simply open it.'],
-  'inv.title':['1/2 · Telepítés','Шаг 1 из 2 · Поставить','Step 1 of 2 · Install'],
+  'team.hint':['Embert felvenni csak a tulajdonos tud. A brigádod tagjainak te is telepítheted az alkalmazást és kiadhatod a hozzáférést: koppints a nevére.','Заводит людей только владелец. Установить приложение и выдать доступ людям своей бригады можете и вы: нажмите на человека.','Only the owner adds people. You can install the app and grant access for your crew too: tap a name.'],
+  'card.install':['Alkalmazás telepítése','Установить приложение','Install the app'],
+  'card.install.s':['QR a telefon kamerájához: kiteszi az LD Vill ikont a főképernyőre.','QR для камеры телефона: ставит значок LD Vill на экран «Домой».','A QR for the phone camera: puts the LD Vill icon on the Home Screen.'],
+  'card.access':['Hozzáférés kiadása','Выдать доступ','Grant access'],
+  'card.access.s':['QR és 6 számjegy: az ember beolvassa az ikonban, és jelszó nélkül belép.','QR и 6 цифр: человек сканирует их в значке и входит без пароля.','A QR and 6 digits: the person scans them in the app and signs in, no password.'],
+  'card.reaccess':['Hozzáférés újbóli kiadása','Выдать доступ заново','Grant access again'],
+  'card.reaccess.s':['Új vagy elveszett telefonhoz, újratelepítés után. A régi telefon nem fog működni.','Для нового или потерянного телефона, после переустановки. Старый телефон перестанет работать.','For a new or lost phone, or after reinstalling. The old phone will stop working.'],
+  'inv.title':['Alkalmazás telepítése','Установить приложение','Install the app'],
   'inv.t':['{name} nyissa meg a telefon kameráját, és irányítsa erre a kódra','Пусть {name} откроет камеру телефона и наведёт на этот код','Have {name} open their phone camera and point it at this code'],
   'inv.s':['Megnyílik a Safari, és megmutatja, hogyan tegye ki az ikont a főképernyőre. Belépni még nem kell.','Откроется Safari и подскажет, как поставить значок на экран «Домой». Входить пока не нужно.','Safari opens and shows how to add the icon to the Home Screen. No sign-in yet.'],
-  'inv.code':['Kint van az ikon — tovább, 2. lépés','Значок поставлен — дальше, шаг 2','Icon added — next, step 2'],
-  'code.title':['2/2 · Belépés','Шаг 2 из 2 · Войти','Step 2 of 2 · Sign in'],
+  'inv.code':['Az ikon kint van — tovább: hozzáférés kiadása','Значок поставлен — дальше: выдать доступ','Icon added — next: grant access'],
+  'code.title':['Hozzáférés kiadása','Выдать доступ','Grant access'],
   'code.how':['{name} nyissa meg az LD Vill ikont, koppintson a «Kód beolvasása» gombra, és irányítsa a telefont erre a képernyőre.','Пусть {name} откроет значок LD Vill, нажмёт «Сканировать код» и наведёт телефон на этот экран.','Have {name} open the LD Vill icon, tap “Scan code” and point the phone at this screen.'],
   'code.or':['Nem megy a kamera? Írja be ezt a 6 számjegyet:','Камера не берёт — пусть введёт эти 6 цифр:','Camera won’t read it? Have them type these 6 digits:'],
   'code.left':['Érvényes még <b>{t}</b> · egyszer használható','Действует ещё <b>{t}</b> · срабатывает один раз','Valid for <b>{t}</b> · works once'],
@@ -613,14 +614,14 @@ const T = {
   'c.pastday':['18 · Egy korábbi műszak','18 · Прошлая смена','18 · A past shift'],
   'c.pastday.d':['Csak olvasható.','Только чтение.','Read only.'],
   'c.menu':['19 · Menü','19 · Меню бригадира','19 · Menu'],
-  'c.menu.d':['Beengedés az alkalmazásba, korábbi műszakok, nyelv, kilépés.','Впустить в приложение, прошлые смены, язык, выход.','Let into the app, past shifts, language, sign out.'],
-  'c.team':['20 · Brigád — kit enged be','20 · Бригада — кого впустить','20 · Crew — whom to let in'],
-  'c.team.d':['A TG-443 makettből; letiltottat nem lehet beengedni.','Из макета TG-443; заблокированного не впустить.','From the TG-443 mockup; a blocked person can’t be let in.'],
-  'c.lclet':['21 · Beengedés — kint van az ikon?','21 · Впустить — значок уже есть?','21 · Let in — icon already there?'],
-  'c.lclet.d':['A TG-443 makettből (Oleg megjegyzése, 21.11): nincs ikon — 1. lépés, van — rögtön 2. lépés.','Из макета TG-443 (замечание Oleg 21.11): значка нет — шаг 1, есть — сразу шаг 2.','From the TG-443 mockup (Oleg’s note, 21.11): no icon — step 1, icon — straight to step 2.'],
-  'c.lcinv':['22 · 1. lépés: telepítés','22 · Шаг 1: поставить приложение','22 · Step 1: install the app'],
-  'c.lcinv.d':['A kamera Safariban nyitja meg; belépés még nincs.','Камера откроет его в Safari; входа здесь ещё нет.','The camera opens it in Safari; no sign-in yet.'],
-  'c.lcode':['23 · 2. lépés: belépés','23 · Шаг 2: войти','23 · Step 2: sign in'],
+  'c.menu.d':['Brigád (alkalmazás és hozzáférés), korábbi műszakok, nyelv, kilépés.','Бригада (приложение и доступ), прошлые смены, язык, выход.','Crew (app and access), past shifts, language, sign out.'],
+  'c.team':['20 · Brigád — kinek adjon hozzáférést','20 · Бригада — кому выдать доступ','20 · Crew — who gets access'],
+  'c.team.d':['A TG-443 makettből; letiltottnak nem adható hozzáférés.','Из макета TG-443; заблокированному доступ не выдать.','From the TG-443 mockup; a blocked person gets no access.'],
+  'c.lccard':['21 · Az ember kártyája','21 · Карточка человека','21 · Person card'],
+  'c.lccard.d':['A TG-443 makettből (Oleg szabálya, 21.11): két gomb közvetlen művelettel — «Alkalmazás telepítése» és «Hozzáférés kiadása».','Из макета TG-443 (правило Oleg 21.11): две кнопки прямым действием — «Установить приложение» и «Выдать доступ».','From the TG-443 mockup (Oleg’s rule, 21.11): two direct-action buttons — “Install the app” and “Grant access”.'],
+  'c.lcinv':['22 · Alkalmazás telepítése','22 · Установить приложение','22 · Install the app'],
+  'c.lcinv.d':['A kamera Safariban nyitja meg; hozzáférést nem ad.','Камера откроет его в Safari; доступа ссылка не даёт.','The camera opens it in Safari; the link gives no access.'],
+  'c.lcode':['23 · Hozzáférés kiadása','23 · Выдать доступ','23 · Grant access'],
   'c.lcode.d':['A TG-443 makettből: QR vagy 6 számjegy, 2 perc, egyszer használható.','Из макета TG-443: QR или 6 цифр, 2 минуты, срабатывает один раз.','From the TG-443 mockup: QR or 6 digits, 2 minutes, works once.'],
   'c.lcode-expired':['24 · A kód lejárt','24 · Код истёк','24 · Code expired'],
   'c.lcode-expired.d':['Nem frissül magától — «Új kód».','Сам не обновляется — «Новый код».','Doesn’t refresh by itself — “New code”.'],
@@ -737,7 +738,7 @@ function personRow(p){
   const st = p.blocked ? `<span class="off">${ic('lock')}${t('ph.blocked')}</span>`
     : p.phone==='on' ? `<span class="on">${ic('phone')}${t('ph.on',{when: p.last ? when(p.last) : ''})}</span>`
     : `<span>${ic('clock')}${t('ph.none')}</span>`;
-  return `<button class="prow" data-act="lclet" data-arg="${p.id}"><span class="ava">${esc(initials(p))}</span>
+  return `<button class="prow" data-act="lccard" data-arg="${p.id}"><span class="ava">${esc(initials(p))}</span>
     <span class="tx"><b>${esc(full(p))}</b>${st}</span><span class="rtag">${t('role.'+p.role)}</span>${ic('go','go')}</button>`;
 }
 function codeBlock(c, p){
@@ -828,22 +829,22 @@ function body(m){
     case 'lcpick':  // экран «team» из login-qr.html (TG-443)
       return `<div class="list">${TEAM.map(p=>personRow(p)).join('')}</div>
           <p class="note">${t('team.hint')}</p>`;
-    case 'lclet': { // экран «let» из login-qr.html (TG-443): «значок уже есть?»
-      const p = TEAM.find(x=>x.id===m.lcFor);
-      return `<div class="pcard"><b style="font-size:17px">${esc(full(p))}</b><span class="note">${t('let.t',{name:esc(p.name)})}</span></div>
-          <p class="note" style="color:var(--c-ink);font-weight:700;font-size:16px">${t('let.q')}</p>
-          <button class="btn" data-act="lcode" data-arg="${p.id}">${ic('key')}${t('let.yes')}</button>
-          <button class="btn line" data-act="lcinv" data-arg="${p.id}">${ic('qr')}${t('let.no')}</button>
-          <p class="note">${t('let.unsure')}</p>`;
+    case 'lccard': { // карточка человека из login-qr.html (TG-443) у бригадира: две кнопки-действия, без блокировки (правило Oleg 21.11)
+      const p = TEAM.find(x=>x.id===m.lcFor), again = p.phone==='on';
+      return `<div class="pcard"><b style="font-size:17px">${esc(full(p))}</b><span class="note">${p.phone==='on' ? t('ph.on',{when: p.last ? when(p.last) : ''}) : t('ph.none')}</span></div>
+          <button class="btn line" data-act="lcinv" data-arg="${p.id}">${ic('qr')}${t('card.install')}</button>
+          <p class="note">${t('card.install.s')}</p>
+          <button class="btn" data-act="lcode" data-arg="${p.id}">${ic('key')}${t(again?'card.reaccess':'card.access')}</button>
+          <p class="note">${t(again?'card.reaccess.s':'card.access.s')}</p>`;
     }
-    case 'lcinv': { // экран «invite» из login-qr.html (TG-443): шаг 1, QR ставит приложение
+    case 'lcinv': { // экран «Установить приложение» из login-qr.html (TG-443): QR ставит значок
       const p = TEAM.find(x=>x.id===m.lcFor);
       return `<p class="note" style="color:var(--c-ink);font-weight:700;font-size:15px">${t('inv.t',{name:esc(p.name)})}</p>
           <div class="qrbox"><div class="qr">${qrSvg('https://ldvill.theguild.hu/app/join#'+(m.lcInv||'Hq7tKpZ2mX'))}</div></div>
           <p class="note">${t('inv.s')}</p>
           <button class="btn" data-act="lcode" data-arg="${p.id}">${t('inv.code')}</button>`;
     }
-    case 'lcode': { // экран «code» из login-qr.html (TG-443): шаг 2
+    case 'lcode': { // экран «Выдать доступ» из login-qr.html (TG-443)
       const p = TEAM.find(x=>x.id===m.lc.forId);
       return `<p class="note" style="color:var(--c-ink);font-weight:700;font-size:15px">${t('code.how',{name:esc(p.name)})}</p>
           ${codeBlock(m.lc, p)}
@@ -854,7 +855,7 @@ function body(m){
 }
 /* Шапка: у экранов первого уровня — имя и меню, у вложенных — «Назад». */
 function appbar(m){
-  const back = {pick:'home', pastday:'past', lcpick:'home', lclet:'lcpick', lcinv:'lclet', lcode:'lclet'}[m.screen];
+  const back = {pick:'home', pastday:'past', lcpick:'home', lccard:'lcpick', lcinv:'lccard', lcode:'lccard'}[m.screen];
   let title = '', cls = '';
   switch (m.screen){
     case 'noshift': title = t('t.noshift'); break;
@@ -865,7 +866,7 @@ function appbar(m){
     case 'past': title = t('t.past'); break;
     case 'pastday': { const d=(m.past||PAST0)[m.pastIdx||0]; title = d.date+' · '+esc(d.obj); cls='long'; break; }
     case 'lcpick': title = t('tab.team'); break;
-    case 'lclet': title = t('let.title'); break;
+    case 'lccard': { const p = TEAM.find(x=>x.id===m.lcFor); title = p ? esc(full(p)) : ''; break; }
     case 'lcinv': title = t('inv.title'); break;
     case 'lcode': title = t('code.title'); break;
   }
@@ -931,7 +932,7 @@ const NOTES = `
 <li><b>Отчёт за день обязателен</b> — свободный текст; без него кнопка закрытия не работает. Фото — по желанию.</li>
 <li><b>«Закрыть без их ухода» — одна кнопка для всех незакрытых</b>, над ней список, кого это касается. У этих людей в смене остаётся отметка «уход не отмечен».</li>
 </ol>
-<p>Ещё принято (оркестратор Малле Анатоль, 21.11): «свои» люди — только те, кого бригадир отметил на своей смене; сканер — камера внутри приложения; «Впустить в приложение» — пункт меню (было «Код для входа», переименовано по замечанию Oleg 21.11), экраны — из макета TG-443; прошлые смены — только чтение.</p>
+<p>Ещё принято (оркестратор Малле Анатоль, 21.11): «свои» люди — только те, кого бригадир отметил на своей смене; сканер — камера внутри приложения; «Бригада» — пункт меню, за ним люди бригады и в карточке человека кнопки прямым действием «Установить приложение» и «Выдать доступ» (было «Код для входа», затем «Впустить в приложение»; правило Oleg 21.11), экраны — из макета TG-443; прошлые смены — только чтение.</p>
 
 <h2>Данные экрана</h2>
 <table>
@@ -943,7 +944,7 @@ const NOTES = `
 <tr><td>«Мои люди на смене», счётчики</td><td><span class="tag ask">уточнить</span> отметки рабочих под этой сменой (документы процесса отметок, связанные со сменой) — список документов есть, но «только отмеченные мной» — фильтр по тому, кто погасил код. Так как на объекте одна смена и её открыл этот бригадир, все отметки под ней — его; отдельный фильтр нужен, только если Oleg поменяет решение 1.</td></tr>
 <tr><td>Отчёт и закрытие смены</td><td><span class="tag ask">уточнить</span> поле отчёта у смены (обязательное на переходе «закрыть» — guard или <code>required</code> на шаге) и фото (поле-файл). Формат пропусков «забыл уйти» не решает: «уход не отмечен» — дело перехода закрытия смены в контракте (например, действие, которое закрывает открытые отметки со статусом «без ухода»).</td></tr>
 <tr><td>Прошлые смены</td><td><span class="tag have">есть</span> список документов-смен этого бригадира (закрытые), открытие — карточка документа только для чтения.</td></tr>
-<tr><td>Вход, «Бригада», «Впустить в приложение»</td><td><span class="tag ask">TG-443</span> экраны — из <code>login-qr.html</code> один в один; точки движка «выдать код входа» и вход по нему — новые, описаны в записке под тем макетом. Список «Бригада» — заведённые владельцем рабочие с признаком «телефон привязан / заблокирован».</td></tr>
+<tr><td>Вход, «Бригада», «Установить приложение», «Выдать доступ»</td><td><span class="tag ask">TG-443</span> экраны — из <code>login-qr.html</code> один в один; точки движка «выдать код входа» и вход по нему — новые, описаны в записке под тем макетом. Список «Бригада» — заведённые владельцем рабочие с признаком «телефон привязан / заблокирован».</td></tr>
 <tr><td>Имя и роль в шапке</td><td><span class="tag cli">клиент</span> вошедший человек.</td></tr>
 </table>
 
@@ -1006,18 +1007,18 @@ const ACT = {
   menu(){ P.sheet = 'menu'; },
   lang(l){ S.lang = l; P.sheet = null; syncUrl(); render(); },
   lcpick(){ go('lcpick'); },
-  /* как toLet в login-qr.html (TG-443): «Впустить в приложение» спрашивает, есть ли значок; заблокированного не впустить */
-  lclet(id){
+  /* карточка человека, как в login-qr.html (TG-443): «Установить приложение» и «Выдать доступ»; заблокированному доступ не выдать */
+  lccard(id){
     const p = TEAM.find(x=>x.id===+id);
-    if (p.blocked){ logEv(`${full(p)} заблокирован — впустить его нельзя (движок откажет). Разблокировать может владелец.`); return; }
-    P.lcFor = p.id; go('lclet');
-    logEv(`«Впустить в приложение» для ${full(p)}: экран спрашивает, есть ли уже значок LD Vill на его телефоне.`);
+    if (p.blocked){ logEv(`${full(p)} заблокирован — выдать доступ нельзя (движок откажет). Разблокировать может владелец.`); return; }
+    P.lcFor = p.id; go('lccard');
+    logEv(`Карточка ${full(p)}: «Установить приложение» и «${p.phone==='on' ? 'Выдать доступ заново' : 'Выдать доступ'}».`);
   },
-  lcinv(id){ P.lcFor = +id; P.lcInv = tok(10); go('lcinv'); logEv(`Значка нет — шаг 1: QR, который ставит приложение, для ${full(TEAM.find(x=>x.id===+id))}.`); },
-  /* как showCode в login-qr.html (TG-443): шаг 2; заблокированному код не выпускается; «Новый код» гасит прежний */
+  lcinv(id){ P.lcFor = +id; P.lcInv = tok(10); go('lcinv'); logEv(`«Установить приложение» для ${full(TEAM.find(x=>x.id===+id))}: QR, который ставит значок.`); },
+  /* как showCode в login-qr.html (TG-443): «Выдать доступ»; заблокированному код не выпускается; «Новый код» гасит прежний */
   lcode(id){
     const p = TEAM.find(x=>x.id===+id);
-    if (p.blocked){ logEv(`${full(p)} заблокирован — впустить его нельзя (движок откажет). Разблокировать может владелец.`); return; }
+    if (p.blocked){ logEv(`${full(p)} заблокирован — выдать доступ нельзя (движок откажет). Разблокировать может владелец.`); return; }
     P.lcFor = p.id; P.lc = {forId:p.id, digits:six(), tok:tok(16), left:CODE_TTL, used:false}; go('lcode');
     logEv(`Бригадир показал код для входа для ${full(p)}: ${P.lc.digits}, живёт ${CODE_TTL/60} мин, срабатывает один раз (движок: выдать код входа — новая точка, TG-443).`);
   },
@@ -1082,7 +1083,7 @@ const STATES = [
   {id:'pastday', screen:'pastday', pastIdx:0, clock:17*3600+9*60},
   {id:'menu', screen:'shift', sheet:'menu', shift:sh(), clock:12*3600},
   {id:'team', screen:'lcpick', clock:7*3600+40*60},
-  {id:'lclet', screen:'lclet', lcFor:5, clock:7*3600+40*60},
+  {id:'lccard', screen:'lccard', lcFor:5, clock:7*3600+40*60},
   {id:'lcinv', screen:'lcinv', lcFor:5, clock:7*3600+40*60},
   {id:'lcode', screen:'lcode', lc:{forId:5, digits:'482913', tok:'demo', left:87, used:false}, clock:7*3600+40*60},
   {id:'lcode-expired', screen:'lcode', lc:{forId:5, digits:'482913', tok:'demo', left:0, used:false}, clock:7*3600+42*60},
