@@ -9,20 +9,21 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <!--
-  Кликабельный макет веб-кабинета владельца LD Vill (Дорин) на компьютере (TG-451). Утверждает Oleg; по нему потом
-  строится кабинет в движке. Продолжает принятые макеты: место Дорина в timesheet-pwa.html (лента периодов, день
-  объекта, отчёты, настройки), вход по QR (login-qr.html, TG-443 — «Люди» и «Выдать доступ» слово в слово) и рабочее
-  место бригадира (foreman.html, TG-444 — итог смены, те же смены 19 и 20 ноября).
+  Кликабельный макет веб-кабинета владельца LD Vill (Дорин) на компьютере (TG-451, переделан по замечаниям Oleg 22.11
+  в TG-458). Утверждает Oleg; по нему потом строится кабинет в движке. Продолжает принятые макеты: вход по QR
+  (login-qr.html, TG-443 — «Люди» и «Выдать доступ» слово в слово) и рабочее место бригадира (foreman.html, TG-444 —
+  итог смены, те же смены 19 и 20 ноября).
 
   Что здесь:
     · окно браузера с кабинетом в оболочке движка: шапка, полоса вкладок, страница раздела с заголовком, пилюлями
-      и карточками — как вкладки портлета движка; цвета — как на стенде сейчас (нейтральные движка), на пульте
-      переключатель «Цвета LD Vill»;
-    · шесть вкладок: Сегодня · История · Объекты · Люди · Отчёты | Настройки;
+      и карточками — как вкладки портлета движка; цвета LD Vill (ldvill.com), на пульте — «Цвета движка» для сравнения;
+    · четыре вкладки: Сегодня · Объекты (с временем начала работы и округлением) · Люди · Отчёты (в форме раздела
+      «Аналитика» движка: страницы, панель фильтров, метки «что умеет движок» у блоков);
     · пульт играет остальной мир (бригадиры открывают и закрывают смены, человек входит по коду, проходит время);
       журнал пульта говорит, что произошло и что делал бы движок; решения и вопросы — в пульте и в записке под макетом.
-  Адрес принимает ?lang=hu|ru|en&tab=today|hist|objs|people|rep|set&brand=engine|ld&go=<экран>,<экран>… — go открывает
-  экраны по цепочке «хлебных крошек», например go=obj:fer,dayobj:2026-11-20:fer.
+  Адрес принимает ?lang=hu|ru|en&tab=today|objs|people|rep&rp=people|objs|days|marks&per=<период>&brand=engine
+  &tags=off&go=<экран>,<экран>… — go открывает экраны по цепочке «хлебных крошек», например
+  go=obj:fer,dayobj:2026-11-20:fer.
 
   Тексты кабинета — в таблице T (hu / ru / en); пульт и записка — по-русски. Данные выдуманы, сервера нет.
 -->
@@ -39,12 +40,20 @@
     --font:"Plus Jakarta Sans","Segoe UI",Arial,sans-serif;
   }
   /* ══ БРЕНД В ОБОЛОЧКЕ ДВИЖКА ══
-     По умолчанию — нейтральные цвета движка (brand-default/tokens.json: accent-600, brandDark), как у LD Vill на стенде
-     сейчас; «Цвета LD Vill» на пульте — как станет, когда у картриджа появится своя палитра (TG-416 это уже умеет). */
+     По умолчанию — цвета компании LD Vill, как на ldvill.com (замечание Oleg 22.11, TG-458): тёмная шапка #213946 и
+     салатовый #C7FF00 у главного действия и выбранной вкладки; палитру и шрифт картриджу накладывает brand/ дома
+     (TG-416). «Цвета движка» на пульте — нейтральные цвета движка (brand-default/tokens.json), для сравнения. */
   .app{--b-600:#2563EB; --b-on:#fff; --b-line:#2563EB; --b-dark:#1E293B; --b-soft:#EFF6FF; --b-ink:#1D4ED8;
     --b-font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; --b-mark:#1E293B; --b-mark-ink:#fff}
-  .app.ld{--b-600:#C7FF00; --b-on:#213946; --b-line:#7FA300; --b-dark:#213946; --b-soft:#F4FFD6; --b-ink:#4F6600;
-    --b-font:var(--font); --b-mark:#213946; --b-mark-ink:#C7FF00}
+  .app.ld{--b-600:#C7FF00; --b-on:#213946; --b-line:#C7FF00; --b-dark:#213946; --b-soft:#F4FFD6; --b-ink:#4F6600;
+    --b-font:var(--font); --b-mark:#C7FF00; --b-mark-ink:#213946}
+  .app.ld .hdr{background:#213946;border-bottom-color:#213946;color:#fff}
+  .app.ld .brand div span,.app.ld .me div span{color:#A9B8C0}
+  .app.ld .bell{color:#DCE4E8} .app.ld .bell:hover{background:#2C4957}
+  .app.ld .ava-r{background:#C7FF00;color:#213946}
+  .app.ld .tabbar{background:#213946;border-bottom-color:#213946}
+  .app.ld .tabbar button{color:#A9B8C0} .app.ld .tabbar button:hover{color:#fff}
+  .app.ld .tabbar button.on{color:#fff;border-bottom-color:#C7FF00}
 
   *{box-sizing:border-box}
   html,body{margin:0;background:#E9EEF0;color:var(--c-ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
@@ -131,6 +140,9 @@
   .kpi span{font-size:12.5px;color:#6B7280}
   .kpi.warn b{color:var(--c-warn-ink)}
   .kpi.big b{font-size:30px}
+  /* строка под объектом в смене — как .rmeta у бригадира: дата · с–до · длительность смены */
+  .rmeta{font-size:15px;color:#374151;margin-top:-8px}
+  .rmeta b{color:#111827}
 
   /* таблицы — как списки движка */
   table.tb{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
@@ -239,6 +251,34 @@
   .dialog .row2{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
   .dialog .yes{background:var(--c-bad);border-color:var(--c-bad);color:#fff}
 
+  /* Отчёты — форма раздела «Аналитика» движка: страницы-вкладки, над ними панель фильтров, ниже блоки */
+  .ptabs{display:flex;gap:2px;border-bottom:1px solid #E5E7EB}
+  .ptabs button{border:0;border-bottom:2px solid transparent;background:none;padding:9px 14px;font-size:14px;font-weight:600;color:#6B7280;margin-bottom:-1px}
+  .ptabs button.on{color:#111827;border-bottom-color:var(--b-dark)}
+  .fbar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end;background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:12px 16px}
+  .fbar label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:.05em}
+  .fbar select,.fbar input{font:inherit;font-size:14px;text-transform:none;letter-spacing:0;color:#111827;padding:7px 10px;border:1px solid #D1D5DB;border-radius:8px;background:#fff;min-width:150px}
+  .fbar .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .fbar .chips button{border:1px solid #E5E7EB;background:#fff;color:#374151;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:500;text-transform:none;letter-spacing:0}
+  .fbar .chips button.on{background:var(--b-dark);border-color:var(--b-dark);color:#fff;font-weight:700}
+  .fbar .reset{border:0;background:none;color:var(--b-ink);font-weight:600;font-size:13px;padding:8px 0}
+  .fbar .fl{display:flex;flex-direction:column;gap:4px}
+  /* метка «что умеет движок» — у блока и у фильтра; выключается на пульте */
+  .eng{display:inline-flex;align-self:flex-start;align-items:center;gap:4px;font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:none;border-radius:6px;padding:2px 7px;white-space:nowrap}
+  .eng.y{background:var(--c-ok-bg);color:var(--c-ok)} .eng.n{background:var(--c-warn-bg);color:var(--c-warn-ink)} .eng.c{background:#EEF2FF;color:#4338CA}
+  .engwhy{font-size:12px;color:#6B7280;margin:-6px 0 10px;line-height:1.4}
+  .notags .eng,.notags .engwhy{display:none}
+  /* столбики по дням — как ряд по времени у аналитики движка */
+  .bars{display:flex;align-items:flex-end;gap:4px;height:130px;padding-top:18px}
+  .bars div{flex:1;min-width:6px;background:var(--b-dark);border-radius:3px 3px 0 0;position:relative}
+  .bars div i{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:10px;font-style:normal;color:#6B7280;white-space:nowrap}
+  .bars-x{display:flex;gap:4px;font-size:10px;color:#9CA3AF;margin-top:4px}
+  .bars-x span{flex:1;text-align:center;min-width:6px}
+  .hbar{height:8px;background:#F1F5F9;border-radius:4px;min-width:120px}
+  .hbar i{display:block;height:100%;background:var(--b-dark);border-radius:4px}
+  .startset{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center}
+  .startset .lbl{font-size:13px;font-weight:600;color:#374151;margin-right:8px}
+
   .toast{position:absolute;right:24px;bottom:24px;z-index:8;background:#111827;color:#fff;border-radius:12px;padding:12px 16px;font-size:13.5px;max-width:420px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
 
   /* пульт */
@@ -301,11 +341,14 @@ const PEOPLE0 = [
 ];
 const full = p => p.disp || (p.sur + ' ' + p.name);   // по-венгерски фамилия впереди
 const initials = p => p.disp ? p.disp.split(' ').map(s=>s[0]).join('') : p.sur[0] + p.name[0];
-/* Объекты — справочник владельца: бригадир выбирает из него. Óbuda закрыт в октябре — история осталась. */
+/* Объекты — справочник владельца: бригадир выбирает из него. Óbuda закрыт в октябре — история осталась.
+   start — своё время начала работы на объекте (минуты от полуночи); нет — действует время по умолчанию (P.set.start).
+   Опоздание считается от него (замечание Oleg 22.11, TG-458), а не от открытия смены. */
+const START0 = 7*60 + 45;
 const OBJECTS0 = [
-  {id:'fer', name:'Ferihegy, 2-es terminál', addr:'Budapest, XVIII. ker.', since:'2026-10-01'},
+  {id:'fer', name:'Ferihegy, 2-es terminál', addr:'Budapest, XVIII. ker.', since:'2026-10-01', start:8*60},
   {id:'bud', name:'Budaörs, raktárcsarnok',  addr:'Budaörs, Gyár u. 2.',   since:'2026-10-01'},
-  {id:'kel', name:'Kelenföld, irodaház',     addr:'Budapest, XI. ker.',    since:'2026-11-02'},
+  {id:'kel', name:'Kelenföld, irodaház',     addr:'Budapest, XI. ker.',    since:'2026-11-02', start:8*60+15},
   {id:'obu', name:'Óbuda, lakópark',         addr:'Budapest, III. ker.',   since:'2026-10-01', closed:'2026-10-30'},
 ];
 const FOREMAN_OF = {fer:1, bud:2, kel:3, obu:3};
@@ -328,7 +371,6 @@ const pad = n => String(n).padStart(2,'0');
 const keyOf = ms => { const d = new Date(ms); return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`; };
 const msOf = key => Date.UTC(+key.slice(0,4), +key.slice(5,7)-1, +key.slice(8,10));
 const wdOf = key => new Date(msOf(key)).getUTCDay();
-const mondayOf = key => keyOf(msOf(key) - ((wdOf(key)+6)%7)*86400000);
 
 /* Смены 19 и 20 ноября — из foreman.html (PAST0) слово в слово. */
 const FIXED = {
@@ -357,15 +399,17 @@ function genHistory(){
         return;
       }
       const f = (fx.foremen && fx.foremen[o.id]) || FOREMAN_OF[o.id];
-      const open = 450 + 5*pick(7), close = 990 + 5*pick(10);
+      // бригадир открывает смену за 10–40 минут до начала работы на объекте; приход — в первые 12 минут после открытия
+      const open = (o.start || START0) - 40 + 5*pick(7), close = 990 + 5*pick(10);
       const s = {id:sid++, obj:o.id, f, open, close, report:REPORTS[pick(REPORTS.length)], photos:pick(4)};
       day.shifts.push(s);
       const left = objs.length - i - 1;
       const k = Math.max(1, Math.min(2 + pick(3), pool.length - left));
       pool.splice(0, k).forEach(w => {
-        const late = rnd() < .08 ? 15 + pick(16) : 0;
+        const late = rnd() < .08 ? 5 + pick(26) : 0;   // опоздавший приходит через 5–30 минут после начала работы
         const miss = rnd() < .04;
-        day.marks.push({w, obj:o.id, sid:s.id, in:open + pick(12) + late, out: miss ? null : close - pick(10), noOut:miss});
+        const arrive = late ? (o.start || START0) + late : open + pick(10);
+        day.marks.push({w, obj:o.id, sid:s.id, in:arrive, out: miss ? null : close - pick(10), noOut:miss});
       });
     });
     /* переезд: уход на первом объекте и приход на втором — часы делятся сами */
@@ -394,8 +438,8 @@ const T = {
   'app.sub':['Műszaknyilvántartás','Учёт смен','Shift tracking'],
   'bell':['Új jelentések','Новые отчёты','New reports'],
 
-  'tab.today':['Ma','Сегодня','Today'], 'tab.hist':['Előzmények','История','History'], 'tab.objs':['Munkaterületek','Объекты','Sites'],
-  'tab.people':['Emberek','Люди','People'], 'tab.rep':['Kimutatások','Отчёты','Reports'], 'tab.set':['Beállítások','Настройки','Settings'],
+  'tab.today':['Ma','Сегодня','Today'], 'tab.objs':['Munkaterületek','Объекты','Sites'],
+  'tab.people':['Emberek','Люди','People'], 'tab.rep':['Kimutatások','Отчёты','Reports'],
 
   'wd.0':['vasárnap','воскресенье','Sunday'], 'wd.1':['hétfő','понедельник','Monday'], 'wd.2':['kedd','вторник','Tuesday'],
   'wd.3':['szerda','среда','Wednesday'], 'wd.4':['csütörtök','четверг','Thursday'], 'wd.5':['péntek','пятница','Friday'], 'wd.6':['szombat','суббота','Saturday'],
@@ -403,7 +447,6 @@ const T = {
   'mg.10':['október','октября','October'], 'mg.11':['november','ноября','November'],
   'in.10':['októberben','в октябре','in October'], 'in.11':['novemberben','в ноябре','in November'],
   'date.long':['{m} {d}., {wd}','{wd}, {d} {m}','{wd}, {d} {m}'],
-  'month.y':['{y}. {m}','{m} {y}','{m} {y}'],
   'live':['folyamatban','идёт','in progress'],
   'hm':['{h} ó {m} p','{h} ч {m} мин','{h} h {m} min'],
   'back':['Vissza','Назад','Back'],
@@ -413,15 +456,12 @@ const T = {
   'k.now':['most a területeken','сейчас на объектах','on site now'],
   'k.people':['ember a nap során','человек за день','people today'],
   'k.people.p':['ember','человек','people'],
-  'k.hours':['ledolgozva','отработано','worked'],
   'k.reps':['jelentés a műszakokból','отчётов из смен','reports from shifts'],
   'k.shifts':['műszak','смен','shifts'],
   'k.objs':['munkaterület','объектов','sites'],
   'k.miss':['távozás nincs rögzítve','уход не отмечен','check-out missing'],
   'k.days':['munkanap','рабочих дней','working days'],
-  'k.dur':['a műszak hossza · {from}–{to}','длительность смены · {from}–{to}','shift length · {from}–{to}'],
-  'k.dur.live':['a műszak tart · {from} óta','смена идёт · с {from}','shift running · since {from}'],
-  'k.late':['késés','опозданий','late arrivals'],
+  'k.dur.live':['{from} óta','с {from}','since {from}'],
 
   /* Сегодня и день */
   'day.objs':['Munkaterületek','Объекты','Sites'],
@@ -441,7 +481,10 @@ const T = {
   /* Итог смены — как у бригадира (foreman.html, TG-444) */
   'su.t':['A műszak összesítője','Итог смены','Shift summary'],
   'su.who':['Dolgozó','Рабочий','Worker'], 'su.in':['Érk.','Приход','In'], 'su.out':['Táv.','Уход','Out'], 'su.h':['Óra','Часы','Hours'],
-  'su.total':['Összesen: {n} fő · {h}','Всего: {n} чел. · {h}','Total: {n} people · {h}'],
+  'su.tot':['Összesen','Всего','Total'],
+  'rc.dur':['műszak {h}','смена {h}','shift {h}'],
+  'rc.people':['fő','человек','people'], 'rc.hours':['munkaóra, ó:p','часов работы, ч:мм','work hours, h:mm'], 'rc.miss':['távozás nélkül','без ухода','no check-out'],
+  'rc.people.n':['{n} fő','{n} чел.','{n} people'],
   'su.rep':['Jelentés','Отчёт','Report'], 'su.photos':['Fotók: {n}','Фото: {n}','Photos: {n}'],
   'nomiss':['távozás nincs rögzítve','уход не отмечен','check-out missing'],
   'onsite':['a területen','на объекте','on site'],
@@ -452,12 +495,6 @@ const T = {
   'own.moveto':['átment ide: «{obj}» {t}-kor','переезд на «{obj}» в {t}','moved to “{obj}” at {t}'],
   'own.movefrom':['innen jött: «{obj}»','приехал с «{obj}»','came from “{obj}”'],
   'own.empty':['Még senkit nem olvastak be.','Пока никого не отсканировали.','Nobody scanned yet.'],
-
-  /* История */
-  'hist.over':['Hónap, hét vagy nap — kattints, és visszalépés «Vissza»-val. A nap ugyanúgy néz ki, mint a «Ma».','Нажмите на месяц, неделю или день — откроется с «Назад». День выглядит так же, как «Сегодня».','Click a month, week or day — it opens with “Back”. A day looks the same as “Today”.'],
-  'hist.week':['Ez a hét','Эта неделя','This week'], 'hist.weeks':['Korábbi hetek · {m}','Прошлые недели · {m}','Earlier weeks · {m}'],
-  'hist.months':['Korábbi hónapok · {y}','Прошлые месяцы · {y}','Earlier months · {y}'],
-  'hist.open':['Megnyitás','Открыть','Open'],
 
   /* Объекты */
   'obj.active':['Aktív','Действуют','Active'], 'obj.closed':['Lezárt','Закрытые','Closed'],
@@ -474,6 +511,16 @@ const T = {
   'obj.f.note':['A terület azonnal megjelenik a brigádvezetőknél a listában «új» jelöléssel.','Объект сразу появится у бригадиров в списке с пометкой «новый».','The site appears in the foremen’s list straight away, marked “new”.'],
   'obj.f.ph':['Például: Újpest, iroda','Например: Újpest, iroda','For example: Újpest, iroda'],
   'obj.need':['Add meg a terület nevét','Впишите название объекта','Enter the site name'],
+  /* Время начала работы и округление — настройка объектов (замечание Oleg 22.11) */
+  'st.def':['Munkakezdés alapértelmezésben','Начало работы по умолчанию','Default start of work'],
+  'st.round':['Órák kerekítése','Округление часов','Rounding hours'],
+  'st.round.0':['nincs','не округлять','none'], 'st.round.n':['{n} percre','до {n} мин','to {n} min'],
+  'st.s':['A késés a terület munkakezdésétől számít, csak a nap első érkezésénél: az átköltözés nem késés. Ahol nincs saját idő, ott ez az alapértelmezés.','Опоздание считается от начала работы на объекте и только по первому приходу за день: переезд опозданием не бывает. У объекта без своего времени действует время по умолчанию.','Lateness counts from the site’s start of work, first arrival of the day only: a move is never late. Sites without their own time use the default.'],
+  'st.col':['Munkakezdés','Начало работы','Start of work'],
+  'st.isdef':['alapért.','по умолчанию','default'],
+  'st.own':['Saját idő','Своё время','Own time'],
+  'st.usedef':['Alapértelmezés · {t}','По умолчанию · {t}','Default · {t}'],
+  'st.obj.s':['Ettől számít a késés ezen a területen. A változás azonnal újraszámolja a késéseket a «Ma» és a «Kimutatások» oldalon.','От этого времени считается опоздание на объекте. Смена времени сразу пересчитывает опоздания в «Сегодня» и «Отчётах».','Lateness on this site counts from this time. A change recalculates lateness in “Today” and “Reports” at once.'],
 
   /* Люди — строки из login-qr.html (TG-443) */
   'people.add':['Ember hozzáadása','Добавить человека','Add person'],
@@ -521,55 +568,63 @@ const T = {
   'pp.access':['Hozzáférés','Доступ','Access'],
   'need.names':['A vezetéknév és a keresztnév kötelező','Фамилия и имя обязательны','Surname and first name are required'],
 
-  /* Отчёты */
-  'per.week':['Ez a hét','Эта неделя','This week'], 'per.last':['Múlt hét','Прошлая неделя','Last week'],
-  'by.people':['Emberek szerint','По людям','By people'], 'by.objs':['Területek szerint','По объектам','By site'],
+  /* Отчёты — раздел «Аналитика» движка: страницы, панель фильтров, блоки (замечания Oleg 22.11: «История» и «Отчёты» —
+     одно, период выбирается списком, есть отчёт по дням и фильтры) */
+  'rp.people':['Emberek szerint','По людям','By people'], 'rp.objs':['Területek szerint','По объектам','By site'],
+  'rp.days':['Napok szerint','По дням','By day'], 'rp.marks':['Jelölések','Отметки','Check-ins'],
+  'f.period':['Időszak','Период','Period'], 'f.objs':['Terület','Объект','Site'], 'f.person':['Ember','Человек','Person'],
+  'f.all':['Mind','Все','All'], 'f.allp':['Mindenki','Все люди','Everyone'], 'f.reset':['Visszaállítás','Сбросить','Reset'],
+  'f.from':['Ettől','С','From'], 'f.to':['Eddig','По','To'],
+  'f.reversed':['A kezdő dátum későbbi a zárónál — javítsd ki; addig az időszak nem szűr.','Начало позже конца — поправьте даты; пока период не применяется.','The start is after the end — fix the dates; until then no period is applied.'],
+  'pr.all':['Teljes időszak','Весь период','All time'], 'pr.today':['Ma','Сегодня','Today'], 'pr.d7':['7 nap','7 дней','7 days'],
+  'pr.d30':['30 nap','30 дней','30 days'], 'pr.month':['Ez a hónap','Этот месяц','This month'], 'pr.prev':['Előző hónap','Прошлый месяц','Last month'],
+  'pr.q':['Negyedév','Квартал','Quarter'], 'pr.year':['Év','Год','Year'], 'pr.custom':['Dátumtól dátumig','С … по …','From … to …'],
   'rep.over':['{from}–{to} · az órák a bérszámfejtés alapja','{from}–{to} · часы — основа расчёта зарплаты','{from}–{to} · hours are the payroll basis'],
-  'rep.excel':['Exportálás Excelbe','Выгрузить в Excel','Export to Excel'], 'rep.later':['később','позже','later'],
-  'rep.later.s':['Az export formája a ti bérszámításotokhoz igazodik — a prototípusban nincs benne.','Форма выгрузки — под ваш расчёт зарплаты; в прототип не входит.','The export layout follows your payroll — not in the prototype.'],
   'rep.empty':['Ebben az időszakban nincs jelölés.','За этот период отметок нет.','No marks in this period.'],
   'rep.total':['Összesen','Всего','Total'],
-
-  /* Настройки */
-  'set.dec':['<b>Döntés — Oleg kiveheti.</b> A prototípusban ezeket a számokat a kártya szerződése tartja, és a Copilot módosítja. Itt — hogyan nézhetne ki a tulajdonos képernyője.','<b>Решение — Oleg может убрать.</b> В прототипе эти числа держит контракт картриджа, а меняет их Copilot. Здесь — как мог бы выглядеть экран владельца.','<b>Decision — Oleg may drop it.</b> In the prototype these numbers live in the cartridge contract and Copilot changes them. Here — how an owner screen could look.'],
-  'set.grace':['Késésnek számít','Опоздание считается после','Late after'],
-  'set.grace.s':['A műszak megnyitásától számítva, csak a nap első érkezésénél: az átköltözés nem késés.','От открытия смены и только по первому приходу за день: переезд опозданием не бывает.','From the shift opening, first arrival of the day only: a move is never late.'],
-  'set.grace.0':['azonnal','сразу','at once'], 'set.min':['{n} perc után','через {n} мин','after {n} min'],
-  'set.round':['Órák kerekítése','Округление часов','Rounding hours'],
-  'set.round.s':['Minden jelölésnél, a legközelebbi értékre.','У каждой отметки, до ближайшего.','Per mark, to the nearest step.'],
-  'set.round.0':['nincs kerekítés','не округлять','no rounding'], 'set.round.n':['{n} percre','до {n} мин','to {n} min'],
-  'set.noout':['Órák távozás nélkül','Часы без отметки ухода','Hours without check-out'],
-  'set.noout.s':['A brigádvezető lezárta a műszakot, de valakinél nincs beolvasott távozás. Hány órát számoljunk neki?','Бригадир закрыл смену, а у человека не отсканирован уход. Сколько часов ему засчитать?','The foreman closed the shift, but someone’s check-out wasn’t scanned. How many hours do they get?'],
-  'rule.zero':['nem számít','не считать','not counted'], 'rule.min':['minimális nap · {n} ó','минимальный день · {n} ч','minimum day · {n} h'], 'rule.close':['a műszak zárásáig','до закрытия смены','until shift close'],
-  'rule.zero.s':['0 ó: a távozás nélküli idő nem számít bele. Alapértelmezés — mint a brigádvezető összesítőjén: «óra nélkül».','0 ч: время без ухода в часы не входит. Так по умолчанию — как в итоге смены у бригадира: «без часов».','0 h: time without check-out is not counted. Default — as on the foreman’s summary: “no hours”.'],
-  'rule.min.s':['{n} órát számolunk, bármennyit volt is a területen — ez büntetés az elmaradt távozásért.','Засчитываем {n} ч, сколько бы человек ни пробыл на объекте, — это штраф за пропущенный уход.','We count {n} h however long they stayed — a penalty for the missed check-out.'],
-  'rule.close.s':['Az érkezéstől addig, amíg a brigádvezető lezárta a műszakot.','От прихода до момента, когда бригадир закрыл смену.','From arrival until the foreman closed the shift.'],
+  'rep.excel':['Exportálás Excelbe','Выгрузить в Excel','Export to Excel'],
+  'rep.excel.s':['A teljes szűrt lista egy fájlban. A prototípusban fájl nincs.','Вся отобранная выборка одним файлом. В прототипе файла нет.','The whole filtered list in one file. No file in the prototype.'],
+  'b.sum':['Az időszak összesen','Итог за период','Period total'],
+  'b.people':['Órák emberenként','Часы по людям','Hours by person'],
+  'b.objs':['Órák területenként','Часы по объектам','Hours by site'],
+  'b.shifts':['Műszakok területenként','Смены по объектам','Shifts by site'],
+  'b.bars':['Órák naponta','Часы по дням','Hours by day'],
+  'b.bars.30':['Az időszak utolsó 30 napja','Последние 30 дней периода','Last 30 days of the period'],
+  'b.days':['Napok','Дни','Days'],
+  'b.marks':['Jelölések','Отметки','Check-ins'],
+  'k.late':['késés','опозданий','late arrivals'],
+  'c.objs':['Területek','Объектов','No. of sites'], 'c.state':['Állapot','Статус','Status'],
+  'mk.left':['távozott','ушёл','left'], 'mk.on':['a területen','на объекте','on site'],
+  'rule.zero':['nem számít','не считать','not counted'],
   'rule.by':['szabály szerint: {r}','по правилу: {r}','by rule: {r}'],
-  'opt.zero':['Nem számít','Не считать','Don’t count'], 'opt.min':['Minimális nap','Минимальный день','Minimum day'], 'opt.close':['A műszak zárásáig','До закрытия смены','Until shift close'],
-  'h.n':['{n} ó','{n} ч','{n} h'],
-  'set.recalc':['A szabály azonnal újraszámolja a «Ma», az «Előzmények» és a «Kimutatások» számait.','Правило сразу пересчитывает «Сегодня», «Историю» и «Отчёты».','The rule recalculates “Today”, “History” and “Reports” at once.'],
 };
 const LI = {hu:0, ru:1, en:2};
 
 /* ══ СОСТОЯНИЕ МАКЕТА ══ */
 const qs = new URLSearchParams(location.search);
-const TABS = ['today','hist','objs','people','rep','set'];
+/* Четыре вкладки (замечания Oleg 22.11): «История» слита с «Отчётами», «Настроек» нет — время начала работы и
+   округление живут на «Объектах». */
+const TABS = ['today','objs','people','rep'];
+const RPAGES = ['people','objs','days','marks'];
+const PRESETS = ['all','today','d7','d30','month','prev','q','year','custom'];
 const S = {
   lang: LI[qs.get('lang')] !== undefined ? qs.get('lang') : 'ru',
-  brand: qs.get('brand')==='ld' ? 'ld' : 'engine',
+  brand: qs.get('brand')==='engine' ? 'engine' : 'ld',
+  tags: qs.get('tags')!=='off',   // метки «что умеет движок» у блоков отчётов — на пульте
 };
 function t(k, v={}){ const row=T[k]; if(!row) return k; let s=row[LI[S.lang]]; for(const [a,b] of Object.entries(v)) s=s.split('{'+a+'}').join(b); return s; }
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hhmm = m => pad(Math.floor(m/60)%24) + ':' + pad(m%60);
+/* Как у бригадира (foreman.html, TG-444): часы работы везде коротко — «9:12» (hhmmDur), длительность смены словами —
+   «9 ч 25 мин» (hm). */
 const hm = m => t('hm',{h:Math.floor(m/60), m:pad(m%60)});
+const hhmmDur = m => Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
 const mmss = s => Math.floor(s/60)+':'+pad(s%60);
 const six = () => String(Math.floor(Math.random()*1e6)).padStart(6,'0');
 const tok = n => { const a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'; let s=''; for(let i=0;i<n;i++) s+=a[Math.floor(Math.random()*a.length)]; return s; };
 const dShort = key => key.slice(8,10) + '.' + key.slice(5,7);
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const dLong = key => cap(t('date.long',{wd:t('wd.'+wdOf(key)), d:+key.slice(8,10), m:t('mg.'+(+key.slice(5,7)))}));
-const monthTitle = ym => t('month.y',{y:ym.slice(0,4), m:t('mn.'+(+ym.slice(5,7)))});
-const weekLabel = keys => { const a = keys[0], b = keys[keys.length-1]; return a===b ? dShort(a) : `${a.slice(8,10)}–${dShort(b)}`; };
 
 /* ══ ИКОНКИ (lucide, ISC) ══ */
 const IC = {
@@ -611,10 +666,12 @@ function resetProto(){
     today,
     people: PEOPLE0.map(p=>({...p, last: lastSeen[p.id] ? {...lastSeen[p.id]} : undefined})),
     objects: OBJECTS0.map(o=>({...o})),
-    set: {grace:5, round:0, noOut:'zero', noOutMin:8},
+    set: {start:START0, round:0},
     tab: TABS.includes(qs.get('tab')) ? qs.get('tab') : 'today',
-    stack: [], pp:'all', objF:'active', per:'month', by:'people',
-    draft: {sur:'Nagy', name:'István', role:'worker'}, objDraft:{name:'', addr:''},
+    stack: [], pp:'all', objF:'active',
+    rp: RPAGES.includes(qs.get('rp')) ? qs.get('rp') : 'people',
+    f: {per: PRESETS.includes(qs.get('per')) ? qs.get('per') : 'month', from: qs.get('from') || '2026-11-01', to: qs.get('to') || TODAY_KEY, objs:[], who:0},
+    draft: {sur:'Nagy', name:'István', role:'worker'}, objDraft:{name:'', addr:'', start:null},
     code: null, inviteTok: tok(10), newId: null, dlg: null, toast: null,
     log: [],
   });
@@ -630,24 +687,24 @@ const dayOf = key => key===TODAY_KEY ? P.today : HIST.find(d=>d.key===key);
 const shiftOf = (day, sid) => day.shifts.find(s=>s.id===sid);
 const when = w => w==null ? '' : w.d===0 ? t('when.today',{t:w.t}) : t('when.yday',{t:w.t});
 
-/* Часы отметки: приход–уход с округлением; без ухода — по правилу из настроек; идёт — до «сейчас».
-   Одна функция на все экраны: день, смена, лента, отчёты, карточка человека считают одинаково. */
+/* Часы отметки: приход–уход с округлением; без ухода — не считаются, как в итоге смены у бригадира («без часов»;
+   переключателя правила больше нет — замечание Oleg 22.11); идёт — до «сейчас».
+   Одна функция на все экраны: день, смена, отчёты, карточка человека считают одинаково. */
 function round(m){ const r = P.set.round; return r ? Math.round(m/r)*r : m; }
 function dur(m, day){
   if (m.out != null) return round(m.out - m.in);
-  if (m.noOut){
-    const s = shiftOf(day, m.sid);
-    return P.set.noOut==='zero' ? 0 : P.set.noOut==='min' ? P.set.noOutMin*60 : round(Math.max(0, s.close - m.in));
-  }
+  if (m.noOut) return 0;
   return day.live ? Math.max(0, P.clock - m.in) : 0;
 }
-const ruleTxt = () => t('rule.'+P.set.noOut, {n:P.set.noOutMin});
-/* опоздание — только по первому приходу человека за день, от открытия смены плюс порог */
+const ruleTxt = () => t('rule.zero');
+/* Время начала работы объекта: своё или по умолчанию. */
+const startOf = oid => { const o = P.objects.find(x=>x.id===oid); return o && o.start != null ? o.start : P.set.start; };
+/* опоздание — только по первому приходу человека за день, от начала работы на объекте (а не от открытия смены) */
 function lateOf(m, day){
-  const first = day.marks.filter(x=>x.w===m.w).sort((a,b)=>a.in-b.in)[0];
+  const all = (dayOf(day.key) || day).marks;   // день целиком: фильтр отчёта по объекту не делает второй приход первым
+  const first = all.filter(x=>x.w===m.w).sort((a,b)=>a.in-b.in)[0];
   if (first!==m) return 0;
-  const s = shiftOf(day, m.sid);
-  return Math.max(0, m.in - (s.open + P.set.grace));
+  return Math.max(0, m.in - startOf(m.obj));
 }
 function statOf(days, oid){
   const ms = days.flatMap(d=>d.marks.filter(m=>!oid || m.obj===oid).map(m=>({m, d})));
@@ -667,21 +724,35 @@ function statOf(days, oid){
 const ym = key => key.slice(0,7);
 const CUR_YM = ym(TODAY_KEY);
 const monthDays = y_m => allDays().filter(d=>ym(d.key)===y_m);
-const weekDays = mon => allDays().filter(d=>mondayOf(d.key)===mon);
-const PERIODS = {
-  week: () => weekDays(mondayOf(TODAY_KEY)),
-  last: () => weekDays(mondayOf(keyOf(msOf(TODAY_KEY) - 7*86400000))),
-  month: () => monthDays(CUR_YM),
-  prev: () => monthDays('2026-10'),
-};
+/* Период отчётов — пресеты панели аналитики движка (AnalyticsFilterBar, PERIOD_PRESETS): девять постоянных кнопок
+   вместо кнопки на каждую неделю и месяц — их число не растёт ни за месяц, ни за два года. Границы — дни картриджа,
+   включительно. «С … по …» задом наперёд, как в движке, период не применяет (и панель об этом говорит). */
+const ago = n => keyOf(msOf(TODAY_KEY) - n*86400000);
+function perRange(f){
+  const y = TODAY_KEY.slice(0,4), q0 = Math.floor((+TODAY_KEY.slice(5,7)-1)/3)*3 + 1;
+  return {all:['0000-00-00', TODAY_KEY], today:[TODAY_KEY, TODAY_KEY], d7:[ago(6), TODAY_KEY], d30:[ago(29), TODAY_KEY],
+    month:[CUR_YM+'-01', TODAY_KEY], prev:['2026-10-01','2026-10-31'], q:[`${y}-${pad(q0)}-01`, TODAY_KEY], year:[y+'-01-01', TODAY_KEY],
+    custom: f.from && f.to && f.from <= f.to ? [f.from, f.to] : ['0000-00-00', TODAY_KEY]}[f.per];
+}
+/* Выборка отчётов: дни периода, в них — только отметки и смены выбранных объектов и человека. Все страницы отчётов и
+   все блоки считают из неё одной функцией statOf — цифры между страницами сходятся. */
+function repDays(f = P.f){
+  const [a, b] = perRange(f);
+  const okObj = o => !f.objs.length || f.objs.includes(o);
+  return allDays().filter(d => d.key >= a && d.key <= b).map(d => {
+    const marks = d.marks.filter(m => okObj(m.obj) && (!f.who || m.w===f.who));
+    const shifts = d.shifts.filter(s => okObj(s.obj) && (!f.who || marks.some(m=>m.sid===s.id)));
+    return {...d, marks, shifts};
+  }).filter(d => d.shifts.length || d.marks.length);
+}
 
 /* ══ ВИДЫ КАБИНЕТА ══
-   Экран — строка в стеке вкладки: 'day:KEY', 'dayobj:KEY:OBJ', 'month:YYYY-MM', 'week:MON', 'obj:ID', 'newobj', 'person:ID',
+   Экран — строка в стеке вкладки: 'day:KEY', 'dayobj:KEY:OBJ', 'obj:ID', 'newobj', 'person:ID',
    'add', 'invite:ID', 'code:ID'. Стек — это и «хлебные крошки», и адрес ?go=. */
 const V = s => { const [k, a, b] = s.split(':'); return {k, a, b}; };
 function viewTitle(s){
   const v = V(s);
-  return {day:()=>dLong(v.a), dayobj:()=>esc(objName(v.b)), month:()=>monthTitle(v.a), week:()=>weekLabel(weekDays(v.a).map(d=>d.key)),
+  return {day:()=>dLong(v.a), dayobj:()=>esc(objName(v.b)),
     obj:()=>esc(objName(v.a)), newobj:()=>t('obj.new'), person:()=>esc(full(person(+v.a))), add:()=>t('add.title'),
     invite:()=>t('inv.title'), code:()=>t('code.title')}[v.k]();
 }
@@ -691,7 +762,7 @@ function kpis(items, title=''){
 function head(over, title, right=''){
   return `<div class="sh"><div>${over?`<div class="over">${over}</div>`:''}<h1>${title}</h1></div>${right?`<div class="acts-r">${right}</div>`:''}</div>`;
 }
-/* cur — выбранное значение или несколько (у «Отчётов» две группы пилюль: период и разрез) */
+/* cur — выбранное значение или несколько */
 const pills = (items, cur, act) => `<div class="pills">${items.map(([v,l]) => v==='|' ? '<span class="gap"></span>'
   : `<button class="${[].concat(cur).includes(v)?'on':''}" data-act="${act}" data-v="${v}">${l}</button>`).join('')}</div>`;
 const nav = s => `data-act="push" data-v="${esc(s)}"`;
@@ -705,7 +776,7 @@ function dayView(day, isTab){
   const k = kpis([
     day.live ? [st.now, t('k.now')] : null,
     [st.people, day.live ? t('k.people') : t('k.people.p')],
-    [hm(st.mins), t('k.hours')],
+    [hhmmDur(st.mins), t('rc.hours')],
     [`${st.reps}/${st.shifts}`, t('k.reps')],
     [st.miss, t('k.miss'), st.miss?'warn':''],
   ]);
@@ -715,15 +786,16 @@ function dayView(day, isTab){
     const rep = s.close==null ? `<span class="badge mute">${t('rep.wait')}</span>` : s.isNew ? `<span class="badge new">${t('rep.new')}</span>` : `<span class="badge ok">${t('rep.in')}</span>`;
     return `<tr class="go" ${nav('dayobj:'+day.key+':'+s.obj)}><td><b>${esc(objName(s.obj))}</b></td>
       <td>${s.close==null ? t('sh.by.live',{f:esc(f), from:hhmm(s.open)}) : t('sh.by',{f:esc(f), from:hhmm(s.open), to:hhmm(s.close)})}</td>
-      <td class="n">${o.people}</td><td class="n">${hm(o.mins)}</td><td>${rep}</td>
+      <td class="n">${o.people}</td><td class="n">${hhmmDur(o.mins)}</td><td>${rep}</td>
       <td class="n">${o.miss ? `<span class="badge warn">${o.miss}</span>` : '—'}</td><td>${ic('go','chev')}</td></tr>`;
   }).join('');
   return h + k + `<div class="card tight"><h2>${t('day.objs')} <span class="cnt">${day.shifts.length}</span></h2><table class="tb">
     <tr><th>${t('c.obj')}</th><th>${t('c.shift')}</th><th class="n">${t('c.people')}</th><th class="n">${t('c.hours')}</th><th>${t('c.report')}</th><th class="n">${t('c.miss')}</th><th></th></tr>${rows}</table></div>`;
 }
 
-/* Смена на объекте за день — тот же итог смены, что у бригадира (foreman.html, TG-444): объект и длительность крупно,
-   таблица по людям «приход · уход · часы» со строкой итогов; ниже отчёт. Владелец только смотрит. */
+/* Смена на объекте за день — карточка отчёта смены бригадира один в один (foreman.html, reportCard, TG-444): крупно
+   объект (H1) и смена от открытия до закрытия, под ними цифры «человек · часов работы · без ухода», таблица по
+   рабочим со строкой «Всего» и отчёт. Владелец только смотрит; опоздания и переезды — мелко под именем. */
 function shiftView(day, oid){
   const s = day.shifts.find(x=>x.obj===oid);
   if (!s) return head('', esc(objName(oid))) + `<div class="card"><p class="muted">${t('own.empty')}</p></div>`;
@@ -731,12 +803,12 @@ function shiftView(day, oid){
   const o = statOf([{...day, shifts:[s], marks}]);
   const f = full(person(s.f));
   const live = s.close==null;
+  const meta = live ? `${dShort(day.key)} · ${t('k.dur.live',{from:hhmm(s.open)})} · <b>${t('rc.dur',{h:hm(P.clock - s.open)})}</b>`
+    : `${dShort(day.key)} · ${hhmm(s.open)}–${hhmm(s.close)} · <b>${t('rc.dur',{h:hm(s.close - s.open)})}</b>`;
   const k = kpis([
-    [live ? hm(P.clock - s.open) : hm(s.close - s.open), live ? t('k.dur.live',{from:hhmm(s.open)}) : t('k.dur',{from:hhmm(s.open), to:hhmm(s.close)}), 'big'],
-    [o.people, t('k.people.p')],
-    [hm(o.mins), t('k.hours')],
-    [o.late, t('k.late')],
-    [o.miss, t('k.miss'), o.miss?'warn':''],
+    [o.people, t('rc.people')],
+    [hhmmDur(o.mins), t('rc.hours')],
+    [o.miss, t('rc.miss'), o.miss?'warn':''],
   ]);
   const rows = marks.map(m => {
     const p = person(m.w), late = lateOf(m, day);
@@ -744,55 +816,47 @@ function shiftView(day, oid){
     const notes = [late ? `<span class="w">${t('own.late',{n:late})}</span>` : '',
       ...other.map(x => x.in > m.in ? t('own.moveto',{obj:esc(objName(x.obj)), t:hhmm(m.out)}) : t('own.movefrom',{obj:esc(objName(x.obj))}))].filter(Boolean).join(' · ');
     const out = m.out!=null ? hhmm(m.out) : m.noOut ? `<span class="w">${t('nomiss')}</span>` : `<em>${t('onsite')}</em>`;
-    const h = m.noOut ? `${dur(m, day) ? hm(dur(m, day)) : '—'}<span class="rule">${t('rule.by',{r:ruleTxt()})}</span>` : hm(dur(m, day));
+    const h = m.noOut ? `${dur(m, day) ? hhmmDur(dur(m, day)) : '—'}<span class="rule">${t('rule.by',{r:ruleTxt()})}</span>` : hhmmDur(dur(m, day));
     return `<tr class="${m.noOut?'miss':''}"><td><b>${esc(full(p))}</b>${notes?`<small>${notes}</small>`:''}</td><td>${hhmm(m.in)}</td><td>${out}</td><td class="n">${h}</td></tr>`;
   }).join('');
   const missing = marks.filter(m=>m.noOut).map(m=>esc(full(person(m.w))));
   const table = marks.length ? `<table class="tb"><tr><th>${t('su.who')}</th><th>${t('su.in')}</th><th>${t('su.out')}</th><th class="n">${t('su.h')}</th></tr>${rows}
-    <tr class="tot"><td colspan="4">${t('su.total',{n:o.people, h:hm(o.mins)})}</td></tr></table>` : `<p class="empty">${t('own.empty')}</p>`;
+    <tr class="tot"><td>${t('su.tot')}</td><td colspan="2">${t('rc.people.n',{n:o.people})}</td><td class="n">${hhmmDur(o.mins)}</td></tr></table>` : `<p class="empty">${t('own.empty')}</p>`;
   const rep = live ? `<p class="muted">${t('own.rep.wait')}</p>`
     : `<div class="reptext">${esc(s.report)}</div><div class="repby">${t('own.rep.by',{f:esc(f), t:hhmm(s.close)})}${s.photos?` · ${t('su.photos',{n:s.photos})}`:''}</div>`;
-  return head(`${dLong(day.key)} · ${esc(f)}`, esc(objName(oid)), ro()) + k
+  return head(`${dLong(day.key)} · ${esc(f)}`, esc(objName(oid)), ro()) + `<div class="rmeta">${meta}</div>` + k
     + (missing.length ? `<div class="banner warn">${ic('alert')}<div>${t('own.miss',{names:'<b>'+missing.join(', ')+'</b>', rule:ruleTxt()})}</div></div>` : '')
     + `<div class="cols"><div class="card tight"><h2>${t('su.t')}</h2>${table}</div>
        <div class="card"><h2>${t('su.rep')}${!live && s.isNew ? ` <span class="badge new">${t('rep.new')}</span>` : ''}</h2>${rep}</div></div>`;
 }
 
-/* История — лента периодов, как у Дорина в timesheet-pwa.html: месяц крупно, эта неделя по дням, прошлые недели месяца,
-   прошлые месяцы года. Любая строка раскрывается, цифры сходятся между уровнями — считаются одной функцией. */
-function periodRow(label, days, viewStr){
-  const st = statOf(days);
-  return `<tr class="go" ${nav(viewStr)}><td><b>${label}</b></td><td class="n">${st.shifts}</td><td class="n">${st.people}</td><td class="n">${hm(st.mins)}</td>
-    <td class="n">${st.miss?`<span class="badge warn">${st.miss}</span>`:'—'}</td><td>${ic('go','chev')}</td></tr>`;
+/* Итог периода — большие числа, одинаковые на всех страницах отчётов */
+function kpiRow(items){ return `<div class="kpis">${items.filter(Boolean).map(([b, s, cls]) => `<div class="kpi ${cls||''}"><b>${b}</b><span>${s}</span></div>`).join('')}</div>`; }
+function periodItems(st){
+  return [[hhmmDur(st.mins), t('rc.hours'), 'big'], [st.shifts, t('k.shifts')], [st.objs, t('k.objs')], [st.people, t('k.people.p')],
+    [st.late, t('k.late')], [st.miss, t('k.miss'), st.miss?'warn':'']];
 }
-const periodHead = first => `<tr><th>${first}</th><th class="n">${t('k.shifts')}</th><th class="n">${t('c.people')}</th><th class="n">${t('c.hours')}</th><th class="n">${t('c.miss')}</th><th></th></tr>`;
-function periodKpis(days, title){
-  const st = statOf(days);
-  return kpis([[hm(st.mins), t('k.hours'), 'big'], [st.shifts, t('k.shifts')], [st.objs, t('k.objs')], [st.people, t('k.people.p')], [st.miss, t('k.miss'), st.miss?'warn':'']], title);
-}
-function histView(){
-  const mon = mondayOf(TODAY_KEY);
-  const thisWeek = weekDays(mon);
-  const weeks = [...new Set(monthDays(CUR_YM).map(d=>mondayOf(d.key)))].filter(w=>w!==mon).sort().reverse();
-  const months = [...new Set(allDays().map(d=>ym(d.key)))].filter(m=>m!==CUR_YM).sort().reverse();
-  const m = +CUR_YM.slice(5,7);
-  // Месяц крупно — карточка больших чисел с заголовком-ссылкой; ниже строки, каждая раскрывается
-  return head(t('hist.over'), t('tab.hist'))
-    + periodKpis(monthDays(CUR_YM), `<button class="h2link" ${nav('month:'+CUR_YM)}>${monthTitle(CUR_YM)} ${ic('go','chev')}</button>`)
-    + `<div class="card tight"><h2>${t('hist.week')}</h2><table class="tb">${periodHead(t('c.date'))}${thisWeek.slice().reverse().map(d=>periodRow(dLong(d.key), [d], 'day:'+d.key)).join('')}</table></div>`
-    + `<div class="card tight"><h2>${t('hist.weeks',{m:t('mn.'+m)})}</h2><table class="tb">${periodHead(t('c.week'))}${weeks.map(w=>{ const ds = weekDays(w); return periodRow(weekLabel(ds.map(d=>d.key)), ds, 'week:'+w); }).join('')}</table></div>`
-    + `<div class="card tight"><h2>${t('hist.months',{y:CUR_YM.slice(0,4)})}</h2><table class="tb">${periodHead(t('c.month'))}${months.map(x=>periodRow(monthTitle(x), monthDays(x), 'month:'+x)).join('')}</table></div>`;
-}
-function monthView(y_m){
-  const days = monthDays(y_m);
-  const weeks = [...new Set(days.map(d=>mondayOf(d.key)))].sort().reverse();
-  return head('', monthTitle(y_m)) + periodKpis(days)
-    + `<div class="card tight"><h2>${t('c.week')}</h2><table class="tb">${periodHead(t('c.week'))}${weeks.map(w=>{ const ds = days.filter(d=>mondayOf(d.key)===w); return periodRow(weekLabel(ds.map(d=>d.key)), ds, 'week:'+w); }).join('')}</table></div>`;
-}
-function weekView(mon){
-  const days = weekDays(mon);
-  return head('', weekLabel(days.map(d=>d.key))) + periodKpis(days)
-    + `<div class="card tight"><h2>${t('c.date')}</h2><table class="tb">${periodHead(t('c.date'))}${days.slice().reverse().map(d=>periodRow(dLong(d.key), [d], 'day:'+d.key)).join('')}</table></div>`;
+
+/* Метки «что умеет движок» у блоков отчётов — для Oleg и разработчика, не для Дорина (выключаются на пульте), поэтому
+   по-русски, как пульт и записка. y — аналитика движка строит это из контракта; c — строит, если контракт LD Vill
+   добавит поле (промпт Copilot); n — нужно новое в движке. Основание — справочник формата аналитики
+   (engine/docs/tech/contracts-reference/analytics-format.md). */
+const ENG = {y:'движок умеет', c:'контракт добавит поле', n:'нужно новое в движке'};
+const WHY = {
+  sum:'Смены, объекты и люди — счётчики аналитики (count, count_distinct). Часы и опоздания — нет: часы — это разница «уход − приход», а аналитика складывает только готовые числа полей; опоздание — сравнение с временем начала объекта.',
+  people:'Разбивки по человеку у аналитики нет: рабочий — личные данные, по ним не группируют и не фильтруют (правила анонимности). Часы — разница времени.',
+  shifts:'Умеет: число смен процесса «Смена на объекте» по полю «Объект» (grouped, count) — полосами.',
+  objhours:'Число отметок по объекту — когда объект записан в самой отметке (сейчас он только в смене: поле добавит контракт). Часы по объекту — нужно новое.',
+  bars:'Ряд по дням (timeseries, bucket: day) аналитика рисует столбиками и показывает последние 30 точек периода. Но считает количество или сумму поля — часов в отметке нет.',
+  days:'Таблицы «день → объекты, люди, часы, опоздания» в аналитике нет: ряд по дням даёт одно число на день. Строка дня открывает день — тот же вид, что «Сегодня».',
+  marks:'Таблица документов отметок с фильтрами и выгрузкой всей выборки в Excel/CSV — есть (блок documents). Колонки «Часы» и «Опоздание» — нет (вычисления); «Рабочий» — снимок имени, если контракт его пишет.',
+  per:'Период — девять постоянных кнопок панели аналитики, как в движке; отбор по дате создания отметки.',
+  obj:'Фильтр по полю отметки: нужно поле «Объект» в самой отметке (контракт), сейчас объект — в смене.',
+  who:'Фильтра по человеку нет: имя рабочего — личные данные, фильтр по ним закрыт правилами анонимности.',
+};
+const tagF = k => `<span class="eng ${k}">${ENG[k]}</span>`;
+function blk(title, tag, why, body, tight=true){
+  return `<div class="card ${tight?'tight':''}"><h2>${title}${tag ? ' ' + tagF(tag) : ''}</h2>${why ? `<p class="engwhy">${WHY[why]}</p>` : ''}${body}</div>`;
 }
 
 /* Объекты */
@@ -804,13 +868,25 @@ function objsView(){
     const ds = objMonthDays(o), st = statOf(ds, o.id);
     const ts = P.today.shifts.find(s=>s.obj===o.id);
     const today = ts ? (ts.close==null ? `<span class="badge ok">${t('live')}</span>` : `<span class="badge mute">${hhmm(ts.open)}–${hhmm(ts.close)}</span>`) : '—';
+    const start = o.start!=null ? `<b>${hhmm(o.start)}</b>` : `${hhmm(P.set.start)}<small>${t('st.isdef')}</small>`;
     return `<tr class="go" ${nav('obj:'+o.id)}><td><b>${esc(o.name)}</b>${o.isNew?` <span class="badge new">${t('obj.isnew')}</span>`:''}${o.closed?`<small>${t('obj.closed.on',{d:dShort(o.closed)})}</small>`:''}</td>
-      <td>${esc(o.addr)}</td><td>${today}</td><td class="n">${st.days}</td><td class="n">${hm(st.mins)}</td><td>${ic('go','chev')}</td></tr>`;
+      <td>${esc(o.addr)}</td><td>${start}</td><td>${today}</td><td class="n">${st.days}</td><td class="n">${hhmmDur(st.mins)}</td><td>${ic('go','chev')}</td></tr>`;
   }).join('');
   const label = P.objF==='active' ? t('in.'+m) : t('obj.alltime');
   return head('', t('tab.objs'), `${pills([['active',t('obj.active')],['closed',t('obj.closed')]], P.objF, 'objF')}<button class="btnp" ${nav('newobj')}>${ic('plus')}${t('obj.new')}</button>`)
-    + `<div class="card tight"><table class="tb"><tr><th>${t('c.obj')}</th><th>${t('c.addr')}</th><th>${t('c.today')}</th><th class="n">${t('c.days')} · ${label}</th><th class="n">${t('c.hours')} · ${label}</th><th></th></tr>${rows}</table></div>`;
+    + startCard()
+    + `<div class="card tight"><table class="tb"><tr><th>${t('c.obj')}</th><th>${t('c.addr')}</th><th>${t('st.col')}</th><th>${t('c.today')}</th><th class="n">${t('c.days')} · ${label}</th><th class="n">${t('c.hours')} · ${label}</th><th></th></tr>${rows}</table></div>`;
 }
+/* Настройка объектов (замечание Oleg 22.11): время начала работы по умолчанию и округление часов — одна строка над
+   списком; своё время у объекта — в его карточке. Смена сразу пересчитывает опоздания и часы во всём кабинете. */
+const STARTS = [7*60, 7*60+30, 7*60+45, 8*60, 8*60+15, 8*60+30];
+function startCard(){
+  return `<div class="card"><div class="startset">
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px"><span class="lbl">${t('st.def')}</span>${pills(STARTS.map(v=>[v, hhmm(v)]), P.set.start, 'setStart')}</div>
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px"><span class="lbl">${t('st.round')}</span>${pills([0,15,30].map(v=>[v, v?t('st.round.n',{n:v}):t('st.round.0')]), P.set.round, 'setRound')}</div>
+    </div><p class="muted" style="margin:10px 0 0">${t('st.s')}</p></div>`;
+}
+const startPills = (cur, act) => pills([['def', t('st.usedef',{t:hhmm(P.set.start)})], ...STARTS.map(v=>[v, hhmm(v)])], cur==null ? 'def' : cur, act);
 function objView(id){
   const o = P.objects.find(x=>x.id===id);
   const ds = objMonthDays(o), st = statOf(ds, id);
@@ -818,13 +894,14 @@ function objView(id){
   const label = o.closed && o.closed < CUR_YM ? t('obj.alltime') : t('in.'+m);
   const worked = ds.filter(d=>d.shifts.some(s=>s.obj===id)).slice().reverse();
   const right = o.closed ? `<span class="badge mute">${t('obj.closed.on',{d:dShort(o.closed)})}</span>` : `<button class="btn2" data-act="askCloseObj">${t('obj.close')}</button>`;
-  const h = head(esc(o.addr), esc(o.name), right) + kpis([[hm(st.mins), `${t('k.hours')} · ${label}`, 'big'], [st.days, t('k.days')], [st.people, t('k.people.p')], [st.miss, t('k.miss'), st.miss?'warn':'']]);
+  const h = head(esc(o.addr), esc(o.name), right) + kpis([[hhmmDur(st.mins), `${t('rc.hours')} · ${label}`, 'big'], [st.days, t('k.days')], [st.people, t('k.people.p')], [st.late, t('k.late')], [st.miss, t('k.miss'), st.miss?'warn':'']])
+    + (o.closed ? '' : `<div class="card"><h2>${t('st.col')}</h2>${startPills(o.start, 'objStart')}<p class="muted" style="margin:10px 0 0">${t('st.obj.s')}</p></div>`);
   if (!worked.length) return h + `<div class="card"><p class="muted">${t('obj.never')}</p></div>`;
   const rows = worked.map(d => {
     const s = d.shifts.find(x=>x.obj===id);
     const sst = statOf([{...d, shifts:[s], marks:d.marks.filter(x=>x.sid===s.id)}]);
     return `<tr class="go" ${nav('dayobj:'+d.key+':'+id)}><td><b>${dShort(d.key)}</b>${d.live?` <span class="badge ok">${t('live')}</span>`:''}</td><td>${esc(full(person(s.f)))}</td>
-      <td class="n">${sst.people}</td><td class="n">${hm(sst.mins)}</td><td class="n">${sst.miss?`<span class="badge warn">${sst.miss}</span>`:'—'}</td><td>${ic('go','chev')}</td></tr>`;
+      <td class="n">${sst.people}</td><td class="n">${hhmmDur(sst.mins)}</td><td class="n">${sst.miss?`<span class="badge warn">${sst.miss}</span>`:'—'}</td><td>${ic('go','chev')}</td></tr>`;
   }).join('');
   const diary = worked.flatMap(d => d.shifts.filter(s=>s.obj===id && s.close!=null && s.report).map(s=>({d, s}))).slice(0, 6)
     .map(({d, s}) => `<div><div class="when"><b>${dShort(d.key)}</b> · ${t('own.rep.by',{f:esc(full(person(s.f))), t:hhmm(s.close)})}</div><div class="reptext">${esc(s.report)}</div></div>`).join('');
@@ -835,6 +912,7 @@ function newObjView(){
   return head('', t('obj.new')) + `<div class="card"><div class="form">
     <label>${t('obj.f.name')}<input data-field="objName" value="${esc(P.objDraft.name)}" placeholder="${esc(t('obj.f.ph'))}" autocomplete="off"></label>
     <label>${t('obj.f.addr')}<input data-field="objAddr" value="${esc(P.objDraft.addr)}" autocomplete="off"></label>
+    <label>${t('st.col')}${startPills(P.objDraft.start, 'objDraftStart')}</label>
     <div><button class="btnp" data-act="addObj">${t('obj.f.add')}</button></div>
     <p class="muted">${t('obj.f.note')}</p></div></div>`;
 }
@@ -859,7 +937,7 @@ function peopleView(){
     if (p.role==='worker'){
       const ms = personMarks(p.id);
       const cur = ms.filter(x=>ym(x.d.key)===CUR_YM);
-      if (cur.length) hours = hm(cur.reduce((a,x)=>a+dur(x.m, x.d),0));
+      if (cur.length) hours = hhmmDur(cur.reduce((a,x)=>a+dur(x.m, x.d),0));
       if (ms.length) last = `${dShort(ms[0].d.key)} · ${esc(objName(ms[0].m.obj))}`;
     } else {
       const ss = foremanShifts(p.id);
@@ -894,8 +972,8 @@ function personView(id){
     const cur = ms.filter(x=>ym(x.d.key)===CUR_YM);
     const rows = ms.slice(0, 8).map(({d, m}) => `<tr class="go ${m.noOut?'miss':''}" ${nav('dayobj:'+d.key+':'+m.obj)}><td><b>${dShort(d.key)}</b></td><td>${esc(objName(m.obj))}</td>
       <td>${hhmm(m.in)}–${m.out!=null ? hhmm(m.out) : m.noOut ? `<span class="w">${t('nomiss')}</span>` : t('onsite')}</td>
-      <td class="n">${m.noOut ? `${dur(m,d)?hm(dur(m,d)):'—'}<span class="rule">${t('rule.by',{r:ruleTxt()})}</span>` : hm(dur(m, d))}</td></tr>`).join('');
-    work = `<div class="card"><div class="kpis"><div class="kpi big"><b>${hm(cur.reduce((a,x)=>a+dur(x.m,x.d),0))}</b><span>${t('pp.hours',{m:t('mn.'+m)})}</span></div>
+      <td class="n">${m.noOut ? `${dur(m,d)?hhmmDur(dur(m,d)):'—'}<span class="rule">${t('rule.by',{r:ruleTxt()})}</span>` : hhmmDur(dur(m, d))}</td></tr>`).join('');
+    work = `<div class="card"><div class="kpis"><div class="kpi big"><b>${hhmmDur(cur.reduce((a,x)=>a+dur(x.m,x.d),0))}</b><span>${t('pp.hours',{m:t('mn.'+m)})}</span></div>
         <div class="kpi"><b>${new Set(cur.map(x=>x.d.key)).size}</b><span>${t('k.days')}</span></div>
         <div class="kpi ${cur.some(x=>x.m.noOut)?'warn':''}"><b>${cur.filter(x=>x.m.noOut).length}</b><span>${t('k.miss')}</span></div></div></div>
       <div class="card tight"><h2>${t('pp.shifts')}</h2>${ms.length ? `<table class="tb"><tr><th>${t('c.date')}</th><th>${t('c.obj')}</th><th>${t('su.in')}–${t('su.out')}</th><th class="n">${t('c.hours')}</th></tr>${rows}</table>` : `<p class="empty">${t('pp.none')}</p>`}</div>`;
@@ -957,63 +1035,98 @@ function codeView(id){
     ${P.code.used ? '' : `<div><button class="btn2" data-act="showCode" data-id="${sel.id}">${t('code.new')}</button></div>`}</div></div>`;
 }
 
-/* Отчёты — часы по людям (основа зарплаты) и по объектам за неделю или месяц */
-function repView(){
-  const days = PERIODS[P.per]();
-  const keys = days.map(d=>d.key).sort();
-  const st = statOf(days);
+/* Отчёты — раздел «Аналитика» движка (замечание Oleg 22.11: «отчёты и есть аналитика»). Страницы-вкладки, над ними
+   одна панель фильтров (период девятью кнопками движка, объект, человек), ниже блоки. «История» сюда слита: месяц, неделя и день —
+   это период панели, а «По дням» раскрывает любой день. Все блоки считают из одной выборки repDays(). */
+function agg(days, keyOf_){
   const acc = {};
   days.forEach(d => d.marks.forEach(m => {
-    const k = P.by==='people' ? m.w : m.obj;
-    const a = acc[k] || (acc[k] = {days:new Set(), mins:0, rule:0, late:0, miss:0, people:new Set()});
-    a.days.add(d.key); a.mins += dur(m, d); a.people.add(m.w);
-    if (m.noOut){ a.rule += dur(m, d); a.miss++; }
+    const k = keyOf_(m, d);
+    const a = acc[k] || (acc[k] = {days:new Set(), mins:0, late:0, miss:0, people:new Set(), objs:new Set()});
+    a.days.add(d.key); a.mins += dur(m, d); a.people.add(m.w); a.objs.add(m.obj);
+    if (m.noOut) a.miss++;
     if (lateOf(m, d)) a.late++;
   }));
-  const tot = Object.values(acc).reduce((s,a)=>({mins:s.mins+a.mins, rule:s.rule+a.rule, late:s.late+a.late, miss:s.miss+a.miss}), {mins:0, rule:0, late:0, miss:0});
-  let rows;
-  if (P.by==='people'){
-    rows = P.people.filter(p=>acc[p.id]).sort((a,b)=>full(a).localeCompare(full(b),'hu')).map(p => { const a = acc[p.id];
-      return `<tr class="go" ${nav('person:'+p.id)}><td><div class="who"><span class="ava">${esc(initials(p))}</span><b>${esc(full(p))}</b></div></td><td class="n">${a.days.size}</td>
-        <td class="n">${a.late||'—'}</td><td class="n">${a.miss ? `<span class="w">${a.miss}</span>` : '—'}</td><td class="n">${a.miss ? hm(a.rule) : '—'}</td><td class="n"><b>${hm(a.mins)}</b></td></tr>`; }).join('');
-    rows = `<tr><th>${t('c.person')}</th><th class="n">${t('c.days')}</th><th class="n">${t('c.late')}</th><th class="n">${t('c.miss')}</th><th class="n">${t('c.rule')}</th><th class="n">${t('c.hours')}</th></tr>${rows}
-      <tr class="tot"><td>${t('rep.total')}</td><td class="n"></td><td class="n">${tot.late}</td><td class="n">${tot.miss}</td><td class="n">${hm(tot.rule)}</td><td class="n">${hm(tot.mins)}</td></tr>`;
-  } else {
-    rows = P.objects.filter(o=>acc[o.id]).map(o => { const a = acc[o.id];
-      return `<tr class="go" ${nav('obj:'+o.id)}><td><b>${esc(o.name)}</b></td><td class="n">${a.days.size}</td><td class="n">${a.people.size}</td>
-        <td class="n">${a.miss ? `<span class="w">${a.miss}</span>` : '—'}</td><td class="n"><b>${hm(a.mins)}</b></td></tr>`; }).join('');
-    rows = `<tr><th>${t('c.obj')}</th><th class="n">${t('c.days')}</th><th class="n">${t('c.people')}</th><th class="n">${t('c.miss')}</th><th class="n">${t('c.hours')}</th></tr>${rows}
-      <tr class="tot"><td>${t('rep.total')}</td><td class="n"></td><td class="n">${st.people}</td><td class="n">${tot.miss}</td><td class="n">${hm(tot.mins)}</td></tr>`;
-  }
-  const over = keys.length ? t('rep.over',{from:dShort(keys[0]), to:dShort(keys[keys.length-1])}) : '';
-  return head(over, t('tab.rep'), pills([['week',t('per.week')],['last',t('per.last')],['month',t('mn.11')],['prev',t('mn.10')],['|'],['people',t('by.people')],['objs',t('by.objs')]], [P.per, P.by], 'per'))
-    + periodKpis(days)
-    + `<div class="card tight">${Object.keys(acc).length ? `<table class="tb">${rows}</table>` : `<p class="empty">${t('rep.empty')}</p>`}</div>`
-    + `<div class="acts-r"><button class="btn2" disabled>${ic('sheet')}${t('rep.excel')}</button><span class="badge mute">${t('rep.later')}</span><span class="muted">${t('rep.later.s')}</span></div>`;
+  return acc;
 }
-
-/* Настройки — отдельная вкладка; решение, которое Oleg может убрать (тогда числа держит контракт и меняет Copilot) */
-function setView(){
-  const opt = (k, vals, fmt) => `<div class="pills">${vals.map(v=>`<button class="${P.set[k]===v?'on':''}" data-act="set" data-k="${k}" data-v="${v}">${fmt(v)}</button>`).join('')}</div>`;
-  const ruleS = {zero:t('rule.zero.s'), min:t('rule.min.s',{n:P.set.noOutMin}), close:t('rule.close.s')}[P.set.noOut];
-  return head('', t('tab.set'))
-    + `<div class="banner dec">${ic('alert')}<div>${t('set.dec')}</div></div>`
-    + `<div class="card"><h2>${t('set.noout')}</h2><p class="muted" style="margin:0 0 12px">${t('set.noout.s')}</p>
-        ${opt('noOut',['zero','min','close'], v=>t('opt.'+v))}
-        ${P.set.noOut==='min' ? `<div style="margin-top:10px">${opt('noOutMin',[4,7,8], v=>t('h.n',{n:v}))}</div>` : ''}
-        <p class="muted" style="margin:12px 0 0">${ruleS} ${t('set.recalc')}</p></div>`
-    + `<div class="cols" style="grid-template-columns:1fr 1fr"><div class="card"><h2>${t('set.grace')}</h2><p class="muted" style="margin:0 0 12px">${t('set.grace.s')}</p>
-        ${opt('grace',[0,5,10,15], v=>v?t('set.min',{n:v}):t('set.grace.0'))}</div>
-      <div class="card"><h2>${t('set.round')}</h2><p class="muted" style="margin:0 0 12px">${t('set.round.s')}</p>
-        ${opt('round',[0,15,30], v=>v?t('set.round.n',{n:v}):t('set.round.0'))}</div></div>`;
+const miss = n => n ? `<span class="w">${n}</span>` : '—';
+function fbar(){
+  const f = P.f;
+  const per = `<div class="fl" title="${esc(WHY.per)}"><label>${t('f.period')} ${tagF('y')}</label><div class="chips">${PRESETS.map(p=>`<button class="${f.per===p?'on':''}" data-act="fPer" data-v="${p}">${t('pr.'+p)}</button>`).join('')}</div></div>`;
+  const cust = f.per==='custom' ? `<div style="display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end;flex-basis:100%"><label>${t('f.from')}<input type="date" data-date="from" value="${f.from}" min="2026-10-01" max="${f.to || TODAY_KEY}"></label>
+    <label>${t('f.to')}<input type="date" data-date="to" value="${f.to}" min="${f.from || '2026-10-01'}" max="${TODAY_KEY}"></label>
+    ${f.from && f.to && f.from > f.to ? `<span class="muted w" role="alert">${t('f.reversed')}</span>` : ''}</div>` : '';
+  const objs = `<div class="fl" title="${esc(WHY.obj)}"><label>${t('f.objs')} ${tagF('c')}</label><div class="chips"><button class="${f.objs.length?'':'on'}" data-act="fObj" data-v="">${t('f.all')}</button>${P.objects.map(o=>`<button class="${f.objs.includes(o.id)?'on':''}" data-act="fObj" data-v="${o.id}">${esc(o.name.split(',')[0])}</button>`).join('')}</div></div>`;
+  const who = `<label title="${esc(WHY.who)}">${t('f.person')} ${tagF('n')}<select data-sel="who"><option value="0">${t('f.allp')}</option>${P.people.filter(p=>p.role==='worker').map(p=>`<option value="${p.id}"${f.who===p.id?' selected':''}>${esc(full(p))}</option>`).join('')}</select></label>`;
+  return `<div class="fbar">${per}${cust}</div><div class="fbar">${objs}${who}<button class="reset" data-act="fReset">${t('f.reset')}</button></div>`;
+}
+const sumBlk = st => blk(t('b.sum'), 'n', 'sum', kpiRow(periodItems(st)), false);
+function repPeople(days, st){
+  const acc = agg(days, m => m.w);
+  const tot = Object.values(acc).reduce((s,a)=>({late:s.late+a.late, miss:s.miss+a.miss}), {late:0, miss:0});
+  const rows = P.people.filter(p=>acc[p.id]).sort((a,b)=>full(a).localeCompare(full(b),'hu')).map(p => { const a = acc[p.id];
+    return `<tr class="go" ${nav('person:'+p.id)}><td><div class="who"><span class="ava">${esc(initials(p))}</span><b>${esc(full(p))}</b></div></td><td class="n">${a.days.size}</td>
+      <td class="n">${a.objs.size}</td><td class="n">${a.late||'—'}</td><td class="n">${miss(a.miss)}</td><td class="n"><b>${hhmmDur(a.mins)}</b></td></tr>`; }).join('');
+  return sumBlk(st) + blk(t('b.people'), 'n', 'people', `<table class="tb"><tr><th>${t('c.person')}</th><th class="n">${t('c.days')}</th><th class="n">${t('c.objs')}</th><th class="n">${t('c.late')}</th><th class="n">${t('c.miss')}</th><th class="n">${t('c.hours')}</th></tr>${rows}
+    <tr class="tot"><td>${t('rep.total')}</td><td class="n"></td><td class="n">${st.objs}</td><td class="n">${tot.late}</td><td class="n">${tot.miss}</td><td class="n">${hhmmDur(st.mins)}</td></tr></table>`);
+}
+function repObjs(days, st){
+  const acc = agg(days, m => m.obj);
+  const cnt = {}; days.forEach(d => d.shifts.forEach(s => { cnt[s.obj] = (cnt[s.obj]||0) + 1; }));
+  const max = Math.max(1, ...Object.values(cnt));
+  const bars = P.objects.filter(o=>cnt[o.id]).sort((a,b)=>cnt[b.id]-cnt[a.id]).map(o => `<tr><td><b>${esc(o.name)}</b></td><td style="width:45%"><div class="hbar"><i style="width:${cnt[o.id]/max*100}%"></i></div></td><td class="n">${cnt[o.id]}</td></tr>`).join('');
+  const rows = P.objects.filter(o=>acc[o.id]).map(o => { const a = acc[o.id];
+    return `<tr class="go" ${nav('obj:'+o.id)}><td><b>${esc(o.name)}</b></td><td class="n">${a.days.size}</td><td class="n">${a.people.size}</td><td class="n">${a.late||'—'}</td>
+      <td class="n">${miss(a.miss)}</td><td class="n"><b>${hhmmDur(a.mins)}</b></td></tr>`; }).join('');
+  return sumBlk(st)
+    + blk(t('b.shifts'), 'y', 'shifts', `<table class="tb">${bars}</table>`)
+    + blk(t('b.objs'), 'n', 'objhours', `<table class="tb"><tr><th>${t('c.obj')}</th><th class="n">${t('c.days')}</th><th class="n">${t('c.people')}</th><th class="n">${t('c.late')}</th><th class="n">${t('c.miss')}</th><th class="n">${t('c.hours')}</th></tr>${rows}
+      <tr class="tot"><td>${t('rep.total')}</td><td class="n"></td><td class="n">${st.people}</td><td class="n">${st.late}</td><td class="n">${st.miss}</td><td class="n">${hhmmDur(st.mins)}</td></tr></table>`);
+}
+/* По дням (замечание Oleg 22.11): день — строка с часами, объектами и людьми; столбики — последние 30 дней периода,
+   как ряд по времени у аналитики движка; строка открывает день тем же видом, что «Сегодня». */
+function repDaysPage(days, st){
+  const sorted = days.slice().sort((a,b)=>a.key<b.key?-1:1);
+  const last = sorted.slice(-30);
+  const per = last.map(d=>statOf([d]).mins);
+  const max = Math.max(1, ...per);
+  const bars = `<div class="bars">${last.map((d,i)=>`<div style="height:${Math.max(2, per[i]/max*100)}%" title="${dShort(d.key)} · ${hhmmDur(per[i])}"><i>${Math.round(per[i]/60)}</i></div>`).join('')}</div>
+    <div class="bars-x">${last.map(d=>`<span>${+d.key.slice(8,10)}</span>`).join('')}</div>`;
+  const rows = sorted.slice().reverse().map(d => { const x = statOf([d]);
+    return `<tr class="go" ${nav('day:'+d.key)}><td><b>${dLong(d.key)}</b>${d.live?` <span class="badge ok">${t('live')}</span>`:''}</td><td class="n">${x.objs}</td><td class="n">${x.people}</td>
+      <td class="n">${x.late||'—'}</td><td class="n">${miss(x.miss)}</td><td class="n"><b>${hhmmDur(x.mins)}</b></td><td>${ic('go','chev')}</td></tr>`; }).join('');
+  return sumBlk(st)
+    + blk(`${t('b.bars')} <span class="cnt">${t('b.bars.30')}</span>`, 'n', 'bars', bars, false)
+    + blk(t('b.days'), 'n', 'days', `<table class="tb"><tr><th>${t('c.date')}</th><th class="n">${t('c.objs')}</th><th class="n">${t('c.people')}</th><th class="n">${t('c.late')}</th><th class="n">${t('c.miss')}</th><th class="n">${t('c.hours')}</th><th></th></tr>${rows}
+      <tr class="tot"><td>${t('rep.total')}</td><td class="n">${st.objs}</td><td class="n">${st.people}</td><td class="n">${st.late}</td><td class="n">${st.miss}</td><td class="n">${hhmmDur(st.mins)}</td><td></td></tr></table>`);
+}
+/* Отметки — таблица документов аналитики (блок documents): строка — отметка, выгрузка всей выборки в Excel. */
+function repMarks(days){
+  const list = days.flatMap(d => d.marks.map(m => ({d, m}))).sort((a,b)=> a.d.key===b.d.key ? a.m.in-b.m.in : (a.d.key < b.d.key ? 1 : -1));
+  const rows = list.map(({d, m}) => {
+    const late = lateOf(m, d);
+    const st = m.out!=null ? `<span class="badge mute">${t('mk.left')}</span>` : m.noOut ? `<span class="badge warn">${t('nomiss')}</span>` : `<span class="badge ok">${t('mk.on')}</span>`;
+    return `<tr class="go ${m.noOut?'miss':''}" ${nav('dayobj:'+d.key+':'+m.obj)}><td><b>${dShort(d.key)}</b></td><td>${esc(full(person(m.w)))}</td><td>${esc(objName(m.obj))}</td>
+      <td>${hhmm(m.in)}${late?`<small class="w">${t('own.late',{n:late})}</small>`:''}</td><td>${m.out!=null ? hhmm(m.out) : '—'}</td><td>${st}</td><td class="n">${hhmmDur(dur(m, d))}</td></tr>`; }).join('');
+  return `<div class="acts-r"><button class="btn2" data-act="excel">${ic('sheet')}${t('rep.excel')}</button>${tagF('y')}<span class="muted">${t('rep.excel.s')}</span></div>`
+    + blk(`${t('b.marks')} <span class="cnt">${list.length}</span>`, 'y', 'marks', `<table class="tb"><tr><th>${t('c.date')}</th><th>${t('su.who')}</th><th>${t('c.obj')}</th><th>${t('su.in')}</th><th>${t('su.out')}</th><th>${t('c.state')}</th><th class="n">${t('c.hours')}</th></tr>${rows}</table>`);
+}
+function repView(){
+  const days = repDays(), st = statOf(days);
+  const keys = days.map(d=>d.key).sort();
+  const over = keys.length ? t('rep.over',{from:dShort(keys[0]), to:dShort(keys[keys.length-1])}) : '';
+  const tabs = `<div class="ptabs">${RPAGES.map(p=>`<button class="${P.rp===p?'on':''}" data-act="rp" data-v="${p}">${t('rp.'+p)}</button>`).join('')}</div>`;
+  const body = !days.length ? `<div class="card"><p class="empty">${t('rep.empty')}</p></div>`
+    : {people:repPeople, objs:repObjs, days:repDaysPage, marks:repMarks}[P.rp](days, st);
+  return head(over, t('tab.rep')) + tabs + fbar() + body;
 }
 
 /* ══ РЕНДЕР ══ */
 function pageHtml(){
   const top = curView();
-  if (!top) return {today:()=>dayView(P.today, true), hist:histView, objs:objsView, people:peopleView, rep:repView, set:setView}[P.tab]();
+  if (!top) return {today:()=>dayView(P.today, true), objs:objsView, people:peopleView, rep:repView}[P.tab]();
   const v = V(top);
-  return {day:()=>dayView(dayOf(v.a)), dayobj:()=>shiftView(dayOf(v.a), v.b), month:()=>monthView(v.a), week:()=>weekView(v.a),
+  return {day:()=>dayView(dayOf(v.a)), dayobj:()=>shiftView(dayOf(v.a), v.b),
     obj:()=>objView(v.a), newobj:newObjView, person:()=>personView(+v.a), add:addView, invite:()=>inviteView(+v.a), code:()=>codeView(+v.a)}[v.k]();
 }
 function crumbsHtml(){
@@ -1026,11 +1139,11 @@ function renderApp(){
   const f = document.activeElement;
   if (f && f.dataset && f.dataset.field) return;   // поле формы под пальцем не перерисовываем: прототип тикает раз в секунду
   const unread = P.today.shifts.filter(s=>s.isNew).length;
-  const tabs = TABS.map(k => (k==='set' ? '<span class="sep"></span>' : '') + `<button class="${P.tab===k?'on':''}" data-act="tab" data-v="${k}">${t('tab.'+k)}</button>`).join('');
+  const tabs = TABS.map(k => `<button class="${P.tab===k?'on':''}" data-act="tab" data-v="${k}">${t('tab.'+k)}</button>`).join('');
   const dlg = P.dlg==='block' ? [t('conf.t',{name:esc(full(person(+V(P.stack[P.stack.length-1]).a)))}), t('conf.s'), t('conf.yes'), 'doBlock']
     : P.dlg==='closeObj' ? [t('obj.close.t',{name:esc(objName(V(P.stack[P.stack.length-1]).a))}), t('obj.close.s'), t('obj.close'), 'doCloseObj'] : null;
   const app = document.getElementById('app');
-  app.className = 'app' + (S.brand==='ld' ? ' ld' : '');
+  app.className = 'app' + (S.brand==='ld' ? ' ld' : '') + (S.tags ? '' : ' notags');
   const scroll = app.querySelector('.page') ? app.querySelector('.page').scrollTop : 0;
   app.innerHTML = `<header class="hdr"><div class="brand"><span class="mark">LD</span><div><b>LD Vill</b><span>${t('app.sub')}</span></div></div>
       <button class="bell" data-act="bell" title="${esc(t('bell'))}">${ic('bell')}${unread?`<em>${unread}</em>`:''}</button>
@@ -1065,19 +1178,28 @@ const ACT = {
   bell(){ go(()=>{ P.tab = 'today'; P.stack = []; }); },
   objF(el){ P.objF = el.dataset.v; },
   pp(el){ P.pp = el.dataset.v; },
-  per(el){ const v = el.dataset.v; if (['people','objs'].includes(v)) P.by = v; else P.per = v; },
-  set(el){
-    const k = el.dataset.k, v = isNaN(+el.dataset.v) ? el.dataset.v : +el.dataset.v;
-    P.set[k] = v;
-    logEv(`Настройки: ${({grace:'порог опоздания', round:'округление', noOut:'часы без ухода', noOutMin:'минимальный день'})[k]} — ${({grace:v+' мин', round:v?('до '+v+' мин'):'не округлять', noOut:ruleTxt(), noOutMin:v+' ч'})[k]}. Пересчитаны «Сегодня», «История», «Отчёты» и карточки людей.`);
+  /* отчёты: страница, фильтры (период и человек — списками, см. change ниже) */
+  rp(el){ P.rp = el.dataset.v; },
+  fPer(el){ P.f.per = el.dataset.v; },
+  fObj(el){ const v = el.dataset.v; P.f.objs = !v ? [] : P.f.objs.includes(v) ? P.f.objs.filter(x=>x!==v) : [...P.f.objs, v]; },
+  fReset(){ P.f = {...P.f, per:'month', objs:[], who:0}; },
+  excel(){ toast(t('rep.excel.s')); logEv('«Выгрузить в Excel»: движок отдаёт файл всей отобранной выборки (блок «таблица документов» аналитики). В прототипе файла нет.'); },
+  /* время начала работы и округление — настройка объектов */
+  setStart(el){ P.set.start = +el.dataset.v; logEv(`Дорин поставил начало работы по умолчанию ${hhmm(P.set.start)}: опоздания на объектах без своего времени пересчитаны во всём кабинете.`); },
+  setRound(el){ P.set.round = +el.dataset.v; logEv(`Округление часов: ${P.set.round ? 'до ' + P.set.round + ' мин' : 'не округлять'} — часы пересчитаны во всём кабинете.`); },
+  objStart(el){
+    const o = P.objects.find(x=>x.id===V(curView()).a), v = el.dataset.v;
+    o.start = v==='def' ? undefined : +v;
+    logEv(`«${o.name}»: начало работы ${o.start==null ? 'по умолчанию (' + hhmm(P.set.start) + ')' : hhmm(o.start)}. Опоздания на объекте пересчитаны.`);
   },
+  objDraftStart(el){ const v = el.dataset.v; P.objDraft.start = v==='def' ? null : +v; },
   /* объекты */
   addObj(){
     const name = P.objDraft.name.trim(), addr = P.objDraft.addr.trim();
     if (!name){ toast(t('obj.need')); return; }
     const id = 'n' + (P.objects.length+1);
-    P.objects.push({id, name, addr: addr || '—', since:TODAY_KEY, isNew:true});
-    P.objDraft = {name:'', addr:''};
+    P.objects.push({id, name, addr: addr || '—', since:TODAY_KEY, isNew:true, ...(P.objDraft.start!=null ? {start:P.objDraft.start} : {})});
+    P.objDraft = {name:'', addr:'', start:null};
     go(()=>{ P.stack = ['obj:'+id]; P.objF = 'active'; });
     logEv(`Дорин завёл объект «${name}» — он сразу появился у бригадиров в списке объектов с пометкой «новый».`);
   },
@@ -1167,7 +1289,8 @@ const ACT = {
     if (!P.code || P.code.used || P.code.left<=0){ logEv('Живого кода для входа сейчас нет — истекать нечему.'); return; }
     P.code.left = 0; logEv(`Прошло ${CODE_TTL/60} минут — код для входа истёк. Дорин может нажать «Новый код».`);
   },
-  brand(){ S.brand = S.brand==='ld' ? 'engine' : 'ld'; syncUrl(); logEv(S.brand==='ld' ? 'Цвета LD Vill: тёмный и салатовый из принятых макетов, шрифт Plus Jakarta Sans — так станет, когда у картриджа будет своя палитра.' : 'Цвета движка — как у LD Vill на стенде сейчас.'); },
+  brand(){ S.brand = S.brand==='ld' ? 'engine' : 'ld'; syncUrl(); logEv(S.brand==='ld' ? 'Цвета LD Vill, как на ldvill.com: тёмная шапка #213946 и салатовый #C7FF00, шрифт Plus Jakarta Sans. На стенде их наложит палитра картриджа в brand/ дома.' : 'Цвета движка — нейтральные, как у LD Vill на стенде сейчас, для сравнения.'); },
+  tags(){ S.tags = !S.tags; syncUrl(); logEv(S.tags ? 'Метки «что умеет движок» у блоков «Отчётов» показаны.' : 'Метки движка скрыты — «Отчёты» так, как их увидит Дорин.'); },
   lang(el){ S.lang = el.dataset.v; syncUrl(); render(); },
   reset(){ resetProto(); P.stack = []; P.tab = 'today'; },
 };
@@ -1181,9 +1304,10 @@ setInterval(()=>{
 
 /* ══ ПУЛЬТ ══ */
 const DECISIONS = `<details class="dec" open><summary>Решения — Oleg может поменять</summary><ol>
-  <li><b>Кабинет — в оболочке движка</b>, как на стенде: шапка, вкладки, карточки и таблицы движка; цвета нейтральные, «Цвета LD Vill» — как станет с палитрой картриджа.</li>
-  <li><b>Дорин только смотрит.</b> Смены, отметки и отчёты ведут бригадиры; у Дорина — только чтение. <i>Открытый вопрос:</i> исправлять «уход не отмечен» владельцем?</li>
-  <li><b>Настройки — отдельной вкладкой.</b> Можно убрать: тогда числа держит контракт картриджа, а меняет их Copilot.</li>
+  <li><b>Четыре вкладки:</b> Сегодня, Объекты, Люди, Отчёты. «История» слита с «Отчётами», «Настроек» нет (замечания Oleg 22.11).</li>
+  <li><b>Время начала работы — у объекта</b>, со временем по умолчанию; там же округление. Опоздание — от начала работы на объекте.</li>
+  <li><b>Отчёты — это аналитика движка:</b> период девятью постоянными кнопками, фильтры, страницы. Метки у блоков говорят, что движок умеет, а что нужно новое.</li>
+  <li><b>Дорин только смотрит.</b> <i>Открытый вопрос:</i> исправлять «уход не отмечен» владельцем?</li>
   </ol></details>`;
 const BTN = [
   ['openKel', () => '🏗 Kelenföld: бригадир открыл смену'],
@@ -1192,13 +1316,14 @@ const BTN = [
   ['signIn',  () => '📱 Человек вошёл по коду'],
   ['expire',  () => `⏩ Прошло ${CODE_TTL/60} минут`],
   ['brand',   () => S.brand==='ld' ? '🎨 Цвета движка' : '🎨 Цвета LD Vill'],
+  ['tags',    () => S.tags ? '🏷 Скрыть метки движка' : '🏷 Показать метки движка'],
   ['reset',   () => '↺ Начать сначала'],
 ];
 function renderPult(){
   const el = document.getElementById('pult');
   el.innerHTML = `<div class="pin">
       <b class="ptitle">Пульт — остальной мир</b>
-      <p class="how">Путь: «Сегодня» — строка объекта открывает смену с людьми и отчётом. «Конец дня» на пульте закрывает смены — в колокольчике новые отчёты. «История» — месяц, неделя, день. «Люди» → «Добавить человека» → «Выдать доступ», шаг 1 и шаг 2; «Человек вошёл по коду» — как будто он отсканировал QR. «Настройки» — смена правила часов без ухода пересчитывает все цифры.</p>
+      <p class="how">Путь: «Сегодня» — строка объекта открывает смену с людьми и отчётом. «Конец дня» на пульте закрывает смены — в колокольчике новые отчёты. «Объекты» — начало работы по умолчанию и у каждого объекта, округление; смена времени пересчитывает опоздания. «Отчёты» — период девятью кнопками, фильтры по объекту и человеку, страницы «По людям», «По объектам», «По дням» (строка дня открывает день) и «Отметки» с выгрузкой. «Люди» — «Добавить человека», «Выдать доступ», шаг 1 и шаг 2; «Человек вошёл по коду» — как будто он отсканировал QR.</p>
       ${DECISIONS}
       <div class="acts">${BTN.map(([a,l],i)=>`<button data-act="${a}" class="${i===2?'wide':''}">${l()}</button>`).join('')}</div>
       <div class="pctl"><span class="seg">${['hu','ru','en'].map(v=>`<button data-act="lang" data-v="${v}" aria-pressed="${v===S.lang}">${v}</button>`).join('')}</span></div>
@@ -1208,41 +1333,56 @@ function renderPult(){
 
 /* ══ ЗАПИСКА (на русском: читатели — Oleg, заказчик через Oleg, разработчик) ══ */
 const NOTES = `
+<h2>Что поменялось по замечаниям Oleg 22.11 (TG-458)</h2>
+<table>
+<tr><th>№</th><th>Замечание</th><th>Как теперь</th></tr>
+<tr><td>1</td><td>«Не думаю что настройку сейчас надо»</td><td>Вкладки «Настройки» нет. Часы без отметки ухода не считаются — как в итоге смены у бригадира («без часов»); переключателя правила нет.</td></tr>
+<tr><td>2</td><td>Время старта работы на объекте и значение по умолчанию; округление — там же</td><td>«Объекты»: сверху «Начало работы по умолчанию» и «Округление часов»; у объекта — своё время или «по умолчанию», задаётся в карточке и при заведении. Опоздание считается от начала работы объекта и только по первому приходу за день.</td></tr>
+<tr><td>3</td><td>«История и отчёты — это дублирование»; кнопки периода не растут</td><td>Одна вкладка «Отчёты». Период — девять постоянных кнопок, как в аналитике движка: весь период, сегодня, 7 и 30 дней, этот и прошлый месяц, квартал, год, «с … по …». Кнопки не прибавляются с каждым месяцем — годится и за два года.</td></tr>
+<tr><td>4</td><td>Нужен отчёт по дням</td><td>Страница «По дням»: столбики часов за последние 30 дней периода и строка на день — объекты, люди, опоздания, «без ухода», часы; строка открывает день тем же видом, что «Сегодня».</td></tr>
+<tr><td>5</td><td>Фильтры в отчётах</td><td>Над страницами одна панель: период, объект (несколько), человек, «Сбросить». Цифры сходятся между страницами — считаются из одной выборки.</td></tr>
+<tr><td>6</td><td>«Отчёты и есть аналитика»</td><td>«Отчёты» нарисованы формой раздела «Аналитика» движка: страницы, панель фильтров, блоки с числами, полосами, столбиками и таблицей документов с выгрузкой. У каждого блока и фильтра — метка, что умеет движок (кнопка на пульте прячет метки).</td></tr>
+<tr><td>7</td><td>Цвета компании LD Vill</td><td>По умолчанию — как на ldvill.com: тёмная шапка #213946, салатовый #C7FF00 у главной кнопки и выбранной вкладки. «Цвета движка» на пульте — для сравнения.</td></tr>
+</table>
+
 <h2>Решения — Oleg может поменять</h2>
 <table>
 <tr><th>№</th><th>Как в макете</th><th>Альтернатива и цена</th></tr>
-<tr><td>1</td><td>Кабинет — в оболочке веб-интерфейса движка, каким он будет на стенде: белая шапка, полоса вкладок, страница раздела с заголовком, пилюлями и карточками-таблицами. Вкладки — Сегодня, История, Объекты, Люди, Отчёты и через черту Настройки. Цвета — нейтральные движка, как у LD Vill на стенде сейчас; «Цвета LD Vill» на пульте показывает, как станет с палитрой картриджа.</td><td>Свой дизайн LD Vill с нуля, как у телефонных макетов, — красивее, но его придётся заново подгонять под движок (решение оркестратора 22.11).</td></tr>
-<tr class="open"><td>2</td><td>Дорин только смотрит: смены, отметки и отчёты ведут бригадиры, у Дорина — только чтение (строка «Только чтение» на дне и смене). <b>Открытый вопрос:</b> может ли владелец исправить «уход не отмечен» — поставить время ухода с пометкой «исправлено владельцем»? Принятые правила говорят, что время ставит сервер, а закрытая смена — только чтение; ручная правка — новое правило.</td><td>Исправление владельцем: кнопка «Указать уход» в строке с «уход не отмечен», время с пометкой «исправлено владельцем · Дорин · когда», правка пишется в журнал действий. Цена — новое право у владельца и журнал правок.</td></tr>
-<tr><td>3</td><td>Настройки — отдельная вкладка: правило часов без ухода, порог опоздания, округление. Смена правила пересчитывает все цифры кабинета.</td><td>Убрать вкладку: тогда числа держит контракт картриджа, а меняет их Copilot по просьбе Oleg (так в прототипе сейчас).</td></tr>
-<tr><td>4</td><td>«Люди»: «Добавить человека», одна кнопка «Выдать доступ» (шаг 1 — установить приложение, шаг 2 — QR и 6 цифр для диктовки), «Заблокировать доступ» / «Разблокировать» — слова и путь из макета входа (TG-443) один в один. Заблокированный остаётся в списке и в отчётах.</td><td>— (решение оркестратора 22.11)</td></tr>
-<tr><td>5</td><td>Смена на объекте за день — тот же итог смены, что у бригадира (TG-444): объект и длительность смены крупно, таблица «рабочий · приход · уход · часы» со строкой «Всего», ниже отчёт. Смены 19 и 20 ноября — те же, что в прошлых сменах бригадира.</td><td>— (поправка оркестратора 22.11: одинаковое выглядит одинаково)</td></tr>
-<tr><td>6</td><td>Часы без ухода по умолчанию — «не считать», как в итоге смены у бригадира («без часов»); рядом с такими часами везде подпись «по правилу: …».</td><td>Минимальный день (4, 7 или 8 ч) или до закрытия смены — переключатель в Настройках.</td></tr>
-<tr><td>7</td><td>Остальное — из принятых макетов: бригад нет (бригада — кого бригадир отсканировал на смене), приход или уход решает система, опоздание — от открытия смены и только по первому приходу за день, «История» — лента периодов, где цифры сходятся между днём, неделей и месяцем.</td><td>—</td></tr>
+<tr><td>1</td><td>Кабинет — в оболочке веб-интерфейса движка: шапка, полоса вкладок, страница с заголовком и карточками-таблицами; цвета LD Vill.</td><td>—</td></tr>
+<tr class="open"><td>2</td><td>Дорин только смотрит: смены, отметки и отчёты ведут бригадиры (строка «Только чтение» на дне и смене). <b>Открытый вопрос:</b> может ли владелец исправить «уход не отмечен» — поставить время ухода с пометкой «исправлено владельцем»?</td><td>Кнопка «Указать уход» в строке с «уход не отмечен», пометка «исправлено владельцем · Дорин · когда», запись в журнал действий. Цена — новое право у владельца и журнал правок.</td></tr>
+<tr><td>3</td><td>Время начала работы и округление меняет Дорин сам на «Объектах».</td><td>Числа в контракте картриджа, меняет Copilot по просьбе Oleg, а «Объекты» их только показывают — без нового хранения настроек в движке.</td></tr>
+<tr><td>4</td><td>«Люди»: «Добавить человека», одна кнопка «Выдать доступ» (шаг 1 — установить приложение, шаг 2 — QR и 6 цифр), «Заблокировать доступ» / «Разблокировать» — слова и путь из макета входа (TG-443) один в один.</td><td>—</td></tr>
+<tr><td>5</td><td>Смена на объекте за день — тот же итог смены, что у бригадира: объект и длительность крупно, таблица «рабочий · приход · уход · часы» со строкой «Всего», ниже отчёт.</td><td>—</td></tr>
+<tr><td>6</td><td>Остальное — из принятых макетов: бригад нет, приход или уход решает система, опоздание — только по первому приходу за день.</td><td>—</td></tr>
 </table>
 
 <h2>Вопросы заказчику</h2>
 <ul>
-<li>Как считать часы без ухода: не считать, минимальный день (4, 7 или 8 ч) или до закрытия смены?</li>
-<li>Какая таблица нужна для зарплаты в Excel: по людям за месяц (дни, часы, опоздания) или по дням? Кнопка «Выгрузить в Excel» — место на будущее.</li>
+<li>Какая таблица нужна для зарплаты в Excel: по людям за месяц (дни, часы, опоздания) или по отметкам? Выгрузка «Отметок» — то, что движок отдаёт сейчас.</li>
 <li>Нужно ли Дорину исправлять «уход не отмечен» самому (решение 2) или достаточно видеть и спросить бригадира?</li>
+<li>Начало работы на объектах: одно на все дни или бывает разное по дням недели (суббота)?</li>
 </ul>
 
-<h2>Записка для разработчика: что потребует движок</h2>
+<h2>Записка для разработчика: во что упирается движок</h2>
+<p>Метки в «Отчётах»: <span class="tag have">движок умеет</span> — аналитика строит из контракта; <span class="tag cli">контракт</span> — строит, если контракт LD Vill добавит поле (промпт Copilot); <span class="tag ask">нужно новое</span> — новое в движке. Основание — справочник формата аналитики (<code>engine/docs/tech/contracts-reference/analytics-format.md</code>).</p>
 <table>
 <tr><th>Что на экране</th><th>Что нужно</th></tr>
-<tr><td>Шапка, вкладки, заголовок с пилюлями, карточки-таблицы</td><td><span class="tag have">есть</span> Портлет с <code>dashboard.kind: tabs</code>, разделы вкладок и шапка раздела с пилюлями (<code>docs/tech/portlets-and-pages.md</code>); таблица документов — <code>kind: documents</code>.</td></tr>
-<tr><td>«Сегодня», день объекта, «История», «Отчёты» — суммы часов по людям, объектам и периодам</td><td><span class="tag ask">нет</span> Вкладки-сводки над отметками процесса смены: часы, люди, «уход не отмечен» по дню, неделе и месяцу. В движке таких агрегатов по отметкам нет — новый вид вкладки или точка сводки у модуля <code>timesheet</code>. Контракты LD Vill пока пустые (<code>processes: []</code>).</td></tr>
-<tr><td>Итог смены и отчёт бригадира</td><td><span class="tag ask">нет</span> То же, что у бригадира (TG-444): отчёт — поле смены, итог считается из отметок одной функцией; у владельца — только чтение (право <code>read</code> на все смены у роли <code>owner</code>).</td></tr>
-<tr><td>Объекты: завести, закрыть</td><td><span class="tag ask">нет</span> Справочник объектов картриджа с правом правки у владельца; закрытый объект пропадает из выбора у бригадира, история остаётся.</td></tr>
-<tr><td>«Люди», «Выдать доступ», блокировка</td><td><span class="tag ask">нет</span> Всё из записки макета входа (TG-443): заведение пользователя без пароля, код входа, блокировка в Keycloak.</td></tr>
-<tr><td>Настройки: правило часов без ухода, порог опоздания, округление</td><td><span class="tag ask">нет</span> Параметры в контракте картриджа; экран владельца над ними — если Oleg оставит решение 3.</td></tr>
-<tr><td>Колокольчик «новые отчёты»</td><td><span class="tag have">есть</span> Уведомления в веб-интерфейсе движка (in-app); событие — закрытие смены с отчётом.</td></tr>
-<tr><td>Цвета LD Vill</td><td><span class="tag cli">дом картриджа</span> Палитра и шрифт в <code>brand/</code> дома (TG-416 их уже накладывает); сейчас там только значок вкладки, поэтому на стенде цвета движка.</td></tr>
-<tr><td>«Выгрузить в Excel»</td><td><span class="tag ask">позже</span> Форма таблицы — по ответу заказчика.</td></tr>
+<tr><td>Шапка, вкладки, заголовок, карточки-таблицы</td><td><span class="tag have">есть</span> Портлет с <code>dashboard.kind: tabs</code>, таблица документов — <code>kind: documents</code>.</td></tr>
+<tr><td>Отчёты: страницы, панель фильтров, период кнопками</td><td><span class="tag have">есть</span> <code>analytics.json</code>: <code>pages[]</code> со своими фильтрами; период — девять кнопок-пресетов панели (по дате создания документа), перевёрнутое «с … по …» панель не применяет и предупреждает.</td></tr>
+<tr><td>Число смен по объектам (полосы), отметок по дням (столбики), таблица «Отметки» с выгрузкой в Excel</td><td><span class="tag have">есть</span> Метрики <code>grouped</code> по полю объекта смены и <code>timeseries</code> с <code>bucket: day</code>; блок <code>documents</code> с выгрузкой всей выборки.</td></tr>
+<tr><td>Фильтр и разбивка отметок по объекту</td><td><span class="tag cli">контракт</span> Объект записан только в смене; аналитика фильтрует и группирует по полю самого документа. Нужно поле «Объект» в отметке (со словарём и <code>x-aggregate</code>), его заполняет движок из смены.</td></tr>
+<tr><td>Часы: в итоге периода, по людям, по объектам, по дням, колонка «Часы»</td><td><span class="tag ask">нет</span> Часы — разница «уход − приход» с округлением, без ухода — 0. Аналитика складывает только готовые числа полей. Варианты: число «часы» пишется в отметку при уходе (и при закрытии смены) — дальше обычные <code>sum</code>; или новый вид метрики «длительность» между двумя полями времени. Выбор — в плане реализации.</td></tr>
+<tr><td>Опоздание от начала работы на объекте</td><td><span class="tag ask">нет</span> Нужно время начала у объекта (справочник объектов — сейчас неизменяемый справочник контракта) и вычисление «первый приход за день − начало работы»; удобно тем же путём, что и часы, — числом в отметке при приходе.</td></tr>
+<tr><td>Разбивка и фильтр по человеку</td><td><span class="tag ask">нет</span> Рабочий — личные данные: группировать и фильтровать по ним аналитика запрещает (анонимность), блок «по сотрудникам» считает только авторов и участников документов. Нужен разрешённый для владельца разрез по исполнителю отметки.</td></tr>
+<tr><td>Таблица «по дням» (день → объекты, люди, часы)</td><td><span class="tag ask">нет</span> Ряд по дням даёт одно число на день; таблицы из нескольких чисел по дню нет.</td></tr>
+<tr><td>Время начала по умолчанию и округление на «Объектах», «Завести» и «Закрыть» объект</td><td><span class="tag ask">нет</span> Объекты владелец сейчас не правит: справочник значений меняется только через IDE и Copilot. Либо объект — документ своего процесса, либо числа в контракте (решение 3).</td></tr>
+<tr><td>«Люди», «Выдать доступ», блокировка</td><td><span class="tag ask">нет</span> TG-456 (вход по QR и экран «Люди»).</td></tr>
+<tr><td>Колокольчик «новые отчёты»</td><td><span class="tag have">есть</span> Уведомления в веб-интерфейсе движка; событие — закрытие смены с отчётом.</td></tr>
+<tr><td>Цвета LD Vill</td><td><span class="tag cli">дом картриджа</span> Палитра и шрифт в <code>brand/</code> дома (TG-416 их накладывает); сейчас там только значок вкладки.</td></tr>
 </table>
 
 <h2>Что макет не показывает</h2>
-<p>Телефонный вид кабинета (на телефоне у Дорина — его место в timesheet-pwa.html), уведомления на почту, смену языка в меню аватара движка (в макете язык — на пульте), настоящую выгрузку в Excel, журнал правок.</p>
+<p>Телефонный вид кабинета, уведомления на почту, смену языка в меню аватара движка (в макете язык — на пульте), настоящий файл Excel, журнал правок.</p>
 `;
 
 function render(){
@@ -1254,7 +1394,9 @@ function render(){
 }
 function syncUrl(){
   const o = {lang:S.lang, tab:P.tab};
-  if (S.brand==='ld') o.brand = 'ld';
+  if (P.tab==='rep'){ o.rp = P.rp; o.per = P.f.per; if (P.f.per==='custom'){ o.from = P.f.from; o.to = P.f.to; } }
+  if (S.brand==='engine') o.brand = 'engine';
+  if (!S.tags) o.tags = 'off';
   if (P.stack.length) o.go = P.stack.join(',');
   history.replaceState(null, '', '?' + new URLSearchParams(o));
 }
@@ -1263,6 +1405,14 @@ document.addEventListener('input', e=>{
   if (f==='sur' || f==='name') P.draft[f] = e.target.value;
   if (f==='objName') P.objDraft.name = e.target.value;
   if (f==='objAddr') P.objDraft.addr = e.target.value;
+});
+/* Список «Человек» панели отчётов и даты периода «с … по …» */
+document.addEventListener('change', e=>{
+  const d = e.target.dataset || {};
+  if (d.sel==='who') P.f.who = +e.target.value;
+  else if (d.date) P.f[d.date] = e.target.value;
+  else return;
+  syncUrl(); renderApp();
 });
 document.addEventListener('focusout', e=>{ if (e.target.dataset && e.target.dataset.field) setTimeout(renderApp, 0); });
 document.addEventListener('click', e=>{
