@@ -259,10 +259,13 @@
      ниже окна iOS не рисует ничего, кроме фона body (проба C — app/README.md, «Экран во весь телефон»). Поэтому в
      окне значка фоны html И body — цвет меню (html.installed, ставит скрипт; тёмного html мало — пустоту iOS красит
      фоном body, кадр ios18-my-code.png с одним html тёмным — светлая полоса), а нижний отступ меню меньше на эту пустоту
-     (100lvh − 100dvh): она сама служит отступом над полосой «домой». Где окно во весь экран (браузер), разность 0 и
-     отступ — safe-area. */
+     (--under): она сама служит отступом над полосой «домой». Где окно во весь экран (iPhone Oleg), --under 0 и
+     отступ — safe-area. --under один раз ставит скрипт (UNDER ниже, как app/www/inset.js), а не CSS: 100dvh iOS
+     пересчитывает, пока экран оттягивают пальцем, и меню прыгало (TG-440); по той же причине оттягивание выключено у
+     html, а не только у body: iOS тянет окно за корень страницы. */
   body.standalone[data-view] .proto .phone, body.standalone[data-view] .phone{height:auto}
-  @supports (height:100lvh){ body.standalone .phone{--safe-bottom:max(0px, calc(env(safe-area-inset-bottom, 0px) - (100lvh - 100dvh)))} }
+  body.standalone .phone{--safe-bottom:max(0px, calc(env(safe-area-inset-bottom, 0px) - var(--under, 0px)))}
+  html.standalone{overscroll-behavior:none}
   html.installed, html.installed body.standalone{background:var(--c-dark)}
   body.standalone .body{padding-top:calc(var(--top-h, 0px) + 16px);padding-bottom:calc(49px + var(--safe-bottom) + 16px)}
   body.standalone .pult:not(.open){visibility:hidden}
@@ -423,11 +426,31 @@ if (STANDALONE){ S.view = 'proto'; document.body.classList.add('standalone'); do
 /* Окно значка — фоны html и body цвета меню (TG-428): пустоту под окном iOS красит фоном body. По navigator.standalone, а не по
    медиазапросу: в окне значка на iOS 16.4 и 18.2 display-mode: standalone не срабатывает (проба C). */
 if (INSTALLED) document.documentElement.classList.add('installed');
+/* Пустота под окном — для нижнего отступа меню (TG-440, как app/www/inset.js): высота экрана в этом повороте минус окно,
+   один раз и при повороте, но не пока экран тянут. На симуляторе iOS 16.4/18.2 окно короче экрана (62), на iPhone Oleg — нет (0). */
+let UNDER_W = -1;
+function pinUnder(){
+  if (innerWidth === UNDER_W) return;
+  UNDER_W = innerWidth;
+  const full = innerWidth > innerHeight ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
+  document.documentElement.style.setProperty('--under', Math.max(0, full - innerHeight) + 'px');
+}
+pinUnder(); addEventListener('resize', pinUnder);
 /* В установленном приложении размер экрана — настоящий; ключ размера нужен только для стороны QR и сжатой шапки. */
 const nativeSize = () => innerWidth < 380 || innerHeight < 700 ? 's' : innerWidth < 420 ? 'm' : 'l';
-// ?debug — красная рамка у телефона, где содержимое не влезло, и замер окна. Значок на «Домой» запоминает адрес без
-// ?debug, поэтому значок, поставленный с localhost (проверка на симуляторе), показывает замер всегда; на GitHub Pages — нет.
-const DEBUG = qs.has('debug') || (INSTALLED && location.hostname === 'localhost');
+// ?debug — красная рамка у телефона, где содержимое не влезло, и замер окна. Значок на «Домой» открывает адрес из
+// манифеста, без ?debug, поэтому значок, поставленный с localhost (проверка на симуляторе), показывает замер всегда, а
+// значок с GitHub Pages — после пяти касаний логотипа «LD» подряд (TG-440): включает и выключает, помнит до выключения.
+const DEBUG_KEY = 'ldvill.my-code.debug';
+const DEBUG = qs.has('debug') || (INSTALLED && location.hostname === 'localhost') || localStorage.getItem(DEBUG_KEY) === '1';
+let logoTaps = 0, logoTimer = 0;
+document.addEventListener('click', e=>{
+  if (!e.target.closest('.appbar .logo')) return;
+  clearTimeout(logoTimer); logoTimer = setTimeout(()=>{ logoTaps = 0; }, 1500);
+  if (++logoTaps < 5) return;
+  if (DEBUG) localStorage.removeItem(DEBUG_KEY); else localStorage.setItem(DEBUG_KEY, '1');
+  location.reload();
+});
 function t(k, v={}){ const row=T[k]; if(!row) return k; let s=row[LI[S.lang]]; for(const [a,b] of Object.entries(v)) s=s.replace('{'+a+'}', b); return s; }
 function newCode(){ const a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789_-'; let s=''; for(let i=0;i<32;i++) s+=a[Math.floor(Math.random()*a.length)]; return s; }
 
@@ -572,26 +595,46 @@ function renderScreens(){
   if (DEBUG) measure();
 }
 /* ?debug — замер окна поверх экрана: высота окна, экрана и безопасного отступа снизу, где кончаются меню и телефон.
-   По этим числам на снимке симулятора ищут полосу у нижнего края (TG-425, TG-428), а не правят вслепую. */
+   По этим числам на снимке симулятора ищут полосу у нижнего края (TG-425, TG-428), а не правят вслепую. Числа
+   обновляются, пока экран тянут пальцем, а в скобках — наименьшее и наибольшее с запуска (TG-440): один кадр после
+   оттягивания показывает, что плавало. «gap old» — нижний отступ по прежней формуле с 100dvh, «under» — пустота под окном, которую поставил скрипт,
+   «gap» — нынешний отступ. */
+const SEEN = {};
+const span = (k, v) => { const r = SEEN[k] ||= [v, v]; r[0] = Math.min(r[0], v); r[1] = Math.max(r[1], v);
+  return r[0] === r[1] ? `${k} ${v}` : `${k} ${v} (${r[0]}…${r[1]})`; };
 function measure(){
   let box = document.getElementById('measure');
   if (!box){ box = document.createElement('pre'); box.id = 'measure';
     box.style.cssText = 'position:fixed;z-index:30;left:8px;top:45%;margin:0;padding:6px 8px;font:11px/1.35 monospace;background:rgba(255,255,255,.92);color:#000;border:1px solid red;pointer-events:none';
     document.body.appendChild(box); }
   const probe = document.createElement('div');
-  probe.style.cssText = 'position:fixed;padding-bottom:env(safe-area-inset-bottom, 0px);padding-top:env(safe-area-inset-top, 0px)';
+  probe.style.cssText = 'position:fixed;visibility:hidden;padding-bottom:env(safe-area-inset-bottom, 0px);padding-top:env(safe-area-inset-top, 0px)';
   document.body.appendChild(probe);
-  const cs = getComputedStyle(probe), rect = sel => { const el = document.querySelector(sel); return el ? Math.round(el.getBoundingClientRect().bottom) : '—'; };
+  const tall = h => { const d = document.createElement('div'); d.style.cssText = `position:absolute;visibility:hidden;width:1px;height:${h}`;
+    document.body.appendChild(d); const v = Math.round(d.getBoundingClientRect().height); d.remove(); return v; };
+  const cs = getComputedStyle(probe), px = s => Math.round(parseFloat(s) || 0);
+  const box1 = sel => document.querySelector(sel)?.getBoundingClientRect();
+  const sab = px(cs.paddingBottom), svh = tall('100svh'), dvh = tall('100dvh'), lvh = tall('100lvh');
+  const ph = box1('.phone'), tabs = box1('.tabs'), under = px(document.documentElement.style.getPropertyValue('--under'));
   box.textContent = [
-    `screen ${screen.width}×${screen.height}`, `inner ${innerWidth}×${innerHeight}`,
-    `visual ${Math.round(visualViewport?.height ?? 0)}`, `html ${document.documentElement.clientHeight}`,
-    `safe top ${cs.paddingTop} bottom ${cs.paddingBottom}`,
-    `phone.bottom ${rect('.phone')}  tabs.bottom ${rect('.tabs')}`,
+    `screen ${screen.width}×${screen.height}`, span('inner', innerHeight),
+    span('visual', Math.round(visualViewport?.height ?? 0)), span('html', document.documentElement.clientHeight),
+    span('svh', svh), span('dvh', dvh), span('lvh', lvh), `safe top ${px(cs.paddingTop)} bottom ${sab}`,
+    span('gap old', Math.max(0, sab - (lvh - dvh))), `under ${under}`, span('gap', Math.max(0, sab - under)),
+    ph ? span('phone.bottom', Math.round(ph.bottom)) : 'phone —',
+    tabs ? `${span('tabs.bottom', Math.round(tabs.bottom))}\n${span('tabs.h', Math.round(tabs.height))}` : 'tabs —',
     `standalone ${matchMedia('(display-mode: standalone)').matches} nav ${navigator.standalone}`,
   ].join('\n');
   probe.remove();
 }
-if (DEBUG){ addEventListener('resize', measure); setTimeout(measure, 1000); }
+if (DEBUG){
+  let queued = false;
+  const again = () => { if (!queued){ queued = true; requestAnimationFrame(() => { queued = false; measure(); }); } };
+  addEventListener('resize', again); addEventListener('scroll', again, {passive:true});
+  addEventListener('touchmove', again, {passive:true}); addEventListener('touchend', again, {passive:true});
+  visualViewport?.addEventListener('resize', again); visualViewport?.addEventListener('scroll', again);
+  setTimeout(measure, 1000);
+}
 function render(){
   document.documentElement.lang = S.lang;
   document.querySelectorAll('[data-t]').forEach(el=>el.innerHTML=t(el.dataset.t));
