@@ -147,13 +147,6 @@
   .count b{color:var(--c-ink)}
   .hint{margin:0;text-align:center;font-size:13px;color:var(--c-muted)}
 
-  .done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;background:var(--c-ok-bg);border:1px solid #BFE5CF;padding:0 14px}
-  .done .big{width:84px;height:84px;border-radius:50%;background:var(--c-ok);color:#fff;display:grid;place-items:center;margin-bottom:10px}
-  .done .big svg{width:46px;height:46px}
-  .done .what{font-size:16px;font-weight:700;color:var(--c-ok)}
-  .done .time{font-size:56px;font-weight:800;letter-spacing:-.02em;line-height:1}
-  .done .by{font-size:15px;margin-top:6px}
-  .done .back{font-size:13px;color:var(--c-muted);margin-top:18px}
   .compact .appbar{padding:6px 16px 10px} .compact .appbar h2{font-size:21px;margin-top:8px} .compact .appbar h2.long{font-size:17px}
   .compact .logo{width:28px;height:28px;font-size:12px}
   .compact .body{padding:10px 16px;gap:10px}
@@ -161,7 +154,6 @@
   .compact .qrbox{padding:12px 12px 10px;gap:8px}
   .compact .banner{padding:7px 10px;font-size:12px}
   .compact .tabs span{padding:7px 0 5px}
-  .compact .done .time{font-size:46px} .compact .done .big{width:68px;height:68px;margin-bottom:4px}
   .phone.overflow{outline-color:var(--c-bad)}
 
   /* установка на iPhone — как в my-code.html */
@@ -243,11 +235,23 @@
   .res.out{border-left-color:var(--c-dark)} .res.out .ri{background:var(--c-dark)}
   .res.warn{border-left-color:var(--c-warn)} .res.warn .ri{background:var(--c-warn)}
   .res.bad{border-left-color:var(--c-bad)} .res.bad .ri{background:var(--c-bad)}
-  .scanbar{display:flex;gap:10px;align-items:center}
-  .scanbar .btn{margin:0;width:auto;flex:1}
-  .scanbar .cnt{font-size:13px;color:var(--c-muted)}
-  .scanbar .cnt b{color:var(--c-ink);font-size:18px}
 
+  /* карточка отчёта смены — один вид везде */
+  .rcard{background:#fff;border:1px solid var(--c-line);padding:16px 16px 14px;display:flex;flex-direction:column;gap:10px}
+  .rlabel{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted)}
+  .rh1{margin:0;font-size:22px;font-weight:800;line-height:1.15;letter-spacing:-.01em}
+  .rmeta{font-size:13px;color:var(--c-muted);margin-top:-4px} .rmeta b{color:var(--c-ink)}
+  .rstats{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--c-line);border-bottom:1px solid var(--c-line);padding:8px 0}
+  .rstats div{padding:0 8px;border-left:1px solid var(--c-line)} .rstats div:first-child{border-left:0;padding-left:0}
+  .rstats b{display:block;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+  .rstats span{font-size:11.5px;color:var(--c-muted)} .rstats .w b{color:var(--c-warn-ink)}
+  .rh2{margin:4px 0 -4px;font-size:15px;font-weight:800}
+  .rtext{font-size:14px;line-height:1.45;white-space:pre-wrap}
+  .rnote{font-size:12.5px;color:var(--c-muted)}
+  .rcard .sumt{border:0}
+  .compact .rh1{font-size:19px} .compact .rcard{padding:12px}
+  .sent{display:flex;gap:10px;align-items:center;background:var(--c-ok-bg);border-left:4px solid var(--c-ok);padding:10px 12px}
+  .sent svg{width:24px;height:24px;color:var(--c-ok);flex:none} .sent b{font-size:15px}
   /* итог смены */
   .sumt{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--c-line);font-size:13px;font-variant-numeric:tabular-nums}
   .sumt th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--c-muted);text-align:left;padding:7px 8px;border-bottom:1px solid var(--c-line)}
@@ -282,7 +286,6 @@
   .photos button svg{width:22px;height:22px}
   .ro{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--c-muted);background:#fff;border:1px solid var(--c-line);padding:4px 8px;align-self:flex-start}
   .ro svg{width:14px;height:14px}
-  .reptext{background:#fff;border:1px solid var(--c-line);padding:10px 12px;font-size:14px;line-height:1.45;white-space:pre-wrap}
 
   .day{display:flex;flex-direction:column;gap:2px;background:#fff;border:1px solid var(--c-line);padding:11px 14px;text-align:left;width:100%}
   .day b{font-size:15px}
@@ -461,6 +464,7 @@ const CODE_TTL = 300;      // код для входа живёт 5 минут (
 /* Отчёт голосом в прототипе: что распознал телефон и что вернул AI (выдумано). */
 const VOICE_RAW = 'zsaluzás a harmadik szinten kész holnap betonozás hét órától a mixer fél nyolcra jön kettő ember nem jelentkezett ki';
 const VOICE_AI  = 'Zsaluzás a 3. szinten kész. Holnap betonozás 7:00-tól, a mixer 7:30-ra jön. Két ember nem jelentkezett ki.';
+const TODAY = '22.11';     // дата «сегодня» в прототипе
 const PENDING_SEC = 5;     // окно «приход ещё в пути» в прототипе (в жизни — пара секунд очереди движка)
 
 /* Прошлые смены бригадира — только чтение. */
@@ -505,9 +509,12 @@ const T = {
   'ns.s':['Kezdj műszakot az objektumon — utána olvashatod be a belépőket.','Начните смену на объекте — после этого можно сканировать пропуска.','Start a shift on site — then you can scan passes.'],
   'ns.start':['Műszak kezdése az objektumon','Начать смену на объекте','Start shift on site'],
   'ls.t':['Utolsó műszakod','Ваша последняя смена','Your last shift'],
-  'ls.line':['{n} fő · {h}','{n} чел. · {h}','{n} people · {h}'],
+  'rc.dur':['műszak {h}','смена {h}','shift {h}'],
+  'rc.people':['fő','человек','people'], 'rc.hours':['munkaóra, ó:p','часов работы, ч:мм','work hours, h:mm'], 'rc.miss':['távozás nélkül','без ухода','no check-out'],
+  'rc.people.n':['{n} fő','{n} чел.','{n} people'],
 
   't.pick':['Objektum választása','Выбор объекта','Choose a site'],
+  'pk.last':['Itt dolgoztál legutóbb','Здесь вы работали в прошлый раз','You worked here last time'],
   'pk.hint':['A műszak nyitásához válaszd ki az objektumot.','Чтобы открыть смену, выберите объект.','To open a shift, choose a site.'],
   'pk.busy':['Már nyitva: {who}','Уже открыта смена: {who}','Already open: {who}'],
   'cf.t':['Műszak nyitása','Открыть смену','Open the shift'],
@@ -531,7 +538,6 @@ const T = {
   't.scan':['Beolvasás','Сканер','Scanner'],
   'sc.aim':['Irányítsd a kamerát a dolgozó kódjára','Наведите камеру на код рабочего','Point the camera at the worker’s code'],
   'sc.done':['Kész','Готово','Done'],
-  'sc.here':['A helyszínen: <b>{n}</b>','На объекте: <b>{n}</b>','On site: <b>{n}</b>'],
   'r.in':['Érkezés','Приход','Check-in'],
   'r.out':['Távozás','Уход','Check-out'],
   'r.next':['Jöhet a következő','Можно сканировать следующего','Ready for the next one'],
@@ -569,35 +575,30 @@ const T = {
   'cl.offline':['Nincs hálózat — a műszakot akkor zárhatod, ha lesz térerő. A jelentés megmarad a telefonon.','Нет связи — закрыть смену можно, когда появится сеть. Отчёт останется в телефоне.','No connection — you can close the shift once there is signal. The report stays on the phone.'],
 
   't.closed':['Műszak lezárva','Смена закрыта','Shift closed'],
-  'cd.what':['A műszak lezárva','Смена закрыта','Shift closed'],
-  'cd.sum':['{obj} · {n} fő · {h}','{obj} · {n} чел. · {h}','{obj} · {n} people · {h}'],
-  'cd.miss':['{n} főnél nincs távozás','У {n} чел. уход не отмечен','{n} without check-out'],
+
   'cd.sent':['A jelentést megkapta a vezető.','Отчёт ушёл руководителю.','The report went to the manager.'],
   'su.t':['A műszak összesítője','Итог смены','Shift summary'],
   'su.who':['Dolgozó','Рабочий','Worker'], 'su.in':['Érk.','Приход','In'], 'su.out':['Táv.','Уход','Out'], 'su.h':['Óra','Часы','Hours'],
-  'su.total':['Összesen: {n} fő · {h}','Всего: {n} чел. · {h}','Total: {n} people · {h}'],
+  'su.tot':['Összesen','Всего','Total'],
   'su.miss':['Nem rögzítették a távozást: {names}. A munkaidő-nyilvántartásba így kerül: «távozás nincs rögzítve», óra nélkül.','Не отметили уход: {names}. В табель попадёт так: «уход не отмечен», без часов.','No check-out: {names}. The timesheet will show “check-out missing”, no hours.'],
   'su.rep':['Jelentés','Отчёт','Report'], 'su.photos':['Fotók: {n}','Фото: {n}','Photos: {n}'],
   'su.send':['Jelentés küldése és a műszak zárása','Отправить отчёт и закрыть смену','Send the report and close the shift'],
+  'su.rescan':['Vissza a beolvasóhoz — távozás rögzítése','Вернуться к сканеру — отметить уход','Back to the scanner — record check-out'],
   'su.back':['Vissza és javítás','Вернуться и поправить','Go back and fix'],
   'hm':['{h} ó {m} p','{h} ч {m} мин','{h} h {m} min'],
-  'cd.new':['Új műszak kezdése','Начать новую смену','Start a new shift'],
-  'cd.home':['A műszak képernyőhöz','К экрану смены','To the shift screen'],
+  'cd.label':['A vezetőnek elküldött jelentés','Отчёт, отправленный руководителю','Report sent to the manager'],
+  'cd.done':['Kész','Готово','Done'],
 
   't.past':['Korábbi műszakok','Прошлые смены','Past shifts'],
   'pa.line':['{from}–{to} · {n} fő','{from}–{to} · {n} чел.','{from}–{to} · {n} people'],
   'pa.miss':['{n} távozás nélkül','{n} без ухода','{n} without check-out'],
   'pa.today':['ma','сегодня','today'],
   'ro':['Csak olvasható','Только чтение','Read only'],
-  'pd.people':['Emberek','Люди','People'],
-  'pd.rep':['Jelentés','Отчёт','Report'],
-  'pd.photos':['Fotók: {n}','Фото: {n}','Photos: {n}'],
 
   'mn.t':['Menü','Меню','Menu'],
   'mn.code':['Brigád','Бригада','Crew'],
   'mn.code.s':['Hozzáférés kiadása annak, akit a tulajdonos már felvett','Выдать доступ тому, кого владелец уже добавил','Grant access to someone the owner has added'],
   'mn.past':['Korábbi műszakok','Прошлые смены','Past shifts'],
-  'mn.lang':['Nyelv','Язык','Language'],
   'mn.out':['Kilépés','Выйти','Sign out'],
   'mn.close':['Bezárás','Закрыть','Close'],
 
@@ -788,15 +789,33 @@ function marksStat(marks){
 /* Часы смены: по каждой отметке приход–уход; без ухода часов нет (так и в табель). */
 const mins = s => +s.slice(0,2)*60 + +s.slice(3,5);
 const hm = m => t('hm',{h:Math.floor(m/60), m:String(m%60).padStart(2,'0')});
+const hhmmDur = m => Math.floor(m/60)+':'+String(m%60).padStart(2,'0');   // часы в таблице и цифрах отчёта — коротко, «9:12»
 function shiftTotals(marks){
   const rows = marks.map(x=>({...x, m: x.out ? mins(x.out)-mins(x.in) : null}));
   return {rows, people:new Set(marks.map(x=>x.n)).size, total:rows.reduce((a,r)=>a+(r.m||0),0), missing:rows.filter(r=>r.m===null).map(r=>r.n)};
 }
+/* Карточка отчёта смены — один вид везде (Oleg 22.11, третий круг): на старте «Ваша последняя смена», итог перед
+   отправкой, «Отчёт отправлен» и прошлая смена. Крупно объект (H1) и смена от открытия до закрытия, под ними
+   цифры, таблица по рабочим со строкой итогов и отчёт. d: {obj, date, from, to, marks, report, photos}. */
+function reportCard(d, label){
+  const T_ = shiftTotals(d.marks), dur = mins(d.to) - mins(d.from);
+  return `<section class="rcard">
+    <div class="rlabel">${label}</div>
+    <h3 class="rh1">${esc(d.obj)}</h3>
+    <div class="rmeta">${d.date} · ${d.from}–${d.to} · <b>${t('rc.dur',{h:hm(dur)})}</b></div>
+    <div class="rstats"><div><b>${T_.people}</b><span>${t('rc.people')}</span></div><div><b>${hhmmDur(T_.total)}</b><span>${t('rc.hours')}</span></div>
+      <div class="${T_.missing.length?'w':''}"><b>${T_.missing.length}</b><span>${t('rc.miss')}</span></div></div>
+    ${summaryTable(d.marks)}
+    <h4 class="rh2">${t('su.rep')}</h4>
+    <div class="rtext">${esc(d.report||'')}</div>
+    ${d.photos ? `<div class="rnote">${t('su.photos',{n:d.photos})}</div>` : ''}
+  </section>`;
+}
 function summaryTable(marks){
   const T_ = shiftTotals(marks);
   return `<table class="sumt"><tr><th>${t('su.who')}</th><th>${t('su.in')}</th><th>${t('su.out')}</th><th>${t('su.h')}</th></tr>
-    ${T_.rows.map(r=>`<tr class="${r.m===null?'miss':''}"><td>${esc(r.n)}</td><td>${r.in}</td><td>${r.out || `<span class="w">${t('nomiss')}</span>`}</td><td>${r.m===null?'—':hm(r.m)}</td></tr>`).join('')}
-    <tr class="tot"><td colspan="4">${t('su.total',{n:T_.people, h:hm(T_.total)})}</td></tr></table>`;
+    ${T_.rows.map(r=>`<tr class="${r.m===null?'miss':''}"><td>${esc(r.n)}</td><td>${r.in}</td><td>${r.out || `<span class="w">${t('nomiss')}</span>`}</td><td>${r.m===null?'—':hhmmDur(r.m)}</td></tr>`).join('')}
+    <tr class="tot"><td>${t('su.tot')}</td><td colspan="2">${t('rc.people.n',{n:T_.people})}</td><td>${hhmmDur(T_.total)}</td></tr></table>`;
 }
 function nums(st){
   return `<div class="nums"><div class="here"><b>${st.here}</b><span>${t('n.here')}</span></div><div><b>${st.came}</b><span>${t('n.came')}</span></div><div><b>${st.left}</b><span>${t('n.left')}</span></div></div>`;
@@ -850,8 +869,12 @@ function qrSvg(code){
   if (!window.qrcode) return '<div class="fallback"></div>';
   const q = qrcode(0,'M'); q.addData(code); q.make(); return q.createSvgTag({cellSize:6, margin:0, scalable:true});
 }
-/* Свободные объекты — сверху, занятые чужой сменой — в конце (замечание Oleg 22.11). */
-const objectsOrdered = () => [...OBJECTS.filter(o=>!o.busy), ...OBJECTS.filter(o=>o.busy)];
+/* Порядок объектов (Oleg 22.11): первым — где бригадир работал в прошлый раз, дальше свободные, занятые чужой сменой — в конце. */
+const objectsOrdered = (m) => {
+  const last = ((m && m.past) || PAST0)[0]?.obj;
+  const free = OBJECTS.filter(o=>!o.busy);
+  return [...free.filter(o=>o.name===last), ...free.filter(o=>o.name!==last), ...OBJECTS.filter(o=>o.busy)];
+};
 /* Отчёт голосом (замечание Oleg 22.11): телефон распознаёт речь в текст; дальше бригадир отправляет как есть
    или просит AI поправить знаки, цифры и опечатки — и может вернуть надиктованное. m.voice: null · rec · raw · ai.
    m.aiOff — AI недоступен (аварийный режим платформы): остаётся только «как есть». */
@@ -864,13 +887,10 @@ function voiceBlock(m){
   if (m.voice==='ai') return `<div class="voice ai"><div><b>${t('vo.ai')}</b></div><button class="btn sm line" data-act="vundo">${t('vo.undo')}</button></div>${redo}`;
   return `<button class="btn line sm" data-act="vrec">${ic('mic')}${t('vo.btn')}</button>`;
 }
-/* Сводка последней смены на стартовом экране (замечание Oleg 22.11): объект, дата, люди, часы; нажатие — смена целиком. */
+/* Последняя смена на старте — тот же вид, что отправленный руководителю отчёт (Oleg 22.11, третий круг). */
 function lastShiftCard(m){
-  const d = (m.past||PAST0)[0]; if (!d) return '';
-  const T_ = shiftTotals(d.marks);
-  return `<div class="h3">${t('ls.t')}</div>
-    <button class="day ${d.today?'today':''}" data-act="pastday" data-arg="0"><b>${d.today?t('pa.today')+' · ':''}${d.date} · ${esc(d.obj)}</b>
-      <span>${d.from}–${d.to} · ${t('ls.line',{n:T_.people, h:hm(T_.total)})}${T_.missing.length?` · <span class="w">${t('pa.miss',{n:T_.missing.length})}</span>`:''}</span></button>`;
+  const d = (m.past||PAST0)[0];
+  return d ? reportCard(d, t('ls.t')) : '';
 }
 function body(m){
   const net = m.net !== false;
@@ -888,10 +908,11 @@ function body(m){
     case 'pick':
       return `<p class="note">${t('pk.hint')}</p>
         ${offBanner(t('cf.offline'))}
-        <div class="objs">${objectsOrdered().map(o=>{
+        <div class="objs">${objectsOrdered(m).map(o=>{
           const busy = !!o.busy;
+          const last = !busy && o.name===((m.past||PAST0)[0]?.obj);
           return `<button class="obj" data-act="choose" data-arg="${o.id}" ${busy?'disabled':''}>${ic('pin')}<div><b>${esc(o.name)}</b>
-            <span>${busy ? t('pk.busy',{who:esc(o.busy)}) : esc(o.addr)}</span></div>${busy?'':`<span class="go">${ic('chev')}</span>`}</button>`;
+            <span>${busy ? t('pk.busy',{who:esc(o.busy)}) : last ? t('pk.last') : esc(o.addr)}</span></div>${busy?'':`<span class="go">${ic('chev')}</span>`}</button>`;
         }).join('')}</div>`;
     case 'shift': {
       const st = marksStat(m.shift.marks);
@@ -903,13 +924,11 @@ function body(m){
         ${peopleList(m.shift.marks)}
         <button class="btn line" data-act="toclose">${t('sh.close')}</button>`;
     }
-    case 'scan': {
-      const st = marksStat(m.shift.marks);
+    case 'scan':
       return `<div class="cam"><div class="aim">${t('sc.aim')}</div><div class="frame"><i></i><i></i><i></i><i></i></div>${resultCard(m.res)}</div>
-        <div class="scanbar"><span class="cnt">${t('sc.here',{n:st.here})}</span><button class="btn dark" data-act="scandone">${t('sc.done')}</button></div>
         <div class="h3">${t('sh.mine')}</div>
-        ${peopleList(m.shift.marks)}`;
-    }
+        ${peopleList(m.shift.marks)}
+        <button class="btn dark" data-act="scandone">${t('sc.done')}</button>`;
     case 'close': {
       const open = m.shift.marks.filter(x=>!x.out && !x.miss);
       const filled = (m.report||'').trim().length > 0;
@@ -920,27 +939,24 @@ function body(m){
           <textarea id="rep" data-in="report" class="${filled?'':'need'}" placeholder="${esc(t('cl.rep.ph'))}">${esc(m.report||'')}</textarea>
           <p class="note-s" id="rep-need" ${filled?'hidden':''}>${t('cl.rep.need')}</p></div>
         <div class="rep"><label>${t('cl.photo')}</label><div class="photos">${('<span class="ph">'+ic('img')+'</span>').repeat(m.photos||0)}${(m.photos||0)<4?`<button data-act="photo" aria-label="+">${ic('cam')}</button>`:''}</div></div>
-        ${open.length ? `<div class="banner warn">${ic('alert')}<div><b>${t('cl.miss.t',{n:open.length})}</b><ul>${open.map(x=>`<li>${esc(x.n)} · ${x.in}</li>`).join('')}</ul>${t('cl.miss.s')}</div></div>` : ''}
+        ${open.length ? `<div class="banner warn">${ic('alert')}<div><b>${t('cl.miss.t',{n:open.length})}</b><ul>${open.map(x=>`<li>${esc(x.n)} · ${x.in}</li>`).join('')}</ul>${t('cl.miss.s')}</div></div>
+          <button class="btn line" data-act="rescan">${ic('scan')}${t('su.rescan')}</button>` : ''}
         <button class="btn" id="close-btn" data-act="tosummary" ${dis?'disabled':''}>${t('cl.next')}</button>`;
     }
-    case 'summary': {   // итоговый отчёт смены — он же экран подтверждения закрытия
+    case 'summary': {   // итоговый отчёт смены — он же экран подтверждения закрытия; карточка та же, что уйдёт руководителю
       const T_ = shiftTotals(m.shift.marks);
+      const d = {obj:objName(m.shift.obj), date:TODAY, from:m.shift.opened, to:hhmm(m.clock), marks:m.shift.marks, report:m.report, photos:m.photos};
       return `${offBanner(t('cl.offline'))}
-        ${summaryTable(m.shift.marks)}
-        ${T_.missing.length ? `<div class="banner warn">${ic('alert')}<div>${t('su.miss',{names:'<strong>'+T_.missing.map(esc).join(', ')+'</strong>'})}</div></div>` : ''}
-        <div class="h3">${t('su.rep')}</div><div class="reptext">${esc(m.report||'')}</div>
-        ${m.photos ? `<p class="note">${t('su.photos',{n:m.photos})}</p>` : ''}
+        ${reportCard(d, t('su.t'))}
+        ${T_.missing.length ? `<div class="banner warn">${ic('alert')}<div>${t('su.miss',{names:'<strong>'+T_.missing.map(esc).join(', ')+'</strong>'})}</div></div>
+          <button class="btn line" data-act="rescan">${ic('scan')}${t('su.rescan')}</button>` : ''}
         <button class="btn" data-act="close" ${net?'':'disabled'}>${t('su.send')}</button>
         <button class="btn line" data-act="back" data-arg="close">${t('su.back')}</button>`;
     }
-    case 'closed': {
-      const c = m.closedInfo;
-      return `<div class="done"><div class="big">${ic('check')}</div><div class="what">${t('cd.what')}</div>
-        <div class="time">${c.to}</div><div class="by">${t('cd.sum',{obj:'<b>'+esc(c.obj)+'</b>',n:shiftTotals(c.marks).people,h:hm(shiftTotals(c.marks).total)})}</div>
-        ${c.miss ? `<div class="by" style="color:var(--c-warn-ink);font-weight:700">${t('cd.miss',{n:c.miss})}</div>` : ''}
-        <div class="back">${t('cd.sent')}</div></div>
-        <button class="btn" data-act="pick">${t('cd.new')}</button>`;
-    }
+    case 'closed':
+      return `<div class="sent">${ic('checkc')}<b>${t('cd.sent')}</b></div>
+        ${reportCard(m.closedInfo, t('cd.label'))}
+        <button class="btn" data-act="tab" data-arg="home">${t('cd.done')}</button>`;
     case 'past':
       return (m.past||PAST0).map((d,i)=>{
         const miss = d.marks.filter(x=>x.miss).length;
@@ -950,9 +966,7 @@ function body(m){
     case 'pastday': {
       const d = (m.past||PAST0)[m.pastIdx||0];
       return `<span class="ro">${ic('lock')}${t('ro')}</span>
-        <div class="h3">${t('pd.people')}</div>${peopleList(d.marks)}
-        <div class="h3">${t('pd.rep')}</div><div class="reptext">${esc(d.report)}</div>
-        ${d.photos?`<div class="photos">${('<span class="ph">'+ic('img')+'</span>').repeat(d.photos)}</div>`:''}`;
+        ${reportCard(d, t('cd.label'))}`;
     }
     case 'lcpick':  // экран «team» из login-qr.html (TG-443)
       return `<div class="list">${TEAM.map(p=>personRow(p)).join('')}</div>
@@ -989,10 +1003,10 @@ function appbar(m){
     case 'pick': title = t('t.pick'); break;
     case 'shift': case 'scan': title = esc(objName(m.shift.obj)) + `<small>${t('sh.since',{time:m.shift.opened})}${m.screen==='scan' ? ' · '+t('t.scan') : ''}</small>`; cls='long'; break;
     case 'close': title = t('t.close') + `<small>${esc(objName(m.shift.obj))}</small>`; cls='long'; break;
-    case 'summary': title = t('su.t') + `<small>${esc(objName(m.shift.obj))} · ${t('sh.since',{time:m.shift.opened})}</small>`; cls='long'; break;
+    case 'summary': break;   // шапка с «Назад» чистая: итог — крупно в самой карточке отчёта
     case 'closed': title = t('t.closed'); break;
     case 'past': title = t('t.past'); break;
-    case 'pastday': { const d=(m.past||PAST0)[m.pastIdx||0]; title = d.date+' · '+esc(d.obj); cls='long'; break; }
+    case 'pastday': break;   // как у итога: объект и смена — крупно в карточке
     case 'lcpick': title = t('tab.team'); break;
     case 'lccard': { const p = TEAM.find(x=>x.id===m.lcFor); title = p ? esc(full(p)) : ''; break; }
     case 'lcinv': title = t('inv.title'); break;
@@ -1003,7 +1017,7 @@ function appbar(m){
     : `<span class="logo">LD</span><div class="who"><b>${FOREMAN}</b><span>${t('app.role')}</span></div>`;
   const tail = m.screen==='close' ? `<button class="ham" data-act="back" data-arg="shift" aria-label="×">${ic('x')}</button>`
     : back ? '' : `<button class="ham" data-act="menu" aria-label="menu">${ic('menu')}</button>`;
-  return `<div class="appbar"><div class="row">${lead}${tail}</div><h2 class="${cls}">${title}</h2></div>`;
+  return `<div class="appbar"><div class="row">${lead}${tail}</div>${title ? `<h2 class="${cls}">${title}</h2>` : ''}</div>`;
 }
 function sheetHtml(m){
   if (m.sheet==='confirm'){
@@ -1032,7 +1046,7 @@ function installSheet(){
         <li><span class="n">3</span><span>${t('ins.3')}</span></li></ol>
     <button class="ghost" data-act="later">${t('ins.ok')}</button><div class="arrow"></div></div>`;
 }
-const SCROLL = ['noshift','pick','shift','scan','close','summary','past','pastday','lcpick'];
+const SCROLL = ['noshift','pick','shift','scan','close','summary','closed','past','pastday','lcpick'];
 function phone(m, size, native){
   const d = DEV[size], ins = !!m.install, login = m.screen==='login';
   const vars = native ? `--qr:${d.qr}px;--qrc:${d.qrc}px`
@@ -1121,6 +1135,8 @@ const ACT = {
   scan(){ go('scan'); logEv('Бригадир открыл камеру в приложении. Теперь на пульте: «рабочий показывает код».'); },
   scandone(){ go('shift'); },
   toclose(){ go('close'); logEv('Экран закрытия смены: без отчёта дальше не пройти.'); },
+  /* «Отсканировать уход» с закрытия и итога: назад к камере, отчёт сохраняется */
+  rescan(){ go('scan'); logEv('Бригадир вернулся к сканеру отметить уход тех, кто не отметился. Отчёт сохранён.'); },
   tosummary(){
     if (!(P.report||'').trim()){ logEv('Отчёт пустой — дальше не пройти.'); return; }
     go('summary'); logEv('Итог смены: таблица по рабочим, всего людей и часов, кто без ухода, текст отчёта. Это и есть подтверждение закрытия.');
@@ -1131,7 +1147,7 @@ const ACT = {
     if (!P.net){ logEv('Нет связи — смена не закрыта, отчёт остаётся в телефоне.'); return; }
     const open = P.shift.marks.filter(x=>!x.out && !x.miss);
     open.forEach(x=>{ x.miss = true; });
-    const info = {today:true, date:'22.11', obj:objName(P.shift.obj), from:P.shift.opened, to:hhmm(P.clock), report:P.report, photos:P.photos, marks:P.shift.marks, miss:open.length};
+    const info = {today:true, date:TODAY, obj:objName(P.shift.obj), from:P.shift.opened, to:hhmm(P.clock), report:P.report, photos:P.photos, marks:P.shift.marks, miss:open.length};
     const how = P.voice==='ai' ? 'исправленный AI' : P.voice==='raw' ? 'надиктованный, как есть' : 'набранный руками';
     logEv(`Отчёт ушёл ${how}.`);
     P.past.unshift(info); P.closedInfo = info; P.shift = null; P.voice = null; go('closed');
@@ -1255,8 +1271,8 @@ const STATES = [
   {id:'voice-aioff', screen:'close', dec:true, shift:sh(), voice:'raw', aiOff:true, report:VOICE_RAW, photos:1, clock:17*3600+6*60},
   {id:'summary', screen:'summary', dec:true, shift:sh(), report:VOICE_AI, photos:1, clock:17*3600+7*60},
   {id:'summary-ok', screen:'summary', dec:true, shift:sh(MK.map(x=>({...x, out:x.out||'17:00'}))), report:VOICE_AI, photos:0, clock:17*3600+7*60},
-  {id:'closed', screen:'closed', clock:17*3600+6*60, closedInfo:{obj:'Ferihegy, 2-es terminál', to:'17:06', marks:MK, miss:2}},
-  {id:'past', screen:'past', clock:17*3600+8*60, past:[{today:true, date:'22.11', obj:'Ferihegy, 2-es terminál', from:'07:45', to:'17:06', marks:MK.map(x=>({...x, miss:!x.out})), report:'', photos:2}, ...PAST0]},
+  {id:'closed', screen:'closed', clock:17*3600+8*60, closedInfo:{obj:'Ferihegy, 2-es terminál', date:'22.11', from:'07:45', to:'17:08', marks:MK.map(x=>({...x, miss:!x.out})), report:'Zsaluzás a 3. szinten kész. Holnap betonozás 7:00-tól, a mixer 7:30-ra jön. Két ember nem jelentkezett ki.', photos:1, miss:2}},
+  {id:'past', screen:'past', clock:17*3600+8*60, past:[{today:true, date:TODAY, obj:'Ferihegy, 2-es terminál', from:'07:45', to:'17:06', marks:MK.map(x=>({...x, miss:!x.out})), report:'', photos:2}, ...PAST0]},
   {id:'pastday', screen:'pastday', pastIdx:0, clock:17*3600+9*60},
   {id:'menu', screen:'shift', sheet:'menu', shift:sh(), clock:12*3600},
   {id:'team', screen:'lcpick', clock:7*3600+40*60},
