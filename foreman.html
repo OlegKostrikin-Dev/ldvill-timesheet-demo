@@ -273,7 +273,17 @@
   .mic.rec{background:var(--c-bad);animation:pulse 1.2s ease-in-out infinite}
   .field .listen{font-size:13px;font-weight:700;color:var(--c-bad)}
   @keyframes pulse{50%{box-shadow:0 0 0 8px rgba(214,69,69,.18)}}
-  /* «Прошлые»: лента на весь экран — одна смена целиком, листается вертикально с прилипанием (TG-454) */
+  /* «Прошлые»: сначала список компактных строк (уточнение Oleg 22.11), нажатие — смена на весь экран */
+  .days{display:flex;flex-direction:column;background:#fff;border:1px solid var(--c-line)}
+  .day{display:flex;align-items:center;gap:10px;border:0;border-top:1px solid var(--c-line);background:none;padding:11px 12px;text-align:left;width:100%}
+  .day:first-child{border-top:0}
+  .day .tx{flex:1;min-width:0;line-height:1.3}
+  .day b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .day .tx > span{font-size:13px;color:var(--c-muted);font-variant-numeric:tabular-nums}
+  .day .w{color:var(--c-warn-ink);font-weight:700}
+  .day .go{flex:none;width:18px;height:18px;color:var(--c-muted)}
+  .compact .day{padding:8px 10px}
+  /* смена на весь экран — лента: соседние смены листаются вертикально с прилипанием (TG-454) */
   .body.feed{padding:0;gap:0;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none}
   .body.feed::-webkit-scrollbar{display:none}
   .slide{min-height:100%;scroll-snap-align:start;scroll-snap-stop:always;padding:16px 28px 16px 20px;display:flex;flex-direction:column}
@@ -481,6 +491,9 @@ const PAST0 = [
    report:'Gipszkarton a 2. emeleten, 60% kész. Anyag elég péntekig.',
    marks:[{n:'Horváth Ádám',in:'08:01',out:'16:35'},{n:'Szabó Márk',in:'08:03',out:'16:36'}]},
 ];
+/* Ещё две недели смен, чтобы список «Прошлых» прокручивался и было видно, что «Назад» возвращает на то же место
+   (ревью PR #21). Будни 18.11–06.11, объекты по очереди. */
+[18,17,14,13,12,11,10,7,6].forEach((day,k)=>PAST0.push({...PAST0[k%2], date:String(day).padStart(2,'0')+'.11'}));
 
 /* Размеры экрана в CSS-пикселях: узкий Android, обычный iPhone, большой iPhone — как в my-code.html. */
 const DEV = {
@@ -583,6 +596,9 @@ const T = {
   'cd.done':['Kész','Готово','Done'],
 
   't.past':['Korábbi műszakok','Прошлые смены','Past shifts'],
+  'pa.line':['{from}–{to} · {n} fő · {h}','{from}–{to} · {n} чел. · {h}','{from}–{to} · {n} people · {h}'],
+  'pa.miss':['{n} távozás nélkül','{n} без ухода','{n} no check-out'],
+  'pa.today':['ma','сегодня','today'],
   'ro':['csak olvasható','только чтение','read only'],
 
   'mn.t':['Menü','Меню','Menu'],
@@ -667,10 +683,10 @@ const T = {
   'c.close.d':['Egy sor: kik nem jelentkeztek ki, és «Vissza a műszakhoz» — a jelentés és a fotók megmaradnak.','Одна строка: кто без ухода, и «Назад к смене» — отчёт и фото сохраняются.','One line: who has no check-out, and “Back to the shift” — report and photos are kept.'],
   'c.closed':['16 · Elküldve','16 · Отчёт отправлен','16 · Report sent'],
   'c.closed.d':['Ugyanaz a jelentéskártya; «Kész» — haza.','Та же карточка отчёта; «Готово» — домой.','Same report card; “Done” goes home.'],
-  'c.past':['17 · Korábbi műszakok — szalag','17 · Прошлые смены — лента','17 · Past shifts — feed'],
-  'c.past.d':['Egy műszak egész képernyőn, függőleges húzással lapozható; jobbra — hol tartasz. Csak olvasható.','Одна смена на весь экран, листается вертикальным свайпом; справа — где вы в ленте. Только чтение.','One shift per screen, swipe up or down; on the right — where you are. Read only.'],
-  'c.pastday':['18 · Szalag: a következő műszak','18 · Лента: следующая смена','18 · Feed: the next shift'],
-  'c.pastday.d':['Felfelé húzva; számítógépen görgő és nyilak.','Свайп вверх; на компьютере — колесо мыши и стрелки.','Swiped up; on a computer — mouse wheel and arrow keys.'],
+  'c.past':['17 · Korábbi műszakok — lista','17 · Прошлые смены — список','17 · Past shifts — list'],
+  'c.past.d':['Tömör sorok: dátum, objektum, idő, emberek, órák. Koppintás — a műszak egész képernyőn.','Компактные строки: дата, объект, время, люди, часы. Нажатие — смена на весь экран.','Compact rows: date, site, time, people, hours. Tap — the shift full screen.'],
+  'c.pastday':['18 · Egy műszak egész képernyőn','18 · Смена на весь экран','18 · One shift, full screen'],
+  'c.pastday.d':['Fel-le húzással a szomszédos műszakok; számítógépen görgő és nyilak; jobbra — hol tartasz. «Vissza» — a listára, ugyanoda.','Свайп вверх-вниз — соседние смены; на компьютере колесо и стрелки; справа — где вы. «Назад» — к списку на то же место.','Swipe up or down for the next shifts; on a computer, wheel and arrows; on the right, where you are. “Back” returns to the same place in the list.'],
   'c.menu':['19 · Menü','19 · Меню бригадира','19 · Menu'],
   'c.menu.d':['Brigád (hozzáférés kiadása), korábbi műszakok, nyelv, kilépés.','Бригада (выдать доступ), прошлые смены, язык, выход.','Crew (grant access), past shifts, language, sign out.'],
   'c.team':['20 · Brigád — kinek adjon hozzáférést','20 · Бригада — кому выдать доступ','20 · Crew — who gets access'],
@@ -766,7 +782,7 @@ const ic = (n, cls='') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" s
 
 /* ══ ЭКРАН ══
    Один рендер на всё: экран рисуется из модели m — и живой прототип (модель P), и доска состояний (застывшие модели).
-   m.screen: login · noshift · pick · shift · scan · close · closed · past · pastday · lcpick · lcode;
+   m.screen: login · noshift · pick · shift · scan · close · summary · closed · past (список) · pastday (смена на весь экран, лента) · lcpick · lcode;
    поверх — m.sheet: confirm · menu; m.install — шторка установки. */
 function marksStat(marks){
   // Считаем людей, а не отметки: ушёл и вернулся — две отметки, но один человек.
@@ -947,7 +963,14 @@ function body(m){
         ${reportCard(m.closedInfo)}
         <button class="btn" data-act="tab" data-arg="home">${t('cd.done')}</button>`;
     case 'past':
-      // Лента (Oleg 22.11, четвёртый круг): одна смена на весь экран, вертикальный свайп с прилипанием, как в TikTok
+      // Сначала список компактных строк (уточнение Oleg 22.11); нажатие — смена на весь экран
+      return `<div class="days">${(m.past||PAST0).map((d,i)=>{
+        const T_ = shiftTotals(d.marks);
+        return `<button class="day" data-act="pastday" data-arg="${i}"><span class="tx"><b>${d.today?t('pa.today')+' · ':''}${d.date} · ${esc(d.obj)}</b>
+          <span>${t('pa.line',{from:d.from,to:d.to,n:T_.people,h:hhmmDur(T_.total)})}${T_.missing.length?` · <span class="w">${t('pa.miss',{n:T_.missing.length})}</span>`:''}</span></span>${ic('go','go')}</button>`;
+      }).join('')}</div>`;
+    case 'pastday':
+      // Смена на весь экран — лента (Oleg 22.11, четвёртый круг): соседние смены свайпом вверх-вниз, как в TikTok
       return (m.past||PAST0).map((d,i)=>`<div class="slide" data-i="${i}">${reportCard(d)}</div>`).join('');
     case 'lcpick':  // экран «team» из login-qr.html (TG-443)
       return `<div class="list">${TEAM.map(p=>personRow(p)).join('')}</div>
@@ -978,7 +1001,7 @@ function body(m){
 function appbar(m){
   // «Назад» с шага 2 — на шаг 1; человек уже вошёл (код сработал) — сразу в карточку, как в login-qr.html
   // С закрытия «Назад» — к смене (отчёт и фото остаются), а не крестик: одинаковое выглядит одинаково (TG-454)
-  const back = {close:'shift', summary:'close', pick:'home', lcpick:'home', lccard:'lcpick', lcinv:'lccard', lcode: m.lc && m.lc.used ? 'lccard' : 'lcinv'}[m.screen];
+  const back = {close:'shift', summary:'close', pick:'home', pastday:'past', lcpick:'home', lccard:'lcpick', lcinv:'lccard', lcode: m.lc && m.lc.used ? 'lccard' : 'lcinv'}[m.screen];
   let title = '', cls = '';
   switch (m.screen){
     case 'noshift': title = t('t.noshift'); break;
@@ -987,7 +1010,8 @@ function appbar(m){
     case 'close': title = t('t.close') + `<small>${esc(objName(m.shift.obj))}</small>`; cls='long'; break;
     case 'summary': break;   // шапка с «Назад» чистая: итог — крупно в самой карточке отчёта
     case 'closed': title = t('t.closed'); break;
-    case 'past': title = t('t.past') + `<span class="lock">${ic('lock')}${t('ro')}</span>`; break;
+    case 'past': title = t('t.past'); break;
+    case 'pastday': title = t('t.past') + `<span class="lock">${ic('lock')}${t('ro')}</span>`; cls='long'; break;
     case 'lcpick': title = t('tab.team'); break;
     case 'lccard': { const p = TEAM.find(x=>x.id===m.lcFor); title = p ? esc(full(p)) : ''; break; }
     case 'lcinv': title = t('inv.title'); break;
@@ -1026,15 +1050,15 @@ function installSheet(){
         <li><span class="n">3</span><span>${t('ins.3')}</span></li></ol>
     <button class="ghost" data-act="later">${t('ins.ok')}</button><div class="arrow"></div></div>`;
 }
-const SCROLL = ['noshift','pick','shift','scan','close','summary','closed','past','lcpick'];
+const SCROLL = ['noshift','pick','shift','scan','close','summary','closed','past','pastday','lcpick'];
 /* Точки ленты «Прошлых»: где вы в ленте — «2 / 3». */
 const feedDots = (n, i) => `<div class="feeddots">${Array.from({length:n},(_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}<span>${i+1} / ${n}</span></div>`;
 function phone(m, size, native){
   const d = DEV[size], ins = !!m.install, login = m.screen==='login';
   const vars = native ? `--qr:${d.qr}px;--qrc:${d.qrc}px`
     : `--ph-w:${d.w}px;--ph-h:${d.h}px;--safe-top:${d.top}px;--safe-bottom:${d.bottom}px;--qr:${d.qr}px;--qrc:${d.qrc}px`;
-  const tabOn = m.screen==='past' ? 'past' : 'shift';
-  const feed = m.screen==='past';
+  const tabOn = ['past','pastday'].includes(m.screen) ? 'past' : 'shift';
+  const feed = m.screen==='pastday';
   // Рисованная панель Safari — только в макете-доске: на настоящем телефоне Safari свой
   const bottom = ins && !native
     ? `<div class="safari"><span>‹</span><span>›</span><span class="hl">${ic('share')}</span><span>${ic('book')}</span><span>${ic('tabs')}</span></div>`
@@ -1071,13 +1095,13 @@ const NOTES = `
 <tr><td>«Рабочие на смене», счётчики «на объекте · пришли · ушли»</td><td>Счётчики — по людям, а не по отметкам: ушёл и вернулся — две отметки, один человек. <span class="tag ask">уточнить</span> отметки рабочих под этой сменой (документы процесса отметок, связанные со сменой) — список документов есть, но «только отмеченные мной» — фильтр по тому, кто погасил код. Так как на объекте одна смена и её открыл этот бригадир, все отметки под ней — его; отдельный фильтр нужен, только если Oleg поменяет решение 1.</td></tr>
 <tr><td>Отчёт и закрытие смены</td><td><span class="tag ask">уточнить</span> поле отчёта у смены (обязательное на переходе «закрыть» — guard или <code>required</code> на шаге) и фото (поле-файл). Формат пропусков «забыл уйти» не решает: «уход не отмечен» — дело перехода закрытия смены в контракте (например, действие, которое закрывает открытые отметки со статусом «без ухода»).</td></tr>
 <tr><td>Отчёт голосом</td><td><span class="tag cli">клиент</span> распознавание речи — средство телефона (Web Speech API, а на iPhone — диктовка клавиатуры), в движок уходит готовый текст. <span class="tag ask">уточнить</span> «Поправить с AI» — новая AI-задача движка «поправить текст отчёта» (контракт <code>ai_tasks</code>); в аварийном режиме без AI кнопка скрыта, как и другие AI-кнопки платформы.</td></tr>
-<tr><td>Прошлые смены</td><td><span class="tag have">есть</span> список документов-смен этого бригадира (закрытые), от новой к старой; каждая — карточка документа только для чтения. <span class="tag cli">клиент</span> лента с вертикальным свайпом (CSS scroll-snap), на компьютере — колесо и стрелки; длинная лента подгружается страницами по мере листания.</td></tr>
+<tr><td>Прошлые смены</td><td><span class="tag have">есть</span> список документов-смен этого бригадира (закрытые), от новой к старой: список строк (дата, объект, время, люди, часы — из тех же отметок, что итог), а нажатая смена — карточка документа только для чтения. <span class="tag cli">клиент</span> смена на весь экран — лента с вертикальным свайпом (CSS scroll-snap), на компьютере — колесо и стрелки; длинная лента подгружается страницами по мере листания.</td></tr>
 <tr><td>Вход, «Бригада», «Выдать доступ»</td><td><span class="tag ask">TG-443</span> экраны — из <code>login-qr.html</code> один в один; точки движка «выдать код входа» и вход по нему — новые, описаны в записке под тем макетом. Список «Бригада» — заведённые владельцем рабочие с признаком «телефон привязан / заблокирован».</td></tr>
 <tr><td>Имя и роль в шапке</td><td><span class="tag cli">клиент</span> вошедший человек.</td></tr>
 </table>
 
 <h2>Как экран переходит из состояния в состояние</h2>
-<p>После входа — «Смена не открыта» (1): кнопки сканера нет, есть одна — «Начать смену». Дальше выбор объекта (2; первым — объект прошлого раза) и подтверждение (3), где только объект и время. Открытая смена (4): объект и время открытия — в заголовке, под ним счётчики «на объекте · пришли · ушли», главная кнопка «Сканировать пропуск» и под ней одна строка «Первый скан — приход, второй — уход»; после скана — итог последнего скана «Приход · имя · время». «Сканировать пропуск» открывает камеру (6). Под камерой — тот же список «Рабочие на смене»: каждый скан даёт плашку итога и сразу строку в списке, камера продолжает работать — очередь сканируют подряд. «Готово» — назад к смене (5). «Закрыть смену» — тихая кнопка внизу (14): отчёт обязателен, его можно набрать или надиктовать (15a–15d); у кого нет ухода — одна строка с именами и «Назад к смене» (15). «Дальше: итог смены» (15e, 15f) — итоговый отчёт, он же подтверждение: «Отправить и закрыть смену» или «Поправить отчёт». После отправки (16) — та же карточка отчёта и «Готово», которое ведёт домой. Прошлые смены (17, 18) — вкладка снизу или пункт меню: лента на весь экран, одна смена целиком, вертикальный свайп, как в TikTok; справа — точки «где вы»; только чтение.</p>
+<p>После входа — «Смена не открыта» (1): кнопки сканера нет, есть одна — «Начать смену». Дальше выбор объекта (2; первым — объект прошлого раза) и подтверждение (3), где только объект и время. Открытая смена (4): объект и время открытия — в заголовке, под ним счётчики «на объекте · пришли · ушли», главная кнопка «Сканировать пропуск» и под ней одна строка «Первый скан — приход, второй — уход»; после скана — итог последнего скана «Приход · имя · время». «Сканировать пропуск» открывает камеру (6). Под камерой — тот же список «Рабочие на смене»: каждый скан даёт плашку итога и сразу строку в списке, камера продолжает работать — очередь сканируют подряд. «Готово» — назад к смене (5). «Закрыть смену» — тихая кнопка внизу (14): отчёт обязателен, его можно набрать или надиктовать (15a–15d); у кого нет ухода — одна строка с именами и «Назад к смене» (15). «Дальше: итог смены» (15e, 15f) — итоговый отчёт, он же подтверждение: «Отправить и закрыть смену» или «Поправить отчёт». После отправки (16) — та же карточка отчёта и «Готово», которое ведёт домой. Прошлые смены — вкладка снизу или пункт меню: сначала список компактных строк (17) — дата, объект, время, люди, часы, сколько без ухода (уточнение Oleg 22.11). Нажал на строку — смена открывается на весь экран (18), и там соседние смены листаются вертикальным свайпом, как в TikTok (на компьютере — колесо и стрелки); справа — точки «где вы»; «Назад» — к списку на то же место; только чтение.</p>
 <p>Связь у бригадира пропала — открыть смену, отметить и закрыть смену нельзя: всё это проверяет сервер. Экран говорит об этом прямо, отчёт не теряется.</p>
 
 <h2>Размеры</h2>
@@ -1091,7 +1115,7 @@ const P = {};
 function resetProto(){
   TEAM.splice(0, TEAM.length, ...JSON.parse(TEAM0));
   Object.assign(P, {screen:'login', sheet:null, install:false, net:true, clock:7*3600+43*60+30, shift:null, res:null, resTimer:0,
-    report:'', photos:0, voice:null, aiOff:false, chosen:null, closedInfo:null, past:PAST0.map(d=>({...d})), pastIdx:0,
+    report:'', photos:0, voice:null, aiOff:false, chosen:null, closedInfo:null, past:PAST0.map(d=>({...d})), pastIdx:0, listTop:0, jump:null,
     lc:null, failNext:false, worker:0, log:[], drawer:P.drawer||false});
   logEv('Бригадир открыл приложение — экран входа.');
 }
@@ -1122,7 +1146,7 @@ const ACT = {
   /* «Назад к смене» с закрытия и итога (TG-454): отчёт, надиктованное и фото живут в смене, а не в экране —
      бригадир досканирует уход, снова нажмёт «Закрыть смену», и всё на месте. Шла запись голоса — она останавливается. */
   toshift(){
-    if (P.voice==='rec') P.voice = (P.report||'').trim() ? 'raw' : null;
+    if (P.voice==='rec') P.voice = null;   // запись не закончена — надиктованного нет, в поле только набранное руками
     go('shift');
     logEv(`Бригадир вернулся к смене отметить уход. Отчёт${P.photos?` и ${P.photos} фото`:''} сохранены — вернутся на закрытии.`);
   },
@@ -1142,8 +1166,21 @@ const ACT = {
     P.past.unshift(info); P.closedInfo = info; P.shift = null; P.voice = null; go('closed');
     logEv(`Смена закрыта${open.length?` без ухода у ${open.length} чел. (${open.map(x=>x.n).join(', ')}) — у них «уход не отмечен»`:''}. Отчёт ушёл руководителю.`);
   },
-  tab(arg){ if (arg==='past') P.pastIdx = 0; go(arg==='past' ? 'past' : home()); },
-  back(arg){ if (arg==='shift') return ACT.toshift(); go(arg==='home' ? home() : arg); },
+  tab(arg){
+    if (arg==='past'){ P.jump = P.screen==='pastday' ? 'list' : null; if (!P.jump) P.listTop = 0; go('past'); return; }
+    go(home());
+  },
+  back(arg){
+    if (arg==='shift') return ACT.toshift();
+    if (arg==='past') P.jump = 'list';   // «Назад» из смены — к списку на то же место (уточнение Oleg 22.11)
+    go(arg==='home' ? home() : arg);
+  },
+  /* Строка списка «Прошлых» → смена на весь экран; соседние — свайпом в ленте. Место в списке запоминаем. */
+  pastday(i){
+    const b = document.querySelector('.proto .phone .body'); P.listTop = b ? b.scrollTop : 0;
+    P.pastIdx = +i; P.jump = 'feed'; go('pastday');
+    logEv(`Бригадир открыл прошлую смену ${P.past[+i].date} на весь экран; соседние — свайпом вверх-вниз.`);
+  },
   menu(){ P.sheet = 'menu'; },
   lang(l){ S.lang = l; P.sheet = null; syncUrl(); render(); },
   lcpick(){ go('lcpick'); },
@@ -1262,8 +1299,8 @@ const STATES = [
   {id:'summary', screen:'summary', dec:true, shift:sh(), report:VOICE_AI, photos:1, clock:17*3600+7*60},
   {id:'summary-ok', screen:'summary', dec:true, shift:sh(MK.map(x=>({...x, out:x.out||'17:00'}))), report:VOICE_AI, photos:0, clock:17*3600+7*60},
   {id:'closed', screen:'closed', clock:17*3600+8*60, closedInfo:{obj:'Ferihegy, 2-es terminál', date:'22.11', from:'07:45', to:'17:08', marks:MK.map(x=>({...x, miss:!x.out})), report:'Zsaluzás a 3. szinten kész. Holnap betonozás 7:00-tól, a mixer 7:30-ra jön. Két ember nem jelentkezett ki.', photos:1, miss:2}},
-  {id:'past', screen:'past', clock:17*3600+8*60, past:PASTB, pastIdx:0},
-  {id:'pastday', screen:'past', clock:17*3600+9*60, past:PASTB, pastIdx:1},   // та же лента, пролистанная на смену вниз
+  {id:'past', screen:'past', clock:17*3600+8*60, past:PASTB},
+  {id:'pastday', screen:'pastday', clock:17*3600+9*60, past:PASTB, pastIdx:1},   // нажали на вторую строку — лента на этой смене
   {id:'menu', screen:'shift', sheet:'menu', shift:sh(), clock:12*3600},
   {id:'team', screen:'lcpick', clock:7*3600+40*60},
   {id:'lccard', screen:'lccard', lcFor:5, clock:7*3600+40*60},
@@ -1289,6 +1326,13 @@ function renderScreens(){
   const was = document.querySelector('.proto .phone'), keep = was && was.dataset.state === P.screen ? was.querySelector('.body').scrollTop : 0;
   document.getElementById('screens').innerHTML = screenHtml();
   if (keep){ const b = document.querySelector('.proto .phone .body'); if (b) b.scrollTop = keep; }
+  // Переход «список ↔ смена на весь экран»: лента открывается на выбранной смене, список — на прежнем месте
+  if (P.jump && S.view==='proto'){
+    const b = document.querySelector('.proto .phone .body');
+    if (b && P.jump==='feed'){ const s = b.querySelectorAll('.slide'); if (s[P.pastIdx]) b.scrollTop = s[P.pastIdx].offsetTop - s[0].offsetTop; }
+    if (b && P.jump==='list') b.scrollTop = P.listTop || 0;
+    P.jump = null;
+  }
   // Лента «Прошлых» на доске состояний — пролистана до своей смены (data-idx)
   document.querySelectorAll('.board .body.feed, .sizes .body.feed').forEach(b=>{ const s = b.querySelectorAll('.slide'); const i = +b.dataset.idx||0; if (s[i]) b.scrollTop = s[i].offsetTop - s[0].offsetTop; });
   // В режиме приложения шапка и меню прибиты к краям экрана (position:fixed), контенту нужны отступы на высоту шапки
@@ -1334,8 +1378,8 @@ setInterval(()=>{
   P.clock++;
   // как в login-qr.html: истёкший код сам не меняется — «Код истёк» и кнопка «Новый код»
   if (P.lc && !P.lc.used && P.lc.left>0){ P.lc.left--; if (P.lc.left===0) logEv('Срок кода для входа вышел. Бригадир может нажать «Новый код».'); }
-  // отчёт (идёт набор) и лента «Прошлых» (идёт свайп) не перерисовываются — меняется только время в строке состояния
-  if (P.screen==='close' || P.screen==='past'){ const sb=document.querySelector('.proto .sb span'); if (sb) sb.textContent=hhmm(P.clock); return; }
+  // отчёт (идёт набор), список и лента «Прошлых» (прокрутка, свайп, нажатие) не перерисовываются — меняется только время
+  if (['close','past','pastday'].includes(P.screen)){ const sb=document.querySelector('.proto .sb span'); if (sb) sb.textContent=hhmm(P.clock); return; }
   renderScreens();
 }, 1000);
 
@@ -1401,7 +1445,7 @@ document.addEventListener('input', e=>{
 /* ══ ЛЕНТА «ПРОШЛЫХ» (TG-454) ══
    Свайп — родная прокрутка с прилипанием (scroll-snap). Здесь: точки «где вы» по прокрутке, а на компьютере —
    колесо мыши и стрелки ↑/↓ листают по одной смене. Длинная смена (не влезла в экран) сначала докручивается сама. */
-const feedBody = () => S.view==='proto' && P.screen==='past' ? document.querySelector('.proto .body.feed') : null;
+const feedBody = () => S.view==='proto' && P.screen==='pastday' ? document.querySelector('.proto .body.feed') : null;
 function feedIdx(b){
   const s = [...b.querySelectorAll('.slide')], top = b.scrollTop + s[0].offsetTop;
   let i = 0; s.forEach((el,k)=>{ if (el.offsetTop - b.clientHeight/2 <= top) i = k; });
