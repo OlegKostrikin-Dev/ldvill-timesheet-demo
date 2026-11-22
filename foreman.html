@@ -128,13 +128,6 @@
   .state span{font-size:13px;color:var(--c-muted)}
   .state.off svg{color:var(--c-muted)}
 
-  .banner{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;font-size:13px;line-height:1.35}
-  .banner svg{flex:none;width:20px;height:20px}
-  .banner.warn{background:var(--c-warn-bg);color:var(--c-warn-ink);border-left:4px solid var(--c-warn)}
-  .banner.bad{background:var(--c-bad-bg);color:var(--c-bad);border-left:4px solid var(--c-bad)}
-  .banner.info{background:#fff;border:1px solid var(--c-line);border-left:4px solid var(--c-dark);color:var(--c-ink)}
-  .banner b{display:block;font-size:14px}
-  .banner ul{margin:4px 0 0;padding-left:18px}
 
   .qrbox{background:#fff;border:1px solid var(--c-line);padding:18px 18px 14px;display:flex;flex-direction:column;align-items:center;gap:12px}
   .qr{width:var(--qr);height:var(--qr);position:relative;display:grid;place-items:center}
@@ -152,7 +145,7 @@
   .compact .body{padding:10px 16px;gap:10px}
   .compact .state{padding:8px 12px} .compact .state span{font-size:12px}
   .compact .qrbox{padding:12px 12px 10px;gap:8px}
-  .compact .banner{padding:7px 10px;font-size:12px}
+  .compact .warnl{padding:6px 8px;font-size:12px}
   .compact .tabs span{padding:7px 0 5px}
   .phone.overflow{outline-color:var(--c-bad)}
 
@@ -171,14 +164,13 @@
   .ghost{border:0;background:none;color:var(--c-muted);font-weight:700;font-size:14px;padding:12px 0 2px;width:100%}
   .sheet .arrow{position:absolute;left:50%;bottom:-10px;margin-left:-10px;width:20px;height:20px;background:#fff;transform:rotate(45deg)}
 
-  .btn{border:0;background:var(--c-lime);color:var(--c-dark);font-weight:800;font-size:16px;padding:14px 22px;width:100%;margin-top:10px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;gap:10px}
+  /* Три вида кнопок (TG-454): главная — лайм во всю ширину, одна на экран; тихая — контур; ссылка — текст. */
+  .btn{border:0;background:var(--c-lime);color:var(--c-dark);font-weight:800;font-size:16px;padding:15px 22px;width:100%;margin-top:4px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;gap:10px}
   .btn svg{width:22px;height:22px}
-  .btn.big{font-size:18px;padding:18px 22px;margin-top:0}
-  .btn.dark{background:var(--c-dark);color:#fff}
   .btn.line{background:#fff;color:var(--c-ink);border:1px solid #C9D2D6}
+  .link{border:0;background:none;padding:0;color:var(--c-dark);font-weight:800;text-decoration:underline;text-underline-offset:3px;font-size:inherit}
   .btn[disabled]{background:var(--c-line);color:var(--c-muted);cursor:not-allowed}
   .btn.line[disabled]{background:#fff}
-  .note-s{margin:0;font-size:12.5px;color:var(--c-muted);line-height:1.4}
 
   /* вход */
   .login{flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:0 6px}
@@ -260,16 +252,38 @@
   .sumt tr.tot td{font-weight:800;background:var(--c-ground)}
   .sumt td:nth-child(n+2){white-space:nowrap}
   .compact .sumt{font-size:12px} .compact .sumt td,.compact .sumt th{padding:5px 6px}
-  .lastscan{background:#fff;border:1px solid var(--c-line);border-left:4px solid var(--c-ok);padding:8px 12px;font-size:13px;color:var(--c-muted)}
-  .lastscan.out{border-left-color:var(--c-dark)} .lastscan b{color:var(--c-ink)}
-  /* отчёт голосом */
-  .voice{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--c-line);border-left:4px solid var(--c-dark);padding:10px 12px;font-size:13px}
-  .voice > div{flex:1;min-width:0} .voice b{display:block;font-size:13.5px;font-weight:700} .voice span{color:var(--c-muted)}
-  .voice .btn{width:auto;margin:0;flex:none}
-  .voice.rec{border-left-color:var(--c-bad)} .voice.ai{border-left-color:var(--c-lime-ink)}
-  .voice .mic{flex:none;width:38px;height:38px;border-radius:50%;background:var(--c-bad);color:#fff;display:grid;place-items:center;animation:pulse 1.2s ease-in-out infinite}
-  .voice .mic svg{width:20px;height:20px}
+  .lastscan{font-size:13px;color:var(--c-muted);display:flex;align-items:center;gap:8px}
+  .lastscan i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--c-ok)}
+  .lastscan.out i{background:var(--c-dark)} .lastscan b{color:var(--c-ink)}
+  /* предупреждение — одна строка с иконкой (нет связи, не отметили уход) */
+  .warnl{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.35;color:var(--c-warn-ink);background:var(--c-warn-bg);padding:8px 10px}
+  .warnl svg{flex:none;width:18px;height:18px}
+  .warnl .link{color:var(--c-warn-ink);white-space:nowrap}
+  /* поле отчёта: микрофон и «Поправить с AI» — внутри поля, снизу (TG-454) */
+  .field{border:1px solid #C9D2D6;background:#fff;display:flex;flex-direction:column}
+  .field.need{border-color:var(--c-warn)}
+  .field textarea{font:inherit;font-size:15px;color:var(--c-ink);border:0;background:none;padding:10px 12px 4px;min-height:120px;resize:none;outline:0}
+  .field .tools{display:flex;align-items:center;gap:8px;padding:6px 8px 8px}
+  .field .tools .sp{flex:1}
+  .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #C9D2D6;background:#fff;padding:6px 10px;font-size:13px;font-weight:700;border-radius:16px;color:var(--c-ink)}
+  .chip svg{width:16px;height:16px}
+  .chip.ai svg{color:var(--c-lime-ink)}
+  .mic{flex:none;width:40px;height:40px;border-radius:50%;border:0;background:var(--c-dark);color:#fff;display:grid;place-items:center;padding:0}
+  .mic svg{width:20px;height:20px}
+  .mic.rec{background:var(--c-bad);animation:pulse 1.2s ease-in-out infinite}
+  .field .listen{font-size:13px;font-weight:700;color:var(--c-bad)}
   @keyframes pulse{50%{box-shadow:0 0 0 8px rgba(214,69,69,.18)}}
+  /* «Прошлые»: лента на весь экран — одна смена целиком, листается вертикально с прилипанием (TG-454) */
+  .body.feed{padding:0;gap:0;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none}
+  .body.feed::-webkit-scrollbar{display:none}
+  .slide{min-height:100%;scroll-snap-align:start;scroll-snap-stop:always;padding:16px 28px 16px 20px;display:flex;flex-direction:column}
+  .compact .slide{padding:10px 24px 10px 16px}
+  .feeddots{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;z-index:4;pointer-events:none}
+  .feeddots i{width:6px;height:6px;border-radius:50%;background:#C9D2D6;transition:height .2s}
+  .feeddots i.on{height:18px;border-radius:3px;background:var(--c-dark)}
+  .feeddots span{font-size:10px;font-weight:700;color:var(--c-muted);font-variant-numeric:tabular-nums;writing-mode:vertical-rl;margin-top:4px}
+  .appbar h2 .lock{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;opacity:.7;vertical-align:middle;margin-left:8px}
+  .appbar h2 .lock svg{width:13px;height:13px}
   /* сканер: камера сверху, под ней — рабочие на смене */
   .body.scroll .cam{flex:none;height:300px;min-height:0}
   .compact .body.scroll .cam{height:230px}
@@ -277,21 +291,11 @@
   .rep{display:flex;flex-direction:column;gap:6px}
   .rep label{font-size:13px;font-weight:700}
   .rep label i{font-style:normal;color:var(--c-bad)}
-  .rep textarea{font:inherit;font-size:15px;color:var(--c-ink);border:1px solid #C9D2D6;background:#fff;padding:10px 12px;min-height:110px;resize:vertical;border-radius:0}
-  .rep textarea.need{border-color:var(--c-warn)}
   .photos{display:flex;gap:8px;flex-wrap:wrap}
   .photos .ph{width:58px;height:58px;background:linear-gradient(135deg,#9FB0B8,#5E727C);display:grid;place-items:center;color:#fff}
   .photos .ph svg{width:20px;height:20px}
   .photos button{width:58px;height:58px;border:1px dashed #9FB0B8;background:#fff;color:var(--c-muted);display:grid;place-items:center;padding:0}
   .photos button svg{width:22px;height:22px}
-  .ro{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--c-muted);background:#fff;border:1px solid var(--c-line);padding:4px 8px;align-self:flex-start}
-  .ro svg{width:14px;height:14px}
-
-  .day{display:flex;flex-direction:column;gap:2px;background:#fff;border:1px solid var(--c-line);padding:11px 14px;text-align:left;width:100%}
-  .day b{font-size:15px}
-  .day span{font-size:13px;color:var(--c-muted)}
-  .day .w{color:var(--c-warn-ink);font-weight:700}
-  .day.today{border-left:4px solid var(--c-lime-ink)}
 
   /* меню и подтверждения — шторка снизу экрана */
   .msheet{position:absolute;left:0;right:0;bottom:0;background:#fff;padding:18px 18px calc(var(--safe-bottom) + 18px);box-shadow:0 -10px 30px rgba(0,0,0,.25);z-index:7;display:flex;flex-direction:column;gap:6px}
@@ -412,6 +416,7 @@
   @supports (height:100lvh){ body.standalone .phone{--safe-bottom:max(0px, calc(env(safe-area-inset-bottom, 0px) - (100lvh - 100dvh)))} }
   html.installed, html.installed body.standalone{background:var(--c-dark)}
   body.standalone .body{padding-top:calc(var(--top-h, 0px) + 16px);padding-bottom:calc(49px + var(--safe-bottom) + 16px)}
+  body.standalone .body.feed{scroll-padding-top:calc(var(--top-h, 0px) + 16px)}   /* смена прилипает под шапкой, а не под ней прячется */
   body.standalone .pult:not(.open){visibility:hidden}
   body.standalone .sheet{bottom:calc(var(--safe-bottom) + 49px + 14px)}
 </style>
@@ -506,31 +511,28 @@ const T = {
 
   't.noshift':['Műszak','Смена','Shift'],
   'ns.t':['Nincs nyitott műszak','Смена не открыта','No open shift'],
-  'ns.s':['Kezdj műszakot az objektumon — utána olvashatod be a belépőket.','Начните смену на объекте — после этого можно сканировать пропуска.','Start a shift on site — then you can scan passes.'],
-  'ns.start':['Műszak kezdése az objektumon','Начать смену на объекте','Start shift on site'],
-  'ls.t':['Utolsó műszakod','Ваша последняя смена','Your last shift'],
+  'ns.start':['Műszak kezdése','Начать смену','Start shift'],
   'rc.dur':['műszak {h}','смена {h}','shift {h}'],
   'rc.people':['fő','человек','people'], 'rc.hours':['munkaóra, ó:p','часов работы, ч:мм','work hours, h:mm'], 'rc.miss':['távozás nélkül','без ухода','no check-out'],
   'rc.people.n':['{n} fő','{n} чел.','{n} people'],
 
   't.pick':['Objektum választása','Выбор объекта','Choose a site'],
-  'pk.last':['Itt dolgoztál legutóbb','Здесь вы работали в прошлый раз','You worked here last time'],
+  'pk.last':['Legutóbb itt','В прошлый раз','Last time'],
   'pk.hint':['A műszak nyitásához válaszd ki az objektumot.','Чтобы открыть смену, выберите объект.','To open a shift, choose a site.'],
   'pk.busy':['Már nyitva: {who}','Уже открыта смена: {who}','Already open: {who}'],
   'cf.t':['Műszak nyitása','Открыть смену','Open the shift'],
   'cf.time':['nyitás ideje {time}','время открытия {time}','opening time {time}'],
   'cf.ok':['Műszak nyitása','Открыть смену','Open shift'],
   'cancel':['Mégse','Отмена','Cancel'],
-  'cf.offline':['Nincs hálózat — a műszak nem nyílt meg. Próbáld újra, ha lesz térerő.','Нет связи — смена не открыта. Повторите, когда появится сеть.','No connection — the shift didn’t open. Try again once there is signal.'],
+  'cf.offline':['Nincs hálózat — nyitás, ha lesz térerő.','Нет связи — откроете, когда появится сеть.','No connection — open once there is signal.'],
 
   'sh.since':['műszak {time} óta','смена с {time}','shift since {time}'],
   'n.here':['a helyszínen','на объекте','on site'], 'n.came':['érkezett','пришли','arrived'], 'n.left':['távozott','ушли','left'],
   'sh.scan':['Belépő beolvasása','Сканировать пропуск','Scan a pass'],
-  'sh.how':['Első beolvasás — érkezés, második — távozás: a rendszer dönti el. A dolgozóra nem kell koppintani.','Первый скан — приход, второй — уход: система решает сама. Нажимать на рабочего не нужно.','First scan — check-in, second — check-out: the system decides. No need to tap a worker.'],
-  'sh.last':['Utolsó beolvasás:','Последний скан:','Last scan:'],
+  'sh.how':['Első beolvasás — érkezés, második — távozás','Первый скан — приход, второй — уход','First scan — in, second — out'],
   'p.in':['érk.','пришёл','in'], 'p.out':['táv.','ушёл','out'],
   'sh.mine':['Dolgozók a műszakban','Рабочие на смене','Workers on this shift'],
-  'sh.empty':['Még senki. Olvasd be egy dolgozó kódját — itt jelenik meg.','Пока никого. Отсканируйте код рабочего — он появится здесь.','Nobody yet. Scan a worker’s code — they will show up here.'],
+  'sh.empty':['Még senki','Пока никого','Nobody yet'],
   'sh.close':['Műszak zárása','Закрыть смену','Close shift'],
   'onsite':['a helyszínen','на объекте','on site'],
   'nomiss':['távozás nincs rögzítve','уход не отмечен','check-out missing'],
@@ -540,7 +542,6 @@ const T = {
   'sc.done':['Kész','Готово','Done'],
   'r.in':['Érkezés','Приход','Check-in'],
   'r.out':['Távozás','Уход','Check-out'],
-  'r.next':['Jöhet a következő','Можно сканировать следующего','Ready for the next one'],
   'r.pending':['Az érkezés épp most ment át','Приход только что отмечен','Check-in just recorded'],
   'r.pending.s':['Olvasd be újra pár másodperc múlva — akkor távozás lesz.','Отсканируйте ещё раз через пару секунд — тогда это будет уход.','Scan again in a couple of seconds — then it is a check-out.'],
   'r.expired':['A kód lejárt','Код просрочен','Code expired'],
@@ -556,44 +557,33 @@ const T = {
 
   't.close':['Műszak zárása','Закрыть смену','Close shift'],
   'cl.rep':['Napi jelentés','Отчёт за день','Daily report'],
-  'cl.rep.ph':['Mi készült el ma, mi akadt, mi kell holnapra…','Что сделано сегодня, что мешало, что нужно на завтра…','What got done today, what got in the way, what’s needed tomorrow…'],
-  'cl.rep.need':['Jelentés nélkül a műszak nem zárható le.','Без отчёта смену не закрыть.','The shift can’t be closed without a report.'],
+  'cl.rep.ph':['Mi készült el, mi akadt, mi kell holnapra — írd vagy diktáld','Что сделано, что мешало, что нужно завтра — напишите или надиктуйте','What got done, what got in the way, what’s needed tomorrow — type or dictate'],
   'vo.btn':['Diktálás','Надиктовать','Dictate'],
-  'vo.rec':['Beszélj — figyelek','Говорите — слушаю','Speak — listening'],
-  'vo.rec.s':['A telefon szöveggé alakítja. Ha kész, koppints a «Kész» gombra.','Телефон превращает речь в текст. Закончили — нажмите «Готово».','The phone turns speech into text. Done — tap “Done”.'],
+  'vo.rec':['Figyelek…','Слушаю…','Listening…'],
   'vo.stop':['Kész','Готово','Done'],
-  'vo.raw':['Diktálva — így küldheted, vagy javíttasd ki az AI-jal','Надиктовано — можно отправить так или поправить с AI','Dictated — send as is or let AI tidy it'],
+  'vo.redo':['Újra','Заново','Again'],
   'vo.fix':['Javítás AI-jal','Поправить с AI','Tidy with AI'],
-  'vo.ai':['Az AI kijavította: írásjelek, számok, elírások. Az értelem a tiéd.','AI поправил: знаки, цифры, опечатки. Смысл — ваш.','AI tidied it: punctuation, numbers, typos. The meaning is yours.'],
-  'vo.redo':['Diktálás újra','Надиктовать заново','Dictate again'],
   'vo.undo':['Vissza az eredetihez','Вернуть как было','Back to the original'],
-  'vo.ai.off':['Az AI most nem érhető el — küldd el úgy, ahogy van.','AI сейчас недоступен — отправьте как есть.','AI is unavailable right now — send it as is.'],
-  'cl.photo':['Fotók — ha szeretnéd','Фото — по желанию','Photos — optional'],
-  'cl.miss.t':['Nem rögzítették a távozást: {n}','Не отметили уход: {n}','Check-out not recorded: {n}'],
-  'cl.miss.s':['Ha most zársz, náluk «távozás nincs rögzítve» jelölés lesz.','Если закрыть сейчас, у них будет отметка «уход не отмечен».','If you close now, they get a “check-out missing” mark.'],
-  'cl.next':['Tovább: a műszak összesítője','Дальше: итог смены','Next: shift summary'],
-  'cl.offline':['Nincs hálózat — a műszakot akkor zárhatod, ha lesz térerő. A jelentés megmarad a telefonon.','Нет связи — закрыть смену можно, когда появится сеть. Отчёт останется в телефоне.','No connection — you can close the shift once there is signal. The report stays on the phone.'],
+  'cl.photo':['Fotók','Фото','Photos'],
+  'cl.miss':['Nem rögzítették a távozást: {names}.','Не отметили уход: {names}.','No check-out: {names}.'],
+  'cl.toshift':['Vissza a műszakhoz','Назад к смене','Back to the shift'],
+  'cl.next':['Tovább: összesítő','Дальше: итог смены','Next: summary'],
+  'cl.offline':['Nincs hálózat — zárás, ha lesz térerő. A jelentés megmarad.','Нет связи — закроете, когда появится сеть. Отчёт сохранён.','No connection — close once there is signal. The report is kept.'],
 
   't.closed':['Műszak lezárva','Смена закрыта','Shift closed'],
-
-  'cd.sent':['A jelentést megkapta a vezető.','Отчёт ушёл руководителю.','The report went to the manager.'],
+  'cd.sent':['A jelentést megkapta a vezető','Отчёт ушёл руководителю','The report went to the manager'],
   'su.t':['A műszak összesítője','Итог смены','Shift summary'],
   'su.who':['Dolgozó','Рабочий','Worker'], 'su.in':['Érk.','Приход','In'], 'su.out':['Táv.','Уход','Out'], 'su.h':['Óra','Часы','Hours'],
   'su.tot':['Összesen','Всего','Total'],
-  'su.miss':['Nem rögzítették a távozást: {names}. A munkaidő-nyilvántartásba így kerül: «távozás nincs rögzítve», óra nélkül.','Не отметили уход: {names}. В табель попадёт так: «уход не отмечен», без часов.','No check-out: {names}. The timesheet will show “check-out missing”, no hours.'],
+  'su.miss':['{names}: távozás nincs rögzítve — a nyilvántartásba óra nélkül kerül.','{names}: уход не отмечен — в табель без часов.','{names}: no check-out — goes to the timesheet without hours.'],
   'su.rep':['Jelentés','Отчёт','Report'], 'su.photos':['Fotók: {n}','Фото: {n}','Photos: {n}'],
-  'su.send':['Jelentés küldése és a műszak zárása','Отправить отчёт и закрыть смену','Send the report and close the shift'],
-  'su.rescan':['Vissza a beolvasóhoz — távozás rögzítése','Вернуться к сканеру — отметить уход','Back to the scanner — record check-out'],
-  'su.back':['Vissza és javítás','Вернуться и поправить','Go back and fix'],
+  'su.send':['Küldés és a műszak zárása','Отправить и закрыть смену','Send and close the shift'],
+  'su.back':['Jelentés javítása','Поправить отчёт','Edit the report'],
   'hm':['{h} ó {m} p','{h} ч {m} мин','{h} h {m} min'],
-  'cd.label':['A vezetőnek elküldött jelentés','Отчёт, отправленный руководителю','Report sent to the manager'],
   'cd.done':['Kész','Готово','Done'],
 
   't.past':['Korábbi műszakok','Прошлые смены','Past shifts'],
-  'pa.line':['{from}–{to} · {n} fő','{from}–{to} · {n} чел.','{from}–{to} · {n} people'],
-  'pa.miss':['{n} távozás nélkül','{n} без ухода','{n} without check-out'],
-  'pa.today':['ma','сегодня','today'],
-  'ro':['Csak olvasható','Только чтение','Read only'],
+  'ro':['csak olvasható','только чтение','read only'],
 
   'mn.t':['Menü','Меню','Menu'],
   'mn.code':['Brigád','Бригада','Crew'],
@@ -634,15 +624,15 @@ const T = {
   'c.login':['0 · Belépés','0 · Вход','0 · Sign in'],
   'c.login.d':['A TG-443 makett «Belépés» képernyője; a kódolvasás és a 6 számjegy — ott.','Экран «Вход» из макета TG-443; сканер кода и 6 цифр — там.','The “Sign in” screen from the TG-443 mockup; code scanning and 6 digits live there.'],
   'c.noshift':['1 · Nincs nyitott műszak','1 · Смена не открыта','1 · No open shift'],
-  'c.noshift.d':['Beolvasó gomb nincs; az utolsó műszak összesítője.','Кнопки сканера нет; сводка последней смены.','No scan button; summary of the last shift.'],
+  'c.noshift.d':['Egy gomb: «Műszak kezdése». A korábbi műszakok — a «Korábbi» fülön.','Одна кнопка — «Начать смену». Прошлые смены — во вкладке «Прошлые».','One button: “Start shift”. Past shifts live under “Past”.'],
   'c.pick':['2 · Objektum a listából','2 · Объект из справочника','2 · Site from the system list'],
-  'c.pick.d':['Egy mondat-tipp; a foglalt objektumok a lista végén, nem választhatók.','Одна подсказка; занятые объекты — в конце списка, их не выбрать.','One hint; busy sites at the end of the list, not selectable.'],
+  'c.pick.d':['Elöl, ahol legutóbb dolgozott; a foglaltak a végén, nem választhatók.','Первым — где работал в прошлый раз; занятые — в конце, их не выбрать.','First, where you worked last time; busy sites at the end, not selectable.'],
   'c.confirm':['3 · Műszak nyitása','3 · Подтверждение открытия','3 · Confirm opening'],
   'c.confirm.d':['Csak az objektum és az idő.','Только объект и время.','Only the site and the time.'],
   'c.shift0':['4 · Nyitott műszak, még üres','4 · Смена открыта, пока пусто','4 · Shift open, still empty'],
   'c.shift0.d':['Objektum és idő a fejlécben; a lista a beolvasásokból épül.','Объект и время — в заголовке; список растёт из сканов.','Site and time in the header; the list grows from scans.'],
   'c.shift':['5 · Dolgozók a műszakban','5 · Рабочие на смене','5 · Workers on this shift'],
-  'c.shift.d':['A helyszínen · érkezett · távozott; csak akiket ebben a műszakban rögzítettél.','На объекте · пришли · ушли; только те, кого отметили на этой смене.','On site · arrived · left; only those checked in on this shift.'],
+  'c.shift.d':['Fő gomb — «Belépő beolvasása»; a «Műszak zárása» csendes gomb lent.','Главная кнопка — «Сканировать пропуск»; «Закрыть смену» — тихая внизу.','Main button: “Scan a pass”; “Close shift” is a quiet button at the bottom.'],
   'c.scan':['6 · Kamera az alkalmazásban','6 · Камера в приложении','6 · Camera in the app'],
   'c.scan.d':['Érkezés vagy távozás — a rendszer dönti el.','Приход или уход — решает система.','Check-in or check-out — the system decides.'],
   'c.scan-in':['7 · Érkezés rögzítve','7 · Приход отмечен','7 · Check-in recorded'],
@@ -663,24 +653,24 @@ const T = {
   'c.close0.d':['Üres jelentéssel a gomb nem él.','С пустым отчётом кнопка не работает.','With an empty report the button is off.'],
   'c.close':['15 · Zárás: nem mindenki távozott','15 · Закрытие: не все отметили уход','15 · Closing: not everyone checked out'],
   'c.voice-rec':['15a · Jelentés diktálása','15a · Отчёт голосом: запись','15a · Voice report: recording'],
-  'c.voice-rec.d':['A telefon beszédfelismerése.','Распознавание речи телефона.','The phone’s speech recognition.'],
-  'c.voice-raw':['15b · Diktálva — elküldhető így','15b · Надиктовано — отправить как есть','15b · Dictated — send as is'],
-  'c.voice-raw.d':['A felismert szöveg a mezőben, szerkeszthető.','Распознанный текст в поле, его можно поправить руками.','The recognised text is in the field and can be edited.'],
+  'c.voice-rec.d':['A mikrofon a mezőben; «Kész» leállítja.','Микрофон — в поле отчёта; «Готово» останавливает.','The mic is inside the field; “Done” stops it.'],
+  'c.voice-raw':['15b · Diktálva','15b · Надиктовано','15b · Dictated'],
+  'c.voice-raw.d':['A mezőben: «Újra» és «Javítás AI-jal». Úgy is mehet, ahogy van.','В поле: «Заново» и «Поправить с AI». Можно отправить как есть.','In the field: “Again” and “Tidy with AI”. Can go as is.'],
   'c.voice-ai':['15c · AI-jal javítva','15c · Поправлено AI','15c · Tidied by AI'],
   'c.voice-ai.d':['«Vissza az eredetihez» visszahozza a diktált szöveget.','«Вернуть как было» возвращает надиктованный текст.','“Back to the original” brings the dictated text back.'],
   'c.voice-aioff':['15d · AI nem érhető el','15d · AI недоступен','15d · AI unavailable'],
-  'c.voice-aioff.d':['Csak «úgy, ahogy van».','Только «как есть».','Only “as is”.'],
+  'c.voice-aioff.d':['Nincs AI-gomb — úgy megy, ahogy van.','Кнопки AI нет — уходит как есть.','No AI button — it goes as is.'],
   'c.summary':['15e · Összesítő a zárás előtt','15e · Итог смены перед закрытием','15e · Summary before closing'],
-  'c.summary.d':['Ez a megerősítés: «Vissza és javítás» vagy «Küldés és zárás».','Это и есть подтверждение: «Вернуться и поправить» или «Отправить и закрыть».','This is the confirmation: “Go back and fix” or “Send and close”.'],
+  'c.summary.d':['Ez a megerősítés. Akik nem jelentkeztek ki — egy sor, «Vissza a műszakhoz».','Это и есть подтверждение. Кто без ухода — одна строка и «Назад к смене».','This is the confirmation. No check-out — one line and “Back to the shift”.'],
   'c.summary-ok':['15f · Összesítő — mindenki távozott','15f · Итог — все отметили уход','15f · Summary — everyone checked out'],
   'c.summary-ok.d':['Figyelmeztetés nélkül.','Без предупреждения.','No warning.'],
-  'c.close.d':['A lista megmutatja, kiket érint; a megerősítés az összesítőn.','Список показывает, кого это касается; подтверждение — на итоге смены.','The list shows who is affected; confirmation is on the summary.'],
-  'c.closed':['16 · Lezárva','16 · Смена закрыта','16 · Closed'],
-  'c.closed.d':['Nyitható új műszak.','Можно открыть новую смену.','A new shift can be opened.'],
-  'c.past':['17 · Korábbi műszakok','17 · Прошлые смены','17 · Past shifts'],
-  'c.past.d':['Csak a sajátjai.','Только свои.','Only your own.'],
-  'c.pastday':['18 · Egy korábbi műszak','18 · Прошлая смена','18 · A past shift'],
-  'c.pastday.d':['Csak olvasható.','Только чтение.','Read only.'],
+  'c.close.d':['Egy sor: kik nem jelentkeztek ki, és «Vissza a műszakhoz» — a jelentés és a fotók megmaradnak.','Одна строка: кто без ухода, и «Назад к смене» — отчёт и фото сохраняются.','One line: who has no check-out, and “Back to the shift” — report and photos are kept.'],
+  'c.closed':['16 · Elküldve','16 · Отчёт отправлен','16 · Report sent'],
+  'c.closed.d':['Ugyanaz a jelentéskártya; «Kész» — haza.','Та же карточка отчёта; «Готово» — домой.','Same report card; “Done” goes home.'],
+  'c.past':['17 · Korábbi műszakok — szalag','17 · Прошлые смены — лента','17 · Past shifts — feed'],
+  'c.past.d':['Egy műszak egész képernyőn, függőleges húzással lapozható; jobbra — hol tartasz. Csak olvasható.','Одна смена на весь экран, листается вертикальным свайпом; справа — где вы в ленте. Только чтение.','One shift per screen, swipe up or down; on the right — where you are. Read only.'],
+  'c.pastday':['18 · Szalag: a következő műszak','18 · Лента: следующая смена','18 · Feed: the next shift'],
+  'c.pastday.d':['Felfelé húzva; számítógépen görgő és nyilak.','Свайп вверх; на компьютере — колесо мыши и стрелки.','Swiped up; on a computer — mouse wheel and arrow keys.'],
   'c.menu':['19 · Menü','19 · Меню бригадира','19 · Menu'],
   'c.menu.d':['Brigád (hozzáférés kiadása), korábbi műszakok, nyelv, kilépés.','Бригада (выдать доступ), прошлые смены, язык, выход.','Crew (grant access), past shifts, language, sign out.'],
   'c.team':['20 · Brigád — kinek adjon hozzáférést','20 · Бригада — кому выдать доступ','20 · Crew — who gets access'],
@@ -753,7 +743,6 @@ const IC = {
   logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
   wifioff:'<path d="M12 20h.01"/><path d="M8.5 16.43a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 13a10 10 0 0 1 5.24-2.76"/><path d="m2 2 20 20"/>',
   alert:'<path d="M12 8v4"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="10"/>',
-  x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
   menu:'<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/>',
   pin:'<path d="M20 10c0 4.99-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 14.99 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
   chev:'<path d="m9 18 6-6-6-6"/>',
@@ -794,13 +783,13 @@ function shiftTotals(marks){
   const rows = marks.map(x=>({...x, m: x.out ? mins(x.out)-mins(x.in) : null}));
   return {rows, people:new Set(marks.map(x=>x.n)).size, total:rows.reduce((a,r)=>a+(r.m||0),0), missing:rows.filter(r=>r.m===null).map(r=>r.n)};
 }
-/* Карточка отчёта смены — один вид везде (Oleg 22.11, третий круг): на старте «Ваша последняя смена», итог перед
-   отправкой, «Отчёт отправлен» и прошлая смена. Крупно объект (H1) и смена от открытия до закрытия, под ними
-   цифры, таблица по рабочим со строкой итогов и отчёт. d: {obj, date, from, to, marks, report, photos}. */
+/* Карточка отчёта смены — один вид везде (Oleg 22.11, третий круг): итог перед отправкой, «Отчёт отправлен» и
+   прошлая смена в ленте. Крупно объект (H1) и смена от открытия до закрытия, под ними цифры, таблица по рабочим
+   со строкой итогов и отчёт. d: {obj, date, from, to, marks, report, photos}; label — подпись над объектом, если нужна. */
 function reportCard(d, label){
   const T_ = shiftTotals(d.marks), dur = mins(d.to) - mins(d.from);
   return `<section class="rcard">
-    <div class="rlabel">${label}</div>
+    ${label ? `<div class="rlabel">${label}</div>` : ''}
     <h3 class="rh1">${esc(d.obj)}</h3>
     <div class="rmeta">${d.date} · ${d.from}–${d.to} · <b>${t('rc.dur',{h:hm(dur)})}</b></div>
     <div class="rstats"><div><b>${T_.people}</b><span>${t('rc.people')}</span></div><div><b>${hhmmDur(T_.total)}</b><span>${t('rc.hours')}</span></div>
@@ -833,11 +822,10 @@ function resultCard(r){
   const k = r.kind, ok = k==='in'||k==='out';
   const cls = k==='in' ? '' : k==='out' ? 'out' : k==='pending' ? 'warn' : 'bad';
   const icon = ok ? 'check' : k==='offline' ? 'wifioff' : 'alert';
-  const code = {pending:'409 PASS_ARRIVAL_PENDING', expired:'409 pass_expired', used:'409 pass_already_used', unknown:'409 pass_unknown', offline:'—', error:'HTTP 503'}[k];
-  if (ok) return `<div class="res ${cls}"><span class="ri">${ic(icon)}</span><div><div class="rt">${t(k==='in'?'r.in':'r.out')} · ${esc(r.name)} · ${r.time}</div>
-      <span>${t('r.next')}</span></div></div>`;
-  return `<div class="res ${cls}"><span class="ri">${ic(icon)}</span><div><b>${t('r.'+k)}</b>${r.name?`<span><b style="display:inline;font-size:14px">${esc(r.name)}</b></span>`:''}
-      <span>${t('r.'+k+'.s')}</span><small>${code}</small></div></div>`;
+  // Коды ответа движка — в подписях кадров и записке, не на экране бригадира (TG-454: меньше шума)
+  if (ok) return `<div class="res ${cls}"><span class="ri">${ic(icon)}</span><div><div class="rt">${t(k==='in'?'r.in':'r.out')} · ${esc(r.name)} · ${r.time}</div></div></div>`;
+  return `<div class="res ${cls}"><span class="ri">${ic(icon)}</span><div><b>${t('r.'+k)}${r.name?` · ${esc(r.name)}`:''}</b>
+      <span>${t('r.'+k+'.s')}</span></div></div>`;
 }
 /* Строка человека и блок кода — из login-qr.html (TG-443) без изменений смысла. */
 function personRow(p){
@@ -878,23 +866,29 @@ const objectsOrdered = (m) => {
 /* Отчёт голосом (замечание Oleg 22.11): телефон распознаёт речь в текст; дальше бригадир отправляет как есть
    или просит AI поправить знаки, цифры и опечатки — и может вернуть надиктованное. m.voice: null · rec · raw · ai.
    m.aiOff — AI недоступен (аварийный режим платформы): остаётся только «как есть». */
-function voiceBlock(m){
-  const redo = `<button class="btn line sm" data-act="vredo">${ic('mic')}${t('vo.redo')}</button>`;
-  if (m.voice==='rec') return `<div class="voice rec"><span class="mic">${ic('mic')}</span><div><b>${t('vo.rec')}</b><span>${t('vo.rec.s')}</span></div>
-      <button class="btn sm dark" data-act="vstop">${t('vo.stop')}</button></div>`;
-  if (m.voice==='raw') return `<div class="voice"><div>${m.aiOff ? `<b>${t('vo.ai.off')}</b>` : `<b>${t('vo.raw')}</b>`}</div>
-      ${m.aiOff ? '' : `<button class="btn sm" data-act="vfix">${ic('spark')}${t('vo.fix')}</button>`}</div>${redo}`;
-  if (m.voice==='ai') return `<div class="voice ai"><div><b>${t('vo.ai')}</b></div><button class="btn sm line" data-act="vundo">${t('vo.undo')}</button></div>${redo}`;
-  return `<button class="btn line sm" data-act="vrec">${ic('mic')}${t('vo.btn')}</button>`;
-}
-/* Последняя смена на старте — тот же вид, что отправленный руководителю отчёт (Oleg 22.11, третий круг). */
-function lastShiftCard(m){
-  const d = (m.past||PAST0)[0];
-  return d ? reportCard(d, t('ls.t')) : '';
+/* Поле отчёта (TG-454): кнопки голоса и AI живут внутри поля, снизу; отдельной плашки «Надиктовано…» нет.
+   До диктовки — «Надиктовать»; идёт запись — «Слушаю…» и «Готово»; после — «Заново» и «Поправить с AI»
+   (AI недоступен — этой кнопки нет); после правки AI — «Заново» и «Вернуть как было». */
+function reportField(m){
+  const filled = (m.report||'').trim().length > 0;
+  let tools;
+  if (m.voice==='rec') tools = `<button class="mic rec" data-act="vstop" aria-label="${esc(t('vo.stop'))}">${ic('mic')}</button>
+      <span class="listen">${t('vo.rec')}</span><span class="sp"></span><button class="chip" data-act="vstop">${t('vo.stop')}</button>`;
+  else if (m.voice==='raw') tools = `<button class="chip" data-act="vredo">${ic('mic')}${t('vo.redo')}</button><span class="sp"></span>
+      ${m.aiOff ? '' : `<button class="chip ai" data-act="vfix">${ic('spark')}${t('vo.fix')}</button>`}`;
+  else if (m.voice==='ai') tools = `<button class="chip" data-act="vredo">${ic('mic')}${t('vo.redo')}</button><span class="sp"></span>
+      <button class="chip" data-act="vundo">${t('vo.undo')}</button>`;
+  else tools = `<button class="chip" data-act="vrec">${ic('mic')}${t('vo.btn')}</button>`;
+  return `<div class="rep"><label for="rep">${t('cl.rep')} <i>*</i></label>
+    <div class="field ${filled?'':'need'}" id="rep-field"><textarea id="rep" data-in="report" placeholder="${esc(t('cl.rep.ph'))}">${esc(m.report||'')}</textarea>
+      <div class="tools">${tools}</div></div></div>`;
 }
 function body(m){
   const net = m.net !== false;
-  const offBanner = msg => net ? '' : `<div class="banner warn">${ic('wifioff')}<div>${msg}</div></div>`;
+  const offBanner = msg => net ? '' : `<div class="warnl">${ic('wifioff')}<div>${msg}</div></div>`;
+  // «Не отметили уход» — одна строка с именами и ссылкой «Назад к смене»: отчёт и фото остаются в смене (TG-454)
+  const missLine = (names, key) => names.length ? `<div class="warnl">${ic('alert')}<div>${t(key,{names:'<b>'+names.map(esc).join(', ')+'</b>'})}
+      <button class="link" data-act="toshift">${t('cl.toshift')}</button></div></div>` : '';
   switch (m.screen){
     case 'login':   // экран «first» из login-qr.html (TG-443): весь путь скана и 6 цифр — там; здесь обе кнопки входят сразу
       return `<div class="login"><div class="logo big">LD</div><b>${t('first.t')}</b><span>${t('first.s')}</span>
@@ -902,9 +896,9 @@ function body(m){
         <button class="btn line" data-act="login">${t('first.dig')}</button>
         <p class="note c">${t('first.nopass')}</p></div>`;
     case 'noshift':
-      return `<div class="state off">${ic('pin')}<div><b>${t('ns.t')}</b><span>${t('ns.s')}</span></div></div>
-        <button class="btn big" data-act="pick">${ic('pin')}${t('ns.start')}</button>
-        ${lastShiftCard(m)}`;
+      // Одна строка и одна кнопка; карточки последней смены нет — все смены в «Прошлых» (Oleg 22.11, четвёртый круг)
+      return `<div class="state off">${ic('pin')}<div><b>${t('ns.t')}</b></div></div>
+        <button class="btn" data-act="pick">${ic('pin')}${t('ns.start')}</button>`;
     case 'pick':
       return `<p class="note">${t('pk.hint')}</p>
         ${offBanner(t('cf.offline'))}
@@ -916,10 +910,11 @@ function body(m){
         }).join('')}</div>`;
     case 'shift': {
       const st = marksStat(m.shift.marks);
+      // Главная — «Сканировать пропуск»; «Закрыть смену» — тихая внизу (оркестратор Малле Анатоль, 22.11)
       return `${nums(st)}
-        <button class="btn big" data-act="scan">${ic('scan')}${t('sh.scan')}</button>
-        <p class="note">${t('sh.how')}</p>
-        ${m.shift.last ? `<div class="lastscan ${m.shift.last.kind}">${t('sh.last')} <b>${t(m.shift.last.kind==='in'?'r.in':'r.out')} · ${esc(m.shift.last.name)} · ${m.shift.last.time}</b></div>` : ''}
+        <button class="btn" data-act="scan">${ic('scan')}${t('sh.scan')}</button>
+        <p class="note c">${t('sh.how')}</p>
+        ${m.shift.last ? `<div class="lastscan ${m.shift.last.kind}"><i></i><b>${t(m.shift.last.kind==='in'?'r.in':'r.out')} · ${esc(m.shift.last.name)} · ${m.shift.last.time}</b></div>` : ''}
         <div class="h3">${t('sh.mine')}</div>
         ${peopleList(m.shift.marks)}
         <button class="btn line" data-act="toclose">${t('sh.close')}</button>`;
@@ -928,46 +923,32 @@ function body(m){
       return `<div class="cam"><div class="aim">${t('sc.aim')}</div><div class="frame"><i></i><i></i><i></i><i></i></div>${resultCard(m.res)}</div>
         <div class="h3">${t('sh.mine')}</div>
         ${peopleList(m.shift.marks)}
-        <button class="btn dark" data-act="scandone">${t('sc.done')}</button>`;
+        <button class="btn" data-act="scandone">${t('sc.done')}</button>`;
     case 'close': {
-      const open = m.shift.marks.filter(x=>!x.out && !x.miss);
+      const open = m.shift.marks.filter(x=>!x.out && !x.miss).map(x=>x.n);
       const filled = (m.report||'').trim().length > 0;
-      const dis = !filled || !net;
       return `${offBanner(t('cl.offline'))}
-        <div class="rep"><label for="rep">${t('cl.rep')} <i>*</i></label>
-          ${voiceBlock(m)}
-          <textarea id="rep" data-in="report" class="${filled?'':'need'}" placeholder="${esc(t('cl.rep.ph'))}">${esc(m.report||'')}</textarea>
-          <p class="note-s" id="rep-need" ${filled?'hidden':''}>${t('cl.rep.need')}</p></div>
+        ${reportField(m)}
         <div class="rep"><label>${t('cl.photo')}</label><div class="photos">${('<span class="ph">'+ic('img')+'</span>').repeat(m.photos||0)}${(m.photos||0)<4?`<button data-act="photo" aria-label="+">${ic('cam')}</button>`:''}</div></div>
-        ${open.length ? `<div class="banner warn">${ic('alert')}<div><b>${t('cl.miss.t',{n:open.length})}</b><ul>${open.map(x=>`<li>${esc(x.n)} · ${x.in}</li>`).join('')}</ul>${t('cl.miss.s')}</div></div>
-          <button class="btn line" data-act="rescan">${ic('scan')}${t('su.rescan')}</button>` : ''}
-        <button class="btn" id="close-btn" data-act="tosummary" ${dis?'disabled':''}>${t('cl.next')}</button>`;
+        ${missLine(open, 'cl.miss')}
+        <button class="btn" id="close-btn" data-act="tosummary" ${!filled || !net?'disabled':''}>${t('cl.next')}</button>`;
     }
     case 'summary': {   // итоговый отчёт смены — он же экран подтверждения закрытия; карточка та же, что уйдёт руководителю
       const T_ = shiftTotals(m.shift.marks);
       const d = {obj:objName(m.shift.obj), date:TODAY, from:m.shift.opened, to:hhmm(m.clock), marks:m.shift.marks, report:m.report, photos:m.photos};
       return `${offBanner(t('cl.offline'))}
         ${reportCard(d, t('su.t'))}
-        ${T_.missing.length ? `<div class="banner warn">${ic('alert')}<div>${t('su.miss',{names:'<strong>'+T_.missing.map(esc).join(', ')+'</strong>'})}</div></div>
-          <button class="btn line" data-act="rescan">${ic('scan')}${t('su.rescan')}</button>` : ''}
+        ${missLine(T_.missing, 'su.miss')}
         <button class="btn" data-act="close" ${net?'':'disabled'}>${t('su.send')}</button>
         <button class="btn line" data-act="back" data-arg="close">${t('su.back')}</button>`;
     }
     case 'closed':
       return `<div class="sent">${ic('checkc')}<b>${t('cd.sent')}</b></div>
-        ${reportCard(m.closedInfo, t('cd.label'))}
+        ${reportCard(m.closedInfo)}
         <button class="btn" data-act="tab" data-arg="home">${t('cd.done')}</button>`;
     case 'past':
-      return (m.past||PAST0).map((d,i)=>{
-        const miss = d.marks.filter(x=>x.miss).length;
-        return `<button class="day ${d.today?'today':''}" data-act="pastday" data-arg="${i}"><b>${d.today?t('pa.today')+' · ':''}${d.date} · ${esc(d.obj)}</b>
-          <span>${t('pa.line',{from:d.from,to:d.to,n:shiftTotals(d.marks).people})}${miss?` · <span class="w">${t('pa.miss',{n:miss})}</span>`:''}</span></button>`;
-      }).join('');
-    case 'pastday': {
-      const d = (m.past||PAST0)[m.pastIdx||0];
-      return `<span class="ro">${ic('lock')}${t('ro')}</span>
-        ${reportCard(d, t('cd.label'))}`;
-    }
+      // Лента (Oleg 22.11, четвёртый круг): одна смена на весь экран, вертикальный свайп с прилипанием, как в TikTok
+      return (m.past||PAST0).map((d,i)=>`<div class="slide" data-i="${i}">${reportCard(d)}</div>`).join('');
     case 'lcpick':  // экран «team» из login-qr.html (TG-443)
       return `<div class="list">${TEAM.map(p=>personRow(p)).join('')}</div>
           <p class="note">${t('team.hint')}</p>`;
@@ -996,7 +977,8 @@ function body(m){
 /* Шапка: у экранов первого уровня — имя и меню, у вложенных — «Назад». */
 function appbar(m){
   // «Назад» с шага 2 — на шаг 1; человек уже вошёл (код сработал) — сразу в карточку, как в login-qr.html
-  const back = {summary:'close', pick:'home', pastday:'past', lcpick:'home', lccard:'lcpick', lcinv:'lccard', lcode: m.lc && m.lc.used ? 'lccard' : 'lcinv'}[m.screen];
+  // С закрытия «Назад» — к смене (отчёт и фото остаются), а не крестик: одинаковое выглядит одинаково (TG-454)
+  const back = {close:'shift', summary:'close', pick:'home', lcpick:'home', lccard:'lcpick', lcinv:'lccard', lcode: m.lc && m.lc.used ? 'lccard' : 'lcinv'}[m.screen];
   let title = '', cls = '';
   switch (m.screen){
     case 'noshift': title = t('t.noshift'); break;
@@ -1005,8 +987,7 @@ function appbar(m){
     case 'close': title = t('t.close') + `<small>${esc(objName(m.shift.obj))}</small>`; cls='long'; break;
     case 'summary': break;   // шапка с «Назад» чистая: итог — крупно в самой карточке отчёта
     case 'closed': title = t('t.closed'); break;
-    case 'past': title = t('t.past'); break;
-    case 'pastday': break;   // как у итога: объект и смена — крупно в карточке
+    case 'past': title = t('t.past') + `<span class="lock">${ic('lock')}${t('ro')}</span>`; break;
     case 'lcpick': title = t('tab.team'); break;
     case 'lccard': { const p = TEAM.find(x=>x.id===m.lcFor); title = p ? esc(full(p)) : ''; break; }
     case 'lcinv': title = t('inv.title'); break;
@@ -1015,15 +996,14 @@ function appbar(m){
   const lead = back
     ? `<button class="backb" data-act="back" data-arg="${back}">${ic('back')}${t('back')}</button><span class="who"></span>`
     : `<span class="logo">LD</span><div class="who"><b>${FOREMAN}</b><span>${t('app.role')}</span></div>`;
-  const tail = m.screen==='close' ? `<button class="ham" data-act="back" data-arg="shift" aria-label="×">${ic('x')}</button>`
-    : back ? '' : `<button class="ham" data-act="menu" aria-label="menu">${ic('menu')}</button>`;
+  const tail = back ? '' : `<button class="ham" data-act="menu" aria-label="menu">${ic('menu')}</button>`;
   return `<div class="appbar"><div class="row">${lead}${tail}</div>${title ? `<h2 class="${cls}">${title}</h2>` : ''}</div>`;
 }
 function sheetHtml(m){
   if (m.sheet==='confirm'){
     return `<div class="dim" data-act="cancel"></div><div class="msheet"><b class="st">${t('cf.t')}</b>
       <p class="cf"><b>${esc(objName(m.chosen))}</b>${t('cf.time',{time:hhmm(m.clock)})}</p>
-      ${m.net===false ? `<div class="banner warn">${ic('wifioff')}<div>${t('cf.offline')}</div></div>` : ''}
+      ${m.net===false ? `<div class="warnl">${ic('wifioff')}<div>${t('cf.offline')}</div></div>` : ''}
       <button class="btn" data-act="open" ${m.net===false?'disabled':''}>${t('cf.ok')}</button>
       <button class="ghost" data-act="cancel">${t('cancel')}</button></div>`;
   }
@@ -1046,12 +1026,15 @@ function installSheet(){
         <li><span class="n">3</span><span>${t('ins.3')}</span></li></ol>
     <button class="ghost" data-act="later">${t('ins.ok')}</button><div class="arrow"></div></div>`;
 }
-const SCROLL = ['noshift','pick','shift','scan','close','summary','closed','past','pastday','lcpick'];
+const SCROLL = ['noshift','pick','shift','scan','close','summary','closed','past','lcpick'];
+/* Точки ленты «Прошлых»: где вы в ленте — «2 / 3». */
+const feedDots = (n, i) => `<div class="feeddots">${Array.from({length:n},(_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}<span>${i+1} / ${n}</span></div>`;
 function phone(m, size, native){
   const d = DEV[size], ins = !!m.install, login = m.screen==='login';
   const vars = native ? `--qr:${d.qr}px;--qrc:${d.qrc}px`
     : `--ph-w:${d.w}px;--ph-h:${d.h}px;--safe-top:${d.top}px;--safe-bottom:${d.bottom}px;--qr:${d.qr}px;--qrc:${d.qrc}px`;
-  const tabOn = ['past','pastday'].includes(m.screen) ? 'past' : 'shift';
+  const tabOn = m.screen==='past' ? 'past' : 'shift';
+  const feed = m.screen==='past';
   // Рисованная панель Safari — только в макете-доске: на настоящем телефоне Safari свой
   const bottom = ins && !native
     ? `<div class="safari"><span>‹</span><span>›</span><span class="hl">${ic('share')}</span><span>${ic('book')}</span><span>${ic('tabs')}</span></div>`
@@ -1060,8 +1043,8 @@ function phone(m, size, native){
   return `<div class="phone ${d.compact?'compact':''} ${['lcode','lcinv'].includes(m.screen)?'lcode':''}" style="${vars}" data-screen="foreman" data-state="${m.id||m.screen}" data-size="${d.w}x${d.h}">
     <header class="top"><div class="sb"><span>${hhmm(m.clock)}</span><span class="net">${m.net===false ? t('net.off') : '5G ▮▮▮'}</span></div>
     ${login ? '' : appbar(m)}</header>
-    <div class="body ${SCROLL.includes(m.screen)?'scroll':''}">${body(m)}</div>
-    ${bottom}${sheetHtml(m)}${ins ? installSheet() : ''}
+    <div class="body ${SCROLL.includes(m.screen)?'scroll':''} ${feed?'feed':''}" ${feed?`data-idx="${m.pastIdx||0}"`:''}>${body(m)}</div>
+    ${feed ? feedDots((m.past||PAST0).length, m.pastIdx||0) : ''}${bottom}${sheetHtml(m)}${ins ? installSheet() : ''}
   </div>`;
 }
 
@@ -1072,9 +1055,10 @@ const NOTES = `
 <li><b>Объекты — справочник системы</b>, бригадир выбирает объект из него и сам объекты не заводит. <b>Открыть смену — обязательный чекин бригадира на объекте</b>: без него сканировать нельзя, поэтому до открытия смены кнопки сканера нет вовсе. На объекте одна смена: объект с открытой сменой другого бригадира не выбрать, такие объекты — в конце списка. На экране выбора — одна подсказка «Чтобы открыть смену, выберите объект»; правила, которые 21.11 стояли там текстом, Oleg 22.11 убрал как шум — они здесь.</li>
 <li><b>Одна смена за раз.</b> У бригадира одновременно открыта одна смена; за день можно закрыть её и открыть новую (на другом объекте или на том же снова).</li>
 <li><b>Отчёт за день обязателен</b> — свободный текст; без него кнопка закрытия не работает. Фото — по желанию.</li>
-<li><b>Закрытие — через итог смены</b> (Oleg 22.11, второй круг). «Дальше: итог смены» ведёт на итоговый отчёт: таблица по рабочим (приход, уход, часы), всего людей и часов, кто не отметил уход, текст отчёта. Этот экран и есть подтверждение: «Отправить отчёт и закрыть смену» или «Вернуться и поправить». Не отметившие уход закрываются одним нажатием за всех, итог прямо называет их и говорит, что в табель они попадут с «уход не отмечен», без часов. Это обычный конец дня, а не исключение: на пульте — кнопка «Конец дня».</li>
-<li><b>Отчёт можно надиктовать</b> (Oleg 22.11). Телефон превращает речь в текст, текст встаёт в поле отчёта. Дальше бригадир отправляет его как есть или нажимает «Поправить с AI» — AI расставит знаки, цифры и исправит опечатки, не меняя смысла; «Вернуть как было» возвращает надиктованное. Поле остаётся обычным: поправить руками можно всегда. Если AI платформы недоступен, кнопки «Поправить с AI» нет — отчёт уходит как есть.</li>
+<li><b>Закрытие — через итог смены</b> (Oleg 22.11, второй круг). «Дальше: итог смены» ведёт на итоговый отчёт: таблица по рабочим (приход, уход, часы), всего людей и часов, кто не отметил уход, текст отчёта. Этот экран и есть подтверждение: «Отправить и закрыть смену» или «Поправить отчёт». Не отметившие уход закрываются одним нажатием за всех; итог называет их одной строкой — в табель они попадут с «уход не отмечен», без часов — и рядом ссылка «Назад к смене». Это обычный конец дня, а не исключение: на пульте — кнопка «Конец дня».</li>
+<li><b>Отчёт можно надиктовать</b> (Oleg 22.11). Телефон превращает речь в текст, текст встаёт в поле отчёта. Кнопки голоса и AI живут внутри поля, снизу (TG-454, без отдельной плашки): «Надиктовать», во время записи — «Слушаю…» и «Готово», после — «Заново» и «Поправить с AI» (AI расставит знаки, цифры и исправит опечатки, не меняя смысла), после правки AI — «Вернуть как было». Поле остаётся обычным: поправить руками можно всегда. Если AI платформы недоступен, кнопки «Поправить с AI» нет — отчёт уходит как есть.</li>
 </ol>
+<p><b>Как устроены экраны</b> (Oleg 22.11, пятый круг — TG-454): на каждом экране одна главная кнопка (лайм во всю ширину), остальное — тихая кнопка с контуром или ссылка. На открытой смене главная — «Сканировать пропуск», «Закрыть смену» — тихая внизу (оркестратор Малле Анатоль, 22.11). Стартовый экран — одна строка «Смена не открыта» и «Начать смену»; карточки последней смены нет, все смены — в «Прошлых». С закрытия и итога путь назад к смене один — «Назад» в шапке или ссылка «Назад к смене» в строке «Не отметили уход»: отчёт, надиктованное и фото хранятся в смене, бригадир досканирует уход и вернётся к закрытию, где всё на месте. Предупреждения — одна строка с иконкой. Коды ответов движка на экране не показываются — они в подписях кадров и в таблице ниже.</p>
 <p>Ещё принято (оркестратор Малле Анатоль, 21.11): «свои» люди — только те, кого бригадир отметил на своей смене; сканер — камера внутри приложения; «Бригада» — пункт меню, за ним люди бригады и в карточке человека одна кнопка «Выдать доступ» с двумя шагами — установка приложения и вход (было «Код для входа», «Впустить в приложение», затем две кнопки; правило Oleg 21.11 и 22.11), экраны — из макета TG-443; прошлые смены — только чтение.</p>
 
 <h2>Данные экрана</h2>
@@ -1087,17 +1071,17 @@ const NOTES = `
 <tr><td>«Рабочие на смене», счётчики «на объекте · пришли · ушли»</td><td>Счётчики — по людям, а не по отметкам: ушёл и вернулся — две отметки, один человек. <span class="tag ask">уточнить</span> отметки рабочих под этой сменой (документы процесса отметок, связанные со сменой) — список документов есть, но «только отмеченные мной» — фильтр по тому, кто погасил код. Так как на объекте одна смена и её открыл этот бригадир, все отметки под ней — его; отдельный фильтр нужен, только если Oleg поменяет решение 1.</td></tr>
 <tr><td>Отчёт и закрытие смены</td><td><span class="tag ask">уточнить</span> поле отчёта у смены (обязательное на переходе «закрыть» — guard или <code>required</code> на шаге) и фото (поле-файл). Формат пропусков «забыл уйти» не решает: «уход не отмечен» — дело перехода закрытия смены в контракте (например, действие, которое закрывает открытые отметки со статусом «без ухода»).</td></tr>
 <tr><td>Отчёт голосом</td><td><span class="tag cli">клиент</span> распознавание речи — средство телефона (Web Speech API, а на iPhone — диктовка клавиатуры), в движок уходит готовый текст. <span class="tag ask">уточнить</span> «Поправить с AI» — новая AI-задача движка «поправить текст отчёта» (контракт <code>ai_tasks</code>); в аварийном режиме без AI кнопка скрыта, как и другие AI-кнопки платформы.</td></tr>
-<tr><td>Прошлые смены</td><td><span class="tag have">есть</span> список документов-смен этого бригадира (закрытые), открытие — карточка документа только для чтения.</td></tr>
+<tr><td>Прошлые смены</td><td><span class="tag have">есть</span> список документов-смен этого бригадира (закрытые), от новой к старой; каждая — карточка документа только для чтения. <span class="tag cli">клиент</span> лента с вертикальным свайпом (CSS scroll-snap), на компьютере — колесо и стрелки; длинная лента подгружается страницами по мере листания.</td></tr>
 <tr><td>Вход, «Бригада», «Выдать доступ»</td><td><span class="tag ask">TG-443</span> экраны — из <code>login-qr.html</code> один в один; точки движка «выдать код входа» и вход по нему — новые, описаны в записке под тем макетом. Список «Бригада» — заведённые владельцем рабочие с признаком «телефон привязан / заблокирован».</td></tr>
 <tr><td>Имя и роль в шапке</td><td><span class="tag cli">клиент</span> вошедший человек.</td></tr>
 </table>
 
 <h2>Как экран переходит из состояния в состояние</h2>
-<p>После входа — «Смена не открыта» (1): кнопки сканера нет, есть одна — «Начать смену на объекте». Дальше выбор объекта (2) и подтверждение (3), где только объект и время. Открытая смена (4): объект и время открытия — в заголовке, под ним счётчики «на объекте · пришли · ушли», кнопка «Сканировать пропуск» и под ней строка, как он работает: первый скан — приход, второй — уход, решает система, нажимать на рабочего не нужно; после скана — «Последний скан: Приход · имя · время». «Сканировать пропуск» открывает камеру (6). Под камерой — тот же список «Рабочие на смене»: каждый скан даёт плашку итога и сразу строку в списке, камера продолжает работать — очередь сканируют подряд. «Готово» — назад к смене (5). «Закрыть смену» (14): отчёт обязателен, его можно набрать или надиктовать, а надиктовать заново (15a–15d); если у кого-то нет ухода — список (15). «Дальше: итог смены» (15e, 15f) — итоговый отчёт, он же подтверждение: «Отправить отчёт и закрыть смену» или «Вернуться и поправить». После закрытия (16) можно открыть новую смену, а стартовый экран показывает сводку последней смены (1). Прошлые смены (17, 18) — вкладка снизу или пункт меню, только чтение.</p>
+<p>После входа — «Смена не открыта» (1): кнопки сканера нет, есть одна — «Начать смену». Дальше выбор объекта (2; первым — объект прошлого раза) и подтверждение (3), где только объект и время. Открытая смена (4): объект и время открытия — в заголовке, под ним счётчики «на объекте · пришли · ушли», главная кнопка «Сканировать пропуск» и под ней одна строка «Первый скан — приход, второй — уход»; после скана — итог последнего скана «Приход · имя · время». «Сканировать пропуск» открывает камеру (6). Под камерой — тот же список «Рабочие на смене»: каждый скан даёт плашку итога и сразу строку в списке, камера продолжает работать — очередь сканируют подряд. «Готово» — назад к смене (5). «Закрыть смену» — тихая кнопка внизу (14): отчёт обязателен, его можно набрать или надиктовать (15a–15d); у кого нет ухода — одна строка с именами и «Назад к смене» (15). «Дальше: итог смены» (15e, 15f) — итоговый отчёт, он же подтверждение: «Отправить и закрыть смену» или «Поправить отчёт». После отправки (16) — та же карточка отчёта и «Готово», которое ведёт домой. Прошлые смены (17, 18) — вкладка снизу или пункт меню: лента на весь экран, одна смена целиком, вертикальный свайп, как в TikTok; справа — точки «где вы»; только чтение.</p>
 <p>Связь у бригадира пропала — открыть смену, отметить и закрыть смену нельзя: всё это проверяет сервер. Экран говорит об этом прямо, отчёт не теряется.</p>
 
 <h2>Размеры</h2>
-<p>Те же три опорных размера, что у «Мой код»: 360×640, 390×844, 430×932. Экраны со списками (смена, сканер, выбор объекта, закрытие, прошлые смены) прокручиваются — кнопка «Сканировать пропуск» стоит выше списка людей и видна без прокрутки; на сканере камера и кнопка «Готово» видны без прокрутки, список — под ними. Экран итога закрытия — без прокрутки.</p>
+<p>Те же три опорных размера, что у «Мой код»: 360×640, 390×844, 430×932. Экраны со списками (смена, сканер, выбор объекта, закрытие, итог) прокручиваются, «Прошлые» листаются по смене — кнопка «Сканировать пропуск» стоит выше списка людей и видна без прокрутки; на сканере камера и кнопка «Готово» видны без прокрутки, список — под ними. Экран итога закрытия — без прокрутки.</p>
 `;
 
 /* ══ ЖИВОЙ ПРОТОТИП ══
@@ -1135,8 +1119,13 @@ const ACT = {
   scan(){ go('scan'); logEv('Бригадир открыл камеру в приложении. Теперь на пульте: «рабочий показывает код».'); },
   scandone(){ go('shift'); },
   toclose(){ go('close'); logEv('Экран закрытия смены: без отчёта дальше не пройти.'); },
-  /* «Отсканировать уход» с закрытия и итога: назад к камере, отчёт сохраняется */
-  rescan(){ go('scan'); logEv('Бригадир вернулся к сканеру отметить уход тех, кто не отметился. Отчёт сохранён.'); },
+  /* «Назад к смене» с закрытия и итога (TG-454): отчёт, надиктованное и фото живут в смене, а не в экране —
+     бригадир досканирует уход, снова нажмёт «Закрыть смену», и всё на месте. Шла запись голоса — она останавливается. */
+  toshift(){
+    if (P.voice==='rec') P.voice = (P.report||'').trim() ? 'raw' : null;
+    go('shift');
+    logEv(`Бригадир вернулся к смене отметить уход. Отчёт${P.photos?` и ${P.photos} фото`:''} сохранены — вернутся на закрытии.`);
+  },
   tosummary(){
     if (!(P.report||'').trim()){ logEv('Отчёт пустой — дальше не пройти.'); return; }
     go('summary'); logEv('Итог смены: таблица по рабочим, всего людей и часов, кто без ухода, текст отчёта. Это и есть подтверждение закрытия.');
@@ -1153,9 +1142,8 @@ const ACT = {
     P.past.unshift(info); P.closedInfo = info; P.shift = null; P.voice = null; go('closed');
     logEv(`Смена закрыта${open.length?` без ухода у ${open.length} чел. (${open.map(x=>x.n).join(', ')}) — у них «уход не отмечен»`:''}. Отчёт ушёл руководителю.`);
   },
-  tab(arg){ go(arg==='past' ? 'past' : home()); },
-  back(arg){ go(arg==='home' ? home() : arg); },
-  pastday(i){ P.pastIdx = +i; go('pastday'); },
+  tab(arg){ if (arg==='past') P.pastIdx = 0; go(arg==='past' ? 'past' : home()); },
+  back(arg){ if (arg==='shift') return ACT.toshift(); go(arg==='home' ? home() : arg); },
   menu(){ P.sheet = 'menu'; },
   lang(l){ S.lang = l; P.sheet = null; syncUrl(); render(); },
   lcpick(){ go('lcpick'); },
@@ -1248,6 +1236,8 @@ const MK = [
   {n:'Szabó Márk', in:'08:15', out:'17:02'},
 ];
 const sh = (marks=MK) => ({obj:'fer', opened:'07:45', marks:marks.map(x=>({...x}))});
+const PASTB = [{today:true, date:TODAY, obj:'Ferihegy, 2-es terminál', from:'07:45', to:'17:06', marks:MK.map(x=>({...x, miss:!x.out})),
+  report:'Zsaluzás a 3. szinten kész. Holnap betonozás 7:00-tól, a mixer 7:30-ra jön. Két ember nem jelentkezett ki.', photos:2}, ...PAST0];
 const STATES = [
   {id:'login', screen:'login', clock:7*3600+43*60},
   {id:'noshift', screen:'noshift', clock:7*3600+44*60},
@@ -1272,8 +1262,8 @@ const STATES = [
   {id:'summary', screen:'summary', dec:true, shift:sh(), report:VOICE_AI, photos:1, clock:17*3600+7*60},
   {id:'summary-ok', screen:'summary', dec:true, shift:sh(MK.map(x=>({...x, out:x.out||'17:00'}))), report:VOICE_AI, photos:0, clock:17*3600+7*60},
   {id:'closed', screen:'closed', clock:17*3600+8*60, closedInfo:{obj:'Ferihegy, 2-es terminál', date:'22.11', from:'07:45', to:'17:08', marks:MK.map(x=>({...x, miss:!x.out})), report:'Zsaluzás a 3. szinten kész. Holnap betonozás 7:00-tól, a mixer 7:30-ra jön. Két ember nem jelentkezett ki.', photos:1, miss:2}},
-  {id:'past', screen:'past', clock:17*3600+8*60, past:[{today:true, date:TODAY, obj:'Ferihegy, 2-es terminál', from:'07:45', to:'17:06', marks:MK.map(x=>({...x, miss:!x.out})), report:'', photos:2}, ...PAST0]},
-  {id:'pastday', screen:'pastday', pastIdx:0, clock:17*3600+9*60},
+  {id:'past', screen:'past', clock:17*3600+8*60, past:PASTB, pastIdx:0},
+  {id:'pastday', screen:'past', clock:17*3600+9*60, past:PASTB, pastIdx:1},   // та же лента, пролистанная на смену вниз
   {id:'menu', screen:'shift', sheet:'menu', shift:sh(), clock:12*3600},
   {id:'team', screen:'lcpick', clock:7*3600+40*60},
   {id:'lccard', screen:'lccard', lcFor:5, clock:7*3600+40*60},
@@ -1299,6 +1289,8 @@ function renderScreens(){
   const was = document.querySelector('.proto .phone'), keep = was && was.dataset.state === P.screen ? was.querySelector('.body').scrollTop : 0;
   document.getElementById('screens').innerHTML = screenHtml();
   if (keep){ const b = document.querySelector('.proto .phone .body'); if (b) b.scrollTop = keep; }
+  // Лента «Прошлых» на доске состояний — пролистана до своей смены (data-idx)
+  document.querySelectorAll('.board .body.feed, .sizes .body.feed').forEach(b=>{ const s = b.querySelectorAll('.slide'); const i = +b.dataset.idx||0; if (s[i]) b.scrollTop = s[i].offsetTop - s[0].offsetTop; });
   // В режиме приложения шапка и меню прибиты к краям экрана (position:fixed), контенту нужны отступы на высоту шапки
   document.querySelectorAll('body.standalone .phone').forEach(ph => ph.style.setProperty('--top-h', ph.querySelector('.top').offsetHeight + 'px'));
   if (DEBUG) document.querySelectorAll('.phone .body:not(.scroll)').forEach(b=>{ if (b.scrollHeight > b.clientHeight + 1) b.closest('.phone').classList.add('overflow'); });
@@ -1342,7 +1334,8 @@ setInterval(()=>{
   P.clock++;
   // как в login-qr.html: истёкший код сам не меняется — «Код истёк» и кнопка «Новый код»
   if (P.lc && !P.lc.used && P.lc.left>0){ P.lc.left--; if (P.lc.left===0) logEv('Срок кода для входа вышел. Бригадир может нажать «Новый код».'); }
-  if (P.screen==='close'){ const sb=document.querySelector('.proto .sb span'); if (sb) sb.textContent=hhmm(P.clock); return; }
+  // отчёт (идёт набор) и лента «Прошлых» (идёт свайп) не перерисовываются — меняется только время в строке состояния
+  if (P.screen==='close' || P.screen==='past'){ const sb=document.querySelector('.proto .sb span'); if (sb) sb.textContent=hhmm(P.clock); return; }
   renderScreens();
 }, 1000);
 
@@ -1401,9 +1394,49 @@ document.addEventListener('input', e=>{
   if (e.target.dataset.in!=='report' || e.target.closest('.board, .sizes')) return;
   P.report = e.target.value;
   const filled = P.report.trim().length > 0;
-  e.target.classList.toggle('need', !filled);
-  const need = document.getElementById('rep-need'); if (need) need.hidden = filled;
+  const f = document.getElementById('rep-field'); if (f) f.classList.toggle('need', !filled);
   const btn = document.getElementById('close-btn'); if (btn) btn.disabled = !filled || !P.net;
+});
+
+/* ══ ЛЕНТА «ПРОШЛЫХ» (TG-454) ══
+   Свайп — родная прокрутка с прилипанием (scroll-snap). Здесь: точки «где вы» по прокрутке, а на компьютере —
+   колесо мыши и стрелки ↑/↓ листают по одной смене. Длинная смена (не влезла в экран) сначала докручивается сама. */
+const feedBody = () => S.view==='proto' && P.screen==='past' ? document.querySelector('.proto .body.feed') : null;
+function feedIdx(b){
+  const s = [...b.querySelectorAll('.slide')], top = b.scrollTop + s[0].offsetTop;
+  let i = 0; s.forEach((el,k)=>{ if (el.offsetTop - b.clientHeight/2 <= top) i = k; });
+  return i;
+}
+function feedGo(b, dir){
+  const s = b.querySelectorAll('.slide'), i = Math.max(0, Math.min(s.length-1, feedIdx(b)+dir));
+  b.scrollTo({top: s[i].offsetTop - s[0].offsetTop, behavior:'smooth'});
+}
+/* Можно ли листать дальше, или текущая длинная смена ещё не докручена в эту сторону. */
+function feedEdge(b, dir){
+  const cur = b.querySelectorAll('.slide')[feedIdx(b)], r = cur.getBoundingClientRect(), v = b.getBoundingClientRect();
+  return dir > 0 ? r.bottom <= v.bottom + 2 : r.top >= v.top - 2;
+}
+document.addEventListener('scroll', e=>{
+  const b = feedBody(); if (!b || e.target !== b) return;
+  const i = feedIdx(b); if (i === P.pastIdx) return;
+  P.pastIdx = i;
+  const dots = b.parentElement.querySelector('.feeddots');
+  if (dots) dots.outerHTML = feedDots(b.querySelectorAll('.slide').length, i);
+}, true);
+let feedLock = 0;
+document.addEventListener('wheel', e=>{
+  const b = feedBody(); if (!b || !b.contains(e.target) || Math.abs(e.deltaY) < 4) return;
+  const dir = e.deltaY > 0 ? 1 : -1;
+  if (!feedEdge(b, dir)) return;          // длинную смену докручивает родная прокрутка
+  e.preventDefault();
+  if (Date.now() < feedLock) return;      // один жест колеса или тачпада — одна смена
+  feedLock = Date.now() + 600; feedGo(b, dir);
+}, {passive:false});
+document.addEventListener('keydown', e=>{
+  const b = feedBody(); if (!b || !['ArrowDown','ArrowUp','PageDown','PageUp'].includes(e.key)) return;
+  const dir = e.key==='ArrowDown' || e.key==='PageDown' ? 1 : -1;
+  if (!feedEdge(b, dir)) return;
+  e.preventDefault(); feedGo(b, dir);
 });
 resetProto();
 render();

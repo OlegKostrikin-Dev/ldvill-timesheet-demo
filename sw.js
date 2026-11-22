@@ -2,9 +2,9 @@
    Свои файлы — «сначала сеть, при обрыве кэш» (правка макета видна сразу после выкладки).
    Внешние шрифт и библиотека QR — «сначала кэш», кладутся туда при первом запросе.
    Новая версия оболочки — поднять номер в CACHE. */
-const CACHE = 'ldvill-v13';
+const CACHE = 'ldvill-v14';
 /* Отдельные прототипы-приложения в той же папке: страница открывается без сети своей, а не черновиком index.html. */
-const APPS = ['my-code.html', 'login-qr.html', 'foreman.html'];
+const APPS = ['my-code.html', 'login-qr.html', 'foreman.html', 'owner-web.html'];
 const SHELL = [
   './',
   './index.html',
@@ -15,6 +15,8 @@ const SHELL = [
   './login-qr.webmanifest',
   './foreman.html',          /* прототип рабочего места бригадира (TG-444) — четвёртое */
   './foreman.webmanifest',
+  './owner-web.html',        /* прототип веб-кабинета владельца (TG-451) — пятое, для компьютера */
+  './owner-web.webmanifest',
   './icons/apple-touch-icon.png',
   './icons/icon-192.png',
   './icons/icon-512.png',
