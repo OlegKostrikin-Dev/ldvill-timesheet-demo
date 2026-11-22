@@ -8,7 +8,7 @@
 <!-- Ставится на телефон как приложение (PWA): на iPhone — «Поделиться → На экран „Домой“», на Android — «Установить». -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="LD Belépés">
 <link rel="manifest" href="login-qr.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -86,7 +86,7 @@
   .logo{width:34px;height:34px;background:var(--c-lime);color:var(--c-dark);display:grid;place-items:center;font-weight:800;font-size:14px;letter-spacing:-.02em;flex:none}
   .who{line-height:1.2}
   .who b{display:block;font-size:15px}
-  .who span{font-size:12px;opacity:.7}
+  .who span{font-size:12px;color:#B9C6CD}
   .appbar h2{margin:14px 0 0;font-size:26px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:6px}
   .appbar .bk{border:0;background:none;color:#fff;padding:0;width:28px;height:28px;margin-left:-6px;display:grid;place-items:center}
   .appbar .bk svg{width:26px;height:26px}
@@ -300,17 +300,15 @@
   body.standalone .pult .ptitle{display:none}
   body.standalone .pult .pin{overflow:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px))}
   body.standalone .log{max-height:none}
-  html.standalone{background:var(--c-ground)}
+  /* Обычная колонка (TG-440), как в my-code.html: шапка — содержимое (flex:1) — меню; ничего не прибито поверх и ничего
+     не досчитывает скрипт. Строка состояния значка — black: окно кончается на дне экрана, отступ меню — ровно safe-area;
+     экран без меню сам отступает от полоски «домой». Оттягивание выключено у html. */
+  html.standalone{background:var(--c-ground);overscroll-behavior:none}
   body.standalone .tabs span{box-sizing:border-box;height:49px;justify-content:center;gap:2px;padding:0}
   body.standalone .tabs:empty{display:none}
-  body.standalone .top{position:fixed;top:0;left:0;right:0;z-index:5}
-  body.standalone .tabs{position:absolute;left:0;right:0;bottom:0;z-index:5;background:var(--c-dark)}
   body.standalone[data-view] .phone{height:auto}
-  @supports (height:100lvh){ body.standalone .phone{--safe-bottom:max(0px, calc(env(safe-area-inset-bottom, 0px) - (100lvh - 100dvh)))} }
-  html.installed, html.installed body.standalone{background:var(--c-dark)}
-  body.standalone .body{padding-top:calc(var(--top-h, 0px) + 16px);padding-bottom:calc(49px + var(--safe-bottom) + 16px)}
   body.standalone .body.notabs{padding-bottom:calc(var(--safe-bottom) + 16px)}
-  body.standalone .body.flush{padding:var(--top-h, 0px) 0 0}
+  body.standalone .body.flush{padding:0}   /* «Домой» и камера — во весь экран до самого края, хоть и без меню: весомее notabs */
   body.standalone .pult:not(.open){visibility:hidden}
   body.standalone .sheet{bottom:calc(var(--safe-bottom) + 49px + 14px)}
 </style>
@@ -490,7 +488,6 @@ const INSTALLED = matchMedia('(display-mode: standalone)').matches || navigator.
 const PHONE = !qs.has('desktop') && matchMedia('(pointer:coarse) and (hover:none)').matches;
 const STANDALONE = INSTALLED || PHONE;
 if (STANDALONE){ S.view = 'proto'; document.body.classList.add('standalone'); document.documentElement.classList.add('standalone'); }
-if (INSTALLED) document.documentElement.classList.add('installed');
 const nativeSize = () => innerWidth < 380 || innerHeight < 700 ? 's' : innerWidth < 420 ? 'm' : 'l';
 const DEBUG = qs.has('debug') || (INSTALLED && location.hostname === 'localhost');
 function t(k, v={}){ const row=T[k]; if(!row) return k; let s=row[LI[S.lang]]; for(const [a,b] of Object.entries(v)) s=s.replace('{'+a+'}', b); return s; }
@@ -944,7 +941,6 @@ function renderScreens(){
   const f = document.activeElement;
   if (f && f.dataset && f.dataset.field) return;
   document.getElementById('screens').innerHTML = screenHtml();
-  document.querySelectorAll('body.standalone .phone').forEach(ph => ph.style.setProperty('--top-h', ph.querySelector('.top').offsetHeight + 'px'));
   if (DEBUG) document.querySelectorAll('.phone .body').forEach(b=>{ if (b.scrollHeight > b.clientHeight + 1) b.closest('.phone').classList.add('overflow'); });
 }
 

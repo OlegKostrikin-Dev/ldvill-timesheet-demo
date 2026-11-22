@@ -8,7 +8,7 @@
 <!-- Ставится на телефон как приложение (PWA): на iPhone — «Поделиться → На экран „Домой“», на Android — «Установить». -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="LD Kód">
 <link rel="manifest" href="my-code.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -100,7 +100,7 @@
   .logo{width:34px;height:34px;background:var(--c-lime);color:var(--c-dark);display:grid;place-items:center;font-weight:800;font-size:14px;letter-spacing:-.02em}
   .who{line-height:1.2}
   .who b{display:block;font-size:15px}
-  .who span{font-size:12px;opacity:.7}
+  .who span{font-size:12px;color:#B9C6CD}
   .appbar h2{margin:14px 0 0;font-size:26px;font-weight:800;letter-spacing:-.01em}
 
   .body{flex:1;overflow:hidden;padding:16px 20px;display:flex;flex-direction:column;gap:14px}
@@ -247,27 +247,16 @@
   body.standalone .pult .pin{overflow:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px))}
   body.standalone .log{max-height:none}
   /* Отступы по краям (замечание Oleg с iPhone): нижний безопасный отступ — один раз и только под меню.
-     Меню — как таббар iPhone (49pt) + ровно safe-area; на экране входа меню нет вовсе, тёмной полосы снизу нет.
-     Резиновая вёрстка: телефон прибит к краям экрана (position:fixed, без фиксированных высот), шапка — контент flex:1 — меню у нижнего края; подложка светлая. */
-  html.standalone{background:var(--c-ground)}
+     Меню — как таббар iPhone (49pt) + ровно safe-area; на экране входа меню нет вовсе.
+     Обычная колонка (TG-440): телефон прибит к краям окна, внутри шапка — содержимое (flex:1) — меню. Ничего не прибито
+     поверх и ничего не досчитывает скрипт после отрисовки — поэтому вход не съезжает в первую секунду. Строка состояния
+     значка — black, не black-translucent: окно начинается под ней и кончается на дне экрана, меню стоит у нижнего края,
+     а его отступ — ровно safe-area (почему — app/README.md, «Экран во весь телефон»). Оттягивание выключено у html:
+     iOS тянет окно за корень страницы. */
+  html.standalone{background:var(--c-ground);overscroll-behavior:none}
   body.standalone .tabs span{box-sizing:border-box;height:49px;justify-content:center;gap:2px;padding:0}
   body.standalone .tabs:empty{display:none}
-  body.standalone .top{position:fixed;top:0;left:0;right:0;z-index:5}
-  body.standalone .tabs{position:absolute;left:0;right:0;bottom:0;z-index:5;background:var(--c-dark)}
-  /* Телефон держат края окна (TG-428), так же, как экран приложения (app/www/app.css); правило узкого экрана выше его
-     больше не укорачивает. В окне значка (iOS 16.4 и 18, black-translucent) окно короче экрана на строку состояния, и
-     ниже окна iOS не рисует ничего, кроме фона body (проба C — app/README.md, «Экран во весь телефон»). Поэтому в
-     окне значка фоны html И body — цвет меню (html.installed, ставит скрипт; тёмного html мало — пустоту iOS красит
-     фоном body, кадр ios18-my-code.png с одним html тёмным — светлая полоса), а нижний отступ меню меньше на эту пустоту
-     (--under): она сама служит отступом над полосой «домой». Где окно во весь экран (iPhone Oleg), --under 0 и
-     отступ — safe-area. --under один раз ставит скрипт (UNDER ниже, как app/www/inset.js), а не CSS: 100dvh iOS
-     пересчитывает, пока экран оттягивают пальцем, и меню прыгало (TG-440); по той же причине оттягивание выключено у
-     html, а не только у body: iOS тянет окно за корень страницы. */
   body.standalone[data-view] .proto .phone, body.standalone[data-view] .phone{height:auto}
-  body.standalone .phone{--safe-bottom:max(0px, calc(env(safe-area-inset-bottom, 0px) - var(--under, 0px)))}
-  html.standalone{overscroll-behavior:none}
-  html.installed, html.installed body.standalone{background:var(--c-dark)}
-  body.standalone .body{padding-top:calc(var(--top-h, 0px) + 16px);padding-bottom:calc(49px + var(--safe-bottom) + 16px)}
   body.standalone .pult:not(.open){visibility:hidden}
   body.standalone .sheet{bottom:calc(var(--safe-bottom) + 49px + 14px)}
 </style>
@@ -423,19 +412,6 @@ const INSTALLED = matchMedia('(display-mode: standalone)').matches || navigator.
 const PHONE = !qs.has('desktop') && matchMedia('(pointer:coarse) and (hover:none)').matches;
 const STANDALONE = INSTALLED || PHONE;
 if (STANDALONE){ S.view = 'proto'; document.body.classList.add('standalone'); document.documentElement.classList.add('standalone'); }
-/* Окно значка — фоны html и body цвета меню (TG-428): пустоту под окном iOS красит фоном body. По navigator.standalone, а не по
-   медиазапросу: в окне значка на iOS 16.4 и 18.2 display-mode: standalone не срабатывает (проба C). */
-if (INSTALLED) document.documentElement.classList.add('installed');
-/* Пустота под окном — для нижнего отступа меню (TG-440, как app/www/inset.js): высота экрана в этом повороте минус окно,
-   один раз и при повороте, но не пока экран тянут. На симуляторе iOS 16.4/18.2 окно короче экрана (62), на iPhone Oleg — нет (0). */
-let UNDER_W = -1;
-function pinUnder(){
-  if (innerWidth === UNDER_W) return;
-  UNDER_W = innerWidth;
-  const full = innerWidth > innerHeight ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
-  document.documentElement.style.setProperty('--under', Math.max(0, full - innerHeight) + 'px');
-}
-pinUnder(); addEventListener('resize', pinUnder);
 /* В установленном приложении размер экрана — настоящий; ключ размера нужен только для стороны QR и сжатой шапки. */
 const nativeSize = () => innerWidth < 380 || innerHeight < 700 ? 's' : innerWidth < 420 ? 'm' : 'l';
 // ?debug — красная рамка у телефона, где содержимое не влезло, и замер окна. Значок на «Домой» открывает адрес из
@@ -589,16 +565,15 @@ function screenHtml(){
 }
 function renderScreens(){
   document.getElementById('screens').innerHTML = screenHtml();
-  // В режиме приложения шапка и меню прибиты к краям экрана (position:fixed), контенту нужны отступы на высоту шапки
-  document.querySelectorAll('body.standalone .phone').forEach(ph => ph.style.setProperty('--top-h', ph.querySelector('.top').offsetHeight + 'px'));
   if (DEBUG) document.querySelectorAll('.phone .body').forEach(b=>{ if (b.scrollHeight > b.clientHeight + 1) b.closest('.phone').classList.add('overflow'); });
   if (DEBUG) measure();
 }
 /* ?debug — замер окна поверх экрана: высота окна, экрана и безопасного отступа снизу, где кончаются меню и телефон.
    По этим числам на снимке симулятора ищут полосу у нижнего края (TG-425, TG-428), а не правят вслепую. Числа
    обновляются, пока экран тянут пальцем, а в скобках — наименьшее и наибольшее с запуска (TG-440): один кадр после
-   оттягивания показывает, что плавало. «gap old» — нижний отступ по прежней формуле с 100dvh, «under» — пустота под окном, которую поставил скрипт,
-   «gap» — нынешний отступ. */
+   оттягивания показывает, что плавало. «inner@start» — высота окна в момент запуска скрипта, «top.h» — высота шапки:
+   по ним видно, что меняется в первую секунду. */
+const INNER_AT_START = innerHeight;
 const SEEN = {};
 const span = (k, v) => { const r = SEEN[k] ||= [v, v]; r[0] = Math.min(r[0], v); r[1] = Math.max(r[1], v);
   return r[0] === r[1] ? `${k} ${v}` : `${k} ${v} (${r[0]}…${r[1]})`; };
@@ -615,12 +590,12 @@ function measure(){
   const cs = getComputedStyle(probe), px = s => Math.round(parseFloat(s) || 0);
   const box1 = sel => document.querySelector(sel)?.getBoundingClientRect();
   const sab = px(cs.paddingBottom), svh = tall('100svh'), dvh = tall('100dvh'), lvh = tall('100lvh');
-  const ph = box1('.phone'), tabs = box1('.tabs'), under = px(document.documentElement.style.getPropertyValue('--under'));
+  const ph = box1('.phone'), tabs = box1('.tabs'), top = box1('.phone .top');
   box.textContent = [
-    `screen ${screen.width}×${screen.height}`, span('inner', innerHeight),
+    `screen ${screen.width}×${screen.height}`, `inner@start ${INNER_AT_START}`, span('inner', innerHeight),
     span('visual', Math.round(visualViewport?.height ?? 0)), span('html', document.documentElement.clientHeight),
     span('svh', svh), span('dvh', dvh), span('lvh', lvh), `safe top ${px(cs.paddingTop)} bottom ${sab}`,
-    span('gap old', Math.max(0, sab - (lvh - dvh))), `under ${under}`, span('gap', Math.max(0, sab - under)),
+    top ? span('top.h', Math.round(top.height)) : 'top —',
     ph ? span('phone.bottom', Math.round(ph.bottom)) : 'phone —',
     tabs ? `${span('tabs.bottom', Math.round(tabs.bottom))}\n${span('tabs.h', Math.round(tabs.height))}` : 'tabs —',
     `standalone ${matchMedia('(display-mode: standalone)').matches} nav ${navigator.standalone}`,
