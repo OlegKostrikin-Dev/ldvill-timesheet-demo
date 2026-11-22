@@ -115,7 +115,8 @@
   .appbar .backb svg{width:18px;height:18px}
 
   .body{flex:1;overflow:hidden;padding:16px 20px;display:flex;flex-direction:column;gap:14px}
-  .body.scroll{overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .body.scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0}   /* min-height:0 — иначе тело растёт по содержимому и низ обрезает рамка телефона */
+  .body.scroll > *{flex-shrink:0}   /* длинный экран прокручивается, а не сплющивает блоки (фото, камеру) */
   .tabs{flex:none;display:flex;background:var(--c-dark);padding-bottom:var(--safe-bottom)}
   .tabs span{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 6px;font-size:12px;font-weight:600;color:rgba(255,255,255,.6);border-top:3px solid transparent;cursor:pointer}
   .tabs span.on{color:#fff;border-top-color:var(--c-lime)}
@@ -125,7 +126,6 @@
   .state svg{flex:none;width:22px;height:22px;margin-top:1px}
   .state b{display:block;font-size:15px}
   .state span{font-size:13px;color:var(--c-muted)}
-  .state.on{border-left:4px solid var(--c-ok)} .state.on svg{color:var(--c-ok)}
   .state.off svg{color:var(--c-muted)}
 
   .banner{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;font-size:13px;line-height:1.35}
@@ -248,6 +248,17 @@
   .scanbar .cnt{font-size:13px;color:var(--c-muted)}
   .scanbar .cnt b{color:var(--c-ink);font-size:18px}
 
+  /* отчёт голосом */
+  .voice{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--c-line);border-left:4px solid var(--c-dark);padding:10px 12px;font-size:13px}
+  .voice > div{flex:1;min-width:0} .voice b{display:block;font-size:13.5px;font-weight:700} .voice span{color:var(--c-muted)}
+  .voice .btn{width:auto;margin:0;flex:none}
+  .voice.rec{border-left-color:var(--c-bad)} .voice.ai{border-left-color:var(--c-lime-ink)}
+  .voice .mic{flex:none;width:38px;height:38px;border-radius:50%;background:var(--c-bad);color:#fff;display:grid;place-items:center;animation:pulse 1.2s ease-in-out infinite}
+  .voice .mic svg{width:20px;height:20px}
+  @keyframes pulse{50%{box-shadow:0 0 0 8px rgba(214,69,69,.18)}}
+  /* сканер: камера сверху, под ней — рабочие на смене */
+  .body.scroll .cam{flex:none;height:300px;min-height:0}
+  .compact .body.scroll .cam{height:230px}
   /* отчёт */
   .rep{display:flex;flex-direction:column;gap:6px}
   .rep label{font-size:13px;font-weight:700}
@@ -273,6 +284,7 @@
   .msheet{position:absolute;left:0;right:0;bottom:0;background:#fff;padding:18px 18px calc(var(--safe-bottom) + 18px);box-shadow:0 -10px 30px rgba(0,0,0,.25);z-index:7;display:flex;flex-direction:column;gap:6px}
   .msheet .st{font-size:18px;display:block;font-weight:800}
   .msheet p{margin:0 0 6px;font-size:13.5px;color:var(--c-muted);line-height:1.4}
+  .msheet p.cf{font-size:16px;color:var(--c-ink)} .msheet p.cf b{display:block;font-size:20px}
   .msheet .mi{display:flex;align-items:center;gap:12px;border:0;border-top:1px solid var(--c-line);background:none;padding:14px 2px;font-size:16px;font-weight:700;text-align:left;width:100%}
   .msheet .mi svg{width:22px;height:22px;color:var(--c-dark)}
   .msheet .mi small{display:block;font-size:12px;font-weight:500;color:var(--c-muted)}
@@ -327,7 +339,7 @@
   .pult .ptitle{display:block;font-size:16px;margin-bottom:4px}
   .pult .how{margin:0 0 12px;color:var(--c-muted);font-size:13px;line-height:1.45}
   .pult .who-l{font-size:12px;color:var(--c-muted);margin:0 0 6px}
-  .pult .workers{display:flex;flex-wrap:wrap;margin-bottom:10px}
+  .acts.come button.main{grid-column:auto;font-size:13px;text-align:left}
   .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .acts button{border:1px solid #C9D2D6;background:#fff;padding:11px 10px;font-weight:700;font-size:13px;text-align:left}
   .acts button.main{grid-column:1/-1;background:var(--c-dark);color:#fff;border-color:var(--c-dark);font-size:15px;text-align:center}
@@ -436,6 +448,9 @@ const TEAM0 = JSON.stringify(TEAM);       // «Начать сначала» в�
 const full = p => p.sur + ' ' + p.name;   // по-венгерски фамилия впереди
 const initials = p => p.sur[0] + p.name[0];
 const CODE_TTL = 300;      // код для входа живёт 5 минут (хватает продиктовать по телефону) — как в login-qr.html (TG-443)
+/* Отчёт голосом в прототипе: что распознал телефон и что вернул AI (выдумано). */
+const VOICE_RAW = 'zsaluzás a harmadik szinten kész holnap betonozás hét órától a mixer fél nyolcra jön kettő ember nem jelentkezett ki';
+const VOICE_AI  = 'Zsaluzás a 3. szinten kész. Holnap betonozás 7:00-tól, a mixer 7:30-ra jön. Két ember nem jelentkezett ki.';
 const PENDING_SEC = 5;     // окно «приход ещё в пути» в прототипе (в жизни — пара секунд очереди движка)
 
 /* Прошлые смены бригадира — только чтение. */
@@ -479,25 +494,21 @@ const T = {
   'ns.t':['Nincs nyitott műszak','Смена не открыта','No open shift'],
   'ns.s':['Kezdj műszakot az objektumon — utána olvashatod be a belépőket.','Начните смену на объекте — после этого можно сканировать пропуска.','Start a shift on site — then you can scan passes.'],
   'ns.start':['Műszak kezdése az objektumon','Начать смену на объекте','Start shift on site'],
-  'ns.noscan':['Beolvasás csak nyitott műszakban','Сканировать — только в открытой смене','Scanning only in an open shift'],
-  'ns.after':['Ma már lezártad: {obj}. Nyithatsz újat másik objektumon.','Сегодня уже закрыта смена: {obj}. Можно открыть новую на другом объекте.','Already closed today: {obj}. You can open a new one on another site.'],
+  'ns.after':['Ma már lezártad: {obj}. Nyithatsz új műszakot.','Сегодня уже закрыта смена: {obj}. Можно открыть новую.','Already closed today: {obj}. You can open a new one.'],
 
   't.pick':['Objektum választása','Выбор объекта','Choose a site'],
-  'pk.rule1':['Az objektumok a rendszer listájából jönnek — innen választasz.','Объекты — справочник системы: вы выбираете объект из него.','Sites come from the system list — you pick one from it.'],
-  'pk.rule2':['A műszak nyitása a kötelező bejelentkezésed az objektumon: enélkül nem lehet beolvasni.','Открыть смену — это ваш обязательный чекин на объекте: без него сканировать нельзя.','Opening the shift is your mandatory check-in on site: without it you can’t scan.'],
-  'pk.rule3':['Csak azokat látod, akiket a saját műszakodon rögzítettél.','Вы увидите только тех людей, кого отметите на своей смене.','You will see only the people you check in on your shift.'],
+  'pk.hint':['A műszak nyitásához válaszd ki az objektumot.','Чтобы открыть смену, выберите объект.','To open a shift, choose a site.'],
   'pk.busy':['Már nyitva: {who}','Уже открыта смена: {who}','Already open: {who}'],
   'cf.t':['Műszak nyitása','Открыть смену','Open the shift'],
-  'cf.s':['{obj} · {time}. Az időt a szerver rögzíti. Ezután beolvashatod a belépőket.','{obj} · {time}. Время ставит сервер. После этого можно сканировать пропуска.','{obj} · {time}. The server records the time. Then you can scan passes.'],
+  'cf.time':['{time}-tól','с {time}','from {time}'],
   'cf.ok':['Műszak nyitása','Открыть смену','Open shift'],
   'cancel':['Mégse','Отмена','Cancel'],
   'cf.offline':['Nincs hálózat — a műszak nem nyílt meg. Próbáld újra, ha lesz térerő.','Нет связи — смена не открыта. Повторите, когда появится сеть.','No connection — the shift didn’t open. Try again once there is signal.'],
 
-  'sh.open':['Műszak nyitva {time} óta','Смена открыта с {time}','Shift open since {time}'],
-  'sh.open.s':['Te nyitottad · egy objektum — egy műszak','Открыли вы · на объекте одна смена','Opened by you · one shift per site'],
-  'n.here':['a helyszínen','на объекте','on site'], 'n.left':['távozott','ушли','left'], 'n.all':['összesen','всего','total'],
+  'sh.since':['műszak {time} óta','смена с {time}','shift since {time}'],
+  'n.here':['a helyszínen','на объекте','on site'], 'n.came':['érkezett','пришли','arrived'], 'n.left':['távozott','ушли','left'],
   'sh.scan':['Belépő beolvasása','Сканировать пропуск','Scan a pass'],
-  'sh.mine':['Saját emberek ebben a műszakban','Мои люди на смене','My people on this shift'],
+  'sh.mine':['Dolgozók a műszakban','Рабочие на смене','Workers on this shift'],
   'sh.empty':['Még senki. Olvasd be egy dolgozó kódját — itt jelenik meg.','Пока никого. Отсканируйте код рабочего — он появится здесь.','Nobody yet. Scan a worker’s code — they will show up here.'],
   'sh.close':['Műszak zárása','Закрыть смену','Close shift'],
   'onsite':['a helyszínen','на объекте','on site'],
@@ -527,6 +538,15 @@ const T = {
   'cl.rep':['Napi jelentés','Отчёт за день','Daily report'],
   'cl.rep.ph':['Mi készült el ma, mi akadt, mi kell holnapra…','Что сделано сегодня, что мешало, что нужно на завтра…','What got done today, what got in the way, what’s needed tomorrow…'],
   'cl.rep.need':['Jelentés nélkül a műszak nem zárható le.','Без отчёта смену не закрыть.','The shift can’t be closed without a report.'],
+  'vo.btn':['Diktálás','Надиктовать','Dictate'],
+  'vo.rec':['Beszélj — figyelek','Говорите — слушаю','Speak — listening'],
+  'vo.rec.s':['A telefon szöveggé alakítja. Ha kész, koppints a «Kész» gombra.','Телефон превращает речь в текст. Закончили — нажмите «Готово».','The phone turns speech into text. Done — tap “Done”.'],
+  'vo.stop':['Kész','Готово','Done'],
+  'vo.raw':['Diktálva — így küldheted, vagy javíttasd ki az AI-jal','Надиктовано — можно отправить так или поправить с AI','Dictated — send as is or let AI tidy it'],
+  'vo.fix':['Javítás AI-jal','Поправить с AI','Tidy with AI'],
+  'vo.ai':['Az AI kijavította: írásjelek, számok, elírások. Az értelem a tiéd.','AI поправил: знаки, цифры, опечатки. Смысл — ваш.','AI tidied it: punctuation, numbers, typos. The meaning is yours.'],
+  'vo.undo':['Vissza az eredetihez','Вернуть как было','Back to the original'],
+  'vo.ai.off':['Az AI most nem érhető el — küldd el úgy, ahogy van.','AI сейчас недоступен — отправьте как есть.','AI is unavailable right now — send it as is.'],
   'cl.photo':['Fotók — ha szeretnéd','Фото — по желанию','Photos — optional'],
   'cl.miss.t':['Nem rögzítették a távozást: {n}','Не отметили уход: {n}','Check-out not recorded: {n}'],
   'cl.miss.s':['Ha most zársz, náluk «távozás nincs rögzítve» jelölés lesz.','Если закрыть сейчас, у них будет отметка «уход не отмечен».','If you close now, they get a “check-out missing” mark.'],
@@ -591,15 +611,15 @@ const T = {
   'c.login':['0 · Belépés','0 · Вход','0 · Sign in'],
   'c.login.d':['A TG-443 makett «Belépés» képernyője; a kódolvasás és a 6 számjegy — ott.','Экран «Вход» из макета TG-443; сканер кода и 6 цифр — там.','The “Sign in” screen from the TG-443 mockup; code scanning and 6 digits live there.'],
   'c.noshift':['1 · Nincs nyitott műszak','1 · Смена не открыта','1 · No open shift'],
-  'c.noshift.d':['Beolvasás nincs: előbb kötelező bejelentkezés az objektumon.','Сканера нет: сначала обязательный чекин на объекте.','No scanner: first the mandatory check-in on site.'],
+  'c.noshift.d':['Beolvasó gomb nincs: csak nyitott műszakban lehet beolvasni.','Кнопки сканера нет: сканировать можно только на открытой смене.','No scan button: scanning only works on an open shift.'],
   'c.pick':['2 · Objektum a listából','2 · Объект из справочника','2 · Site from the system list'],
-  'c.pick.d':['Az objektum, ahol más műszaka nyitva, nem választható.','Объект, где открыта чужая смена, не выбрать: на объекте одна смена.','A site with someone else’s open shift can’t be chosen.'],
+  'c.pick.d':['Egy mondat-tipp; a foglalt objektumok a lista végén, nem választhatók.','Одна подсказка; занятые объекты — в конце списка, их не выбрать.','One hint; busy sites at the end of the list, not selectable.'],
   'c.confirm':['3 · Műszak nyitása','3 · Подтверждение открытия','3 · Confirm opening'],
-  'c.confirm.d':['Az időt a szerver adja.','Время ставит сервер.','The server sets the time.'],
+  'c.confirm.d':['Csak az objektum és az idő.','Только объект и время.','Only the site and the time.'],
   'c.shift0':['4 · Nyitott műszak, még üres','4 · Смена открыта, пока пусто','4 · Shift open, still empty'],
-  'c.shift0.d':['A lista a saját beolvasásaidból épül.','Список растёт из ваших сканов.','The list grows from your scans.'],
-  'c.shift':['5 · Saját emberek','5 · Мои люди на смене','5 · My people'],
-  'c.shift.d':['Csak akiket te rögzítettél ebben a műszakban.','Только те, кого отметили вы на этой смене.','Only those you checked in on this shift.'],
+  'c.shift0.d':['Objektum és idő a fejlécben; a lista a beolvasásokból épül.','Объект и время — в заголовке; список растёт из сканов.','Site and time in the header; the list grows from scans.'],
+  'c.shift':['5 · Dolgozók a műszakban','5 · Рабочие на смене','5 · Workers on this shift'],
+  'c.shift.d':['A helyszínen · érkezett · távozott; csak akiket ebben a műszakban rögzítettél.','На объекте · пришли · ушли; только те, кого отметили на этой смене.','On site · arrived · left; only those checked in on this shift.'],
   'c.scan':['6 · Kamera az alkalmazásban','6 · Камера в приложении','6 · Camera in the app'],
   'c.scan.d':['Érkezés vagy távozás — a rendszer dönti el.','Приход или уход — решает система.','Check-in or check-out — the system decides.'],
   'c.scan-in':['7 · Érkezés rögzítve','7 · Приход отмечен','7 · Check-in recorded'],
@@ -619,6 +639,14 @@ const T = {
   'c.close0':['14 · Zárás: jelentés kötelező','14 · Закрытие: отчёт обязателен','14 · Closing: report required'],
   'c.close0.d':['Üres jelentéssel a gomb nem él.','С пустым отчётом кнопка не работает.','With an empty report the button is off.'],
   'c.close':['15 · Zárás a távozásuk nélkül','15 · Закрыть без их ухода','15 · Close without their check-out'],
+  'c.voice-rec':['15a · Jelentés diktálása','15a · Отчёт голосом: запись','15a · Voice report: recording'],
+  'c.voice-rec.d':['A telefon beszédfelismerése.','Распознавание речи телефона.','The phone’s speech recognition.'],
+  'c.voice-raw':['15b · Diktálva — elküldhető így','15b · Надиктовано — отправить как есть','15b · Dictated — send as is'],
+  'c.voice-raw.d':['A felismert szöveg a mezőben, szerkeszthető.','Распознанный текст в поле, его можно поправить руками.','The recognised text is in the field and can be edited.'],
+  'c.voice-ai':['15c · AI-jal javítva','15c · Поправлено AI','15c · Tidied by AI'],
+  'c.voice-ai.d':['«Vissza az eredetihez» visszahozza a diktált szöveget.','«Вернуть как было» возвращает надиктованный текст.','“Back to the original” brings the dictated text back.'],
+  'c.voice-aioff':['15d · AI nem érhető el','15d · AI недоступен','15d · AI unavailable'],
+  'c.voice-aioff.d':['Csak «úgy, ahogy van».','Только «как есть».','Only “as is”.'],
   'c.close.d':['Egy gomb mindenkinek, aki nyitva maradt; a lista megmutatja, kiket érint.','Одна кнопка для всех незакрытых; список показывает, кого это касается.','One button for everyone still open; the list shows who is affected.'],
   'c.closed':['16 · Lezárva','16 · Смена закрыта','16 · Closed'],
   'c.closed.d':['Nyitható új műszak.','Можно открыть новую смену.','A new shift can be opened.'],
@@ -715,6 +743,8 @@ const IC = {
   go:'<path d="m9 18 6-6-6-6"/>',
   camera:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
   phone:'<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+  mic:'<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/>',
+  spark:'<path d="M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2z"/>',
 };
 const ic = (n, cls='') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</svg>`;
 
@@ -723,9 +753,14 @@ const ic = (n, cls='') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" s
    m.screen: login · noshift · pick · shift · scan · close · closed · past · pastday · lcpick · lcode;
    поверх — m.sheet: confirm · menu; m.install — шторка установки. */
 function marksStat(marks){
-  const here = marks.filter(x=>!x.out && !x.miss).length, left = marks.filter(x=>x.out).length;
-  // «всего» — люди, а не отметки: ушёл и вернулся — две отметки, но один человек
-  return {here, left, all:new Set(marks.map(x=>x.n)).size};
+  // Считаем людей, а не отметки: ушёл и вернулся — две отметки, но один человек.
+  const people = new Set(marks.map(x=>x.n));
+  const here = new Set(marks.filter(x=>!x.out && !x.miss).map(x=>x.n));
+  const left = [...people].filter(n=>!here.has(n) && marks.some(x=>x.n===n && x.out)).length;
+  return {here:here.size, came:people.size, left};
+}
+function nums(st){
+  return `<div class="nums"><div class="here"><b>${st.here}</b><span>${t('n.here')}</span></div><div><b>${st.came}</b><span>${t('n.came')}</span></div><div><b>${st.left}</b><span>${t('n.left')}</span></div></div>`;
 }
 function peopleList(marks){
   if (!marks.length) return `<div class="empty">${t('sh.empty')}</div>`;
@@ -776,6 +811,19 @@ function qrSvg(code){
   if (!window.qrcode) return '<div class="fallback"></div>';
   const q = qrcode(0,'M'); q.addData(code); q.make(); return q.createSvgTag({cellSize:6, margin:0, scalable:true});
 }
+/* Свободные объекты — сверху, занятые чужой сменой — в конце (замечание Oleg 22.11). */
+const objectsOrdered = () => [...OBJECTS.filter(o=>!o.busy), ...OBJECTS.filter(o=>o.busy)];
+/* Отчёт голосом (замечание Oleg 22.11): телефон распознаёт речь в текст; дальше бригадир отправляет как есть
+   или просит AI поправить знаки, цифры и опечатки — и может вернуть надиктованное. m.voice: null · rec · raw · ai.
+   m.aiOff — AI недоступен (аварийный режим платформы): остаётся только «как есть». */
+function voiceBlock(m){
+  if (m.voice==='rec') return `<div class="voice rec"><span class="mic">${ic('mic')}</span><div><b>${t('vo.rec')}</b><span>${t('vo.rec.s')}</span></div>
+      <button class="btn sm dark" data-act="vstop">${t('vo.stop')}</button></div>`;
+  if (m.voice==='raw') return `<div class="voice"><div>${m.aiOff ? `<b>${t('vo.ai.off')}</b>` : `<b>${t('vo.raw')}</b>`}</div>
+      ${m.aiOff ? '' : `<button class="btn sm" data-act="vfix">${ic('spark')}${t('vo.fix')}</button>`}</div>`;
+  if (m.voice==='ai') return `<div class="voice ai"><div><b>${t('vo.ai')}</b></div><button class="btn sm line" data-act="vundo">${t('vo.undo')}</button></div>`;
+  return `<button class="btn line sm" data-act="vrec">${ic('mic')}${t('vo.btn')}</button>`;
+}
 function body(m){
   const net = m.net !== false;
   const offBanner = msg => net ? '' : `<div class="banner warn">${ic('wifioff')}<div>${msg}</div></div>`;
@@ -788,20 +836,18 @@ function body(m){
     case 'noshift':
       return `<div class="state off">${ic('pin')}<div><b>${t('ns.t')}</b><span>${t('ns.s')}</span></div></div>
         ${m.lastClosed ? `<p class="note-s">${t('ns.after',{obj:esc(objName(m.lastClosed))})}</p>` : ''}
-        <button class="btn big" data-act="pick">${ic('pin')}${t('ns.start')}</button>
-        <button class="btn line" disabled>${ic('scan')}${t('ns.noscan')}</button>`;
+        <button class="btn big" data-act="pick">${ic('pin')}${t('ns.start')}</button>`;
     case 'pick':
-      return `<div class="banner info">${ic('alert')}<div><b>${t('pk.rule1')}</b>${t('pk.rule2')}<br>${t('pk.rule3')}</div></div>
+      return `<p class="note">${t('pk.hint')}</p>
         ${offBanner(t('cf.offline'))}
-        <div class="objs">${OBJECTS.map(o=>{
+        <div class="objs">${objectsOrdered().map(o=>{
           const busy = !!o.busy;
           return `<button class="obj" data-act="choose" data-arg="${o.id}" ${busy?'disabled':''}>${ic('pin')}<div><b>${esc(o.name)}</b>
             <span>${busy ? t('pk.busy',{who:esc(o.busy)}) : esc(o.addr)}</span></div>${busy?'':`<span class="go">${ic('chev')}</span>`}</button>`;
         }).join('')}</div>`;
     case 'shift': {
       const st = marksStat(m.shift.marks);
-      return `<div class="state on">${ic('checkc')}<div><b>${t('sh.open',{time:m.shift.opened})}</b><span>${t('sh.open.s')}</span></div></div>
-        <div class="nums"><div class="here"><b>${st.here}</b><span>${t('n.here')}</span></div><div><b>${st.left}</b><span>${t('n.left')}</span></div><div><b>${st.all}</b><span>${t('n.all')}</span></div></div>
+      return `${nums(st)}
         <button class="btn big" data-act="scan">${ic('scan')}${t('sh.scan')}</button>
         <div class="h3">${t('sh.mine')}</div>
         ${peopleList(m.shift.marks)}
@@ -810,7 +856,9 @@ function body(m){
     case 'scan': {
       const st = marksStat(m.shift.marks);
       return `<div class="cam"><div class="aim">${t('sc.aim')}</div><div class="frame"><i></i><i></i><i></i><i></i></div>${resultCard(m.res)}</div>
-        <div class="scanbar"><span class="cnt">${t('sc.here',{n:st.here})}</span><button class="btn dark" data-act="scandone">${t('sc.done')}</button></div>`;
+        <div class="scanbar"><span class="cnt">${t('sc.here',{n:st.here})}</span><button class="btn dark" data-act="scandone">${t('sc.done')}</button></div>
+        <div class="h3">${t('sh.mine')}</div>
+        ${peopleList(m.shift.marks)}`;
     }
     case 'close': {
       const open = m.shift.marks.filter(x=>!x.out && !x.miss);
@@ -818,9 +866,10 @@ function body(m){
       const dis = !filled || !net;
       return `${offBanner(t('cl.offline'))}
         <div class="rep"><label for="rep">${t('cl.rep')} <i>*</i></label>
+          ${voiceBlock(m)}
           <textarea id="rep" data-in="report" class="${filled?'':'need'}" placeholder="${esc(t('cl.rep.ph'))}">${esc(m.report||'')}</textarea>
           <p class="note-s" id="rep-need" ${filled?'hidden':''}>${t('cl.rep.need')}</p></div>
-        <div class="rep"><label>${t('cl.photo')}</label><div class="photos">${'<span class="ph">'+ic('img')+'</span>'.repeat(m.photos||0)}${(m.photos||0)<4?`<button data-act="photo" aria-label="+">${ic('cam')}</button>`:''}</div></div>
+        <div class="rep"><label>${t('cl.photo')}</label><div class="photos">${('<span class="ph">'+ic('img')+'</span>').repeat(m.photos||0)}${(m.photos||0)<4?`<button data-act="photo" aria-label="+">${ic('cam')}</button>`:''}</div></div>
         ${open.length ? `<div class="banner warn">${ic('alert')}<div><b>${t('cl.miss.t',{n:open.length})}</b><ul>${open.map(x=>`<li>${esc(x.n)} · ${x.in}</li>`).join('')}</ul>${t('cl.miss.s')}</div></div>` : ''}
         <button class="btn ${open.length?'dark':''}" id="close-btn" data-act="close" ${dis?'disabled':''}>${t(open.length?'cl.btn.miss':'cl.btn')}</button>`;
     }
@@ -843,7 +892,7 @@ function body(m){
       return `<span class="ro">${ic('lock')}${t('ro')}</span>
         <div class="h3">${t('pd.people')}</div>${peopleList(d.marks)}
         <div class="h3">${t('pd.rep')}</div><div class="reptext">${esc(d.report)}</div>
-        ${d.photos?`<div class="photos">${'<span class="ph">'+ic('img')+'</span>'.repeat(d.photos)}</div>`:''}`;
+        ${d.photos?`<div class="photos">${('<span class="ph">'+ic('img')+'</span>').repeat(d.photos)}</div>`:''}`;
     }
     case 'lcpick':  // экран «team» из login-qr.html (TG-443)
       return `<div class="list">${TEAM.map(p=>personRow(p)).join('')}</div>
@@ -878,7 +927,7 @@ function appbar(m){
   switch (m.screen){
     case 'noshift': title = t('t.noshift'); break;
     case 'pick': title = t('t.pick'); break;
-    case 'shift': case 'scan': title = esc(objName(m.shift.obj)) + `<small>${t(m.screen==='scan'?'t.scan':'tab.shift')}</small>`; cls='long'; break;
+    case 'shift': case 'scan': title = esc(objName(m.shift.obj)) + `<small>${t('sh.since',{time:m.shift.opened})}${m.screen==='scan' ? ' · '+t('t.scan') : ''}</small>`; cls='long'; break;
     case 'close': title = t('t.close') + `<small>${esc(objName(m.shift.obj))}</small>`; cls='long'; break;
     case 'closed': title = t('t.closed'); break;
     case 'past': title = t('t.past'); break;
@@ -898,7 +947,7 @@ function appbar(m){
 function sheetHtml(m){
   if (m.sheet==='confirm'){
     return `<div class="dim" data-act="cancel"></div><div class="msheet"><b class="st">${t('cf.t')}</b>
-      <p>${t('cf.s',{obj:'<b>'+esc(objName(m.chosen))+'</b>',time:hhmm(m.clock)})}</p>
+      <p class="cf"><b>${esc(objName(m.chosen))}</b>${t('cf.time',{time:hhmm(m.clock)})}</p>
       ${m.net===false ? `<div class="banner warn">${ic('wifioff')}<div>${t('cf.offline')}</div></div>` : ''}
       <button class="btn" data-act="open" ${m.net===false?'disabled':''}>${t('cf.ok')}</button>
       <button class="ghost" data-act="cancel">${t('cancel')}</button></div>`;
@@ -922,7 +971,7 @@ function installSheet(){
         <li><span class="n">3</span><span>${t('ins.3')}</span></li></ol>
     <button class="ghost" data-act="later">${t('ins.ok')}</button><div class="arrow"></div></div>`;
 }
-const SCROLL = ['pick','shift','close','past','pastday','lcpick'];
+const SCROLL = ['pick','shift','scan','close','past','pastday','lcpick'];
 function phone(m, size, native){
   const d = DEV[size], ins = !!m.install, login = m.screen==='login';
   const vars = native ? `--qr:${d.qr}px;--qrc:${d.qrc}px`
@@ -945,10 +994,11 @@ function phone(m, size, native){
 const NOTES = `
 <h2>Решения — Oleg может поменять</h2>
 <ol class="decisions">
-<li><b>Объекты — справочник системы</b>, бригадир выбирает объект из него и сам объекты не заводит. <b>Открыть смену — обязательный чекин бригадира на объекте</b>: без него сканировать нельзя. На объекте одна смена: объект с открытой сменой другого бригадира не выбрать (слова Oleg, 21.11).</li>
+<li><b>Объекты — справочник системы</b>, бригадир выбирает объект из него и сам объекты не заводит. <b>Открыть смену — обязательный чекин бригадира на объекте</b>: без него сканировать нельзя, поэтому до открытия смены кнопки сканера нет вовсе. На объекте одна смена: объект с открытой сменой другого бригадира не выбрать, такие объекты — в конце списка. На экране выбора — одна подсказка «Чтобы открыть смену, выберите объект»; правила, которые 21.11 стояли там текстом, Oleg 22.11 убрал как шум — они здесь.</li>
 <li><b>Одна смена за раз.</b> У бригадира одновременно открыта одна смена; за день можно закрыть её и открыть новую (на другом объекте или на том же снова).</li>
 <li><b>Отчёт за день обязателен</b> — свободный текст; без него кнопка закрытия не работает. Фото — по желанию.</li>
-<li><b>«Закрыть без их ухода» — одна кнопка для всех незакрытых</b>, над ней список, кого это касается. У этих людей в смене остаётся отметка «уход не отмечен».</li>
+<li><b>«Закрыть без их ухода» — одна кнопка для всех незакрытых</b>, над ней список, кого это касается. У этих людей в смене остаётся отметка «уход не отмечен». Это обычный конец дня, а не исключение: на пульте — кнопка «Конец дня».</li>
+<li><b>Отчёт можно надиктовать</b> (Oleg 22.11). Телефон превращает речь в текст, текст встаёт в поле отчёта. Дальше бригадир отправляет его как есть или нажимает «Поправить с AI» — AI расставит знаки, цифры и исправит опечатки, не меняя смысла; «Вернуть как было» возвращает надиктованное. Поле остаётся обычным: поправить руками можно всегда. Если AI платформы недоступен, кнопки «Поправить с AI» нет — отчёт уходит как есть.</li>
 </ol>
 <p>Ещё принято (оркестратор Малле Анатоль, 21.11): «свои» люди — только те, кого бригадир отметил на своей смене; сканер — камера внутри приложения; «Бригада» — пункт меню, за ним люди бригады и в карточке человека одна кнопка «Выдать доступ» с двумя шагами — установка приложения и вход (было «Код для входа», «Впустить в приложение», затем две кнопки; правило Oleg 21.11 и 22.11), экраны — из макета TG-443; прошлые смены — только чтение.</p>
 
@@ -959,19 +1009,20 @@ const NOTES = `
 <tr><td>Открыть смену</td><td><span class="tag have">есть</span> создать документ смены процесса и переход «открыть» — обычные точки документов и переходов. Время — сервера. <span class="tag ask">уточнить</span> запрет второй открытой смены на объекте и второй смены у бригадира — guard контракта смены.</td></tr>
 <tr><td>Скан пропуска</td><td><span class="tag have">есть</span> <code>POST /api/modules/{process}/documents/{id}/pass/redeem {pass_code}</code> на <b>документе смены</b> — поэтому без открытой смены сканировать нечем. Приход или уход выбирает движок; в ответе <code>action</code> (open / close) и карточка отметки — из неё имя рабочего. Время — сервера. «Чей код» (<code>…/pass/lookup</code>) экран не зовёт: бригадиру подтверждать нечего, лишний шаг на стройке. Описание — <code>engine/docs/tech/contracts-reference/pass-format.md#api</code>.</td></tr>
 <tr><td>Ошибки скана</td><td><span class="tag have">есть</span> <code>409 pass_expired</code> — «код просрочен»; <code>pass_already_used</code> — «уже использован»; <code>pass_unknown</code> и <code>pass_wrong_process</code> — «это не пропуск LD Vill»; <code>409 PASS_ARRIVAL_PENDING</code> — «приход только что отмечен, отсканируйте через пару секунд» (код не тратится); <code>400 INVALID_TRANSITION</code> (смена уже закрыта) и <code>404 REPORT_NOT_FOUND</code> — экран возвращается к «Смена не открыта»; 5xx и обрыв — «сервер не ответил». Без сети гасить нельзя: проверяет сервер.</td></tr>
-<tr><td>«Мои люди на смене», счётчики</td><td><span class="tag ask">уточнить</span> отметки рабочих под этой сменой (документы процесса отметок, связанные со сменой) — список документов есть, но «только отмеченные мной» — фильтр по тому, кто погасил код. Так как на объекте одна смена и её открыл этот бригадир, все отметки под ней — его; отдельный фильтр нужен, только если Oleg поменяет решение 1.</td></tr>
+<tr><td>«Рабочие на смене», счётчики «на объекте · пришли · ушли»</td><td>Счётчики — по людям, а не по отметкам: ушёл и вернулся — две отметки, один человек. <span class="tag ask">уточнить</span> отметки рабочих под этой сменой (документы процесса отметок, связанные со сменой) — список документов есть, но «только отмеченные мной» — фильтр по тому, кто погасил код. Так как на объекте одна смена и её открыл этот бригадир, все отметки под ней — его; отдельный фильтр нужен, только если Oleg поменяет решение 1.</td></tr>
 <tr><td>Отчёт и закрытие смены</td><td><span class="tag ask">уточнить</span> поле отчёта у смены (обязательное на переходе «закрыть» — guard или <code>required</code> на шаге) и фото (поле-файл). Формат пропусков «забыл уйти» не решает: «уход не отмечен» — дело перехода закрытия смены в контракте (например, действие, которое закрывает открытые отметки со статусом «без ухода»).</td></tr>
+<tr><td>Отчёт голосом</td><td><span class="tag cli">клиент</span> распознавание речи — средство телефона (Web Speech API, а на iPhone — диктовка клавиатуры), в движок уходит готовый текст. <span class="tag ask">уточнить</span> «Поправить с AI» — новая AI-задача движка «поправить текст отчёта» (контракт <code>ai_tasks</code>); в аварийном режиме без AI кнопка скрыта, как и другие AI-кнопки платформы.</td></tr>
 <tr><td>Прошлые смены</td><td><span class="tag have">есть</span> список документов-смен этого бригадира (закрытые), открытие — карточка документа только для чтения.</td></tr>
 <tr><td>Вход, «Бригада», «Выдать доступ»</td><td><span class="tag ask">TG-443</span> экраны — из <code>login-qr.html</code> один в один; точки движка «выдать код входа» и вход по нему — новые, описаны в записке под тем макетом. Список «Бригада» — заведённые владельцем рабочие с признаком «телефон привязан / заблокирован».</td></tr>
 <tr><td>Имя и роль в шапке</td><td><span class="tag cli">клиент</span> вошедший человек.</td></tr>
 </table>
 
 <h2>Как экран переходит из состояния в состояние</h2>
-<p>После входа — «Смена не открыта» (1): сканер закрыт, главная кнопка — «Начать смену на объекте». Выбор объекта (2) → подтверждение (3) → смена открыта (4). «Сканировать пропуск» открывает камеру (6); каждый скан даёт плашку итога внизу камеры, камера продолжает работать — можно сканировать очередь подряд. «Готово» — назад к смене (5). «Закрыть смену» (14): отчёт обязателен; если у кого-то нет ухода — список и кнопка «Закрыть без их ухода» (15). После закрытия (16) — можно открыть новую смену. Прошлые смены (17, 18) — вкладка снизу или пункт меню, только чтение.</p>
+<p>После входа — «Смена не открыта» (1): кнопки сканера нет, есть одна — «Начать смену на объекте». Дальше выбор объекта (2) и подтверждение (3), где только объект и время. Открытая смена (4): объект и время открытия — в заголовке, под ним счётчики «на объекте · пришли · ушли». «Сканировать пропуск» открывает камеру (6). Под камерой — тот же список «Рабочие на смене»: каждый скан даёт плашку итога и сразу строку в списке, камера продолжает работать — очередь сканируют подряд. «Готово» — назад к смене (5). «Закрыть смену» (14): отчёт обязателен, его можно набрать или надиктовать (15a–15d); если у кого-то нет ухода — список и кнопка «Закрыть без их ухода» (15). После закрытия (16) можно открыть новую смену. Прошлые смены (17, 18) — вкладка снизу или пункт меню, только чтение.</p>
 <p>Связь у бригадира пропала — открыть смену, отметить и закрыть смену нельзя: всё это проверяет сервер. Экран говорит об этом прямо, отчёт не теряется.</p>
 
 <h2>Размеры</h2>
-<p>Те же три опорных размера, что у «Мой код»: 360×640, 390×844, 430×932. Экраны со списками (смена, выбор объекта, закрытие, прошлые смены) прокручиваются — кнопка «Сканировать пропуск» стоит выше списка людей и видна без прокрутки. Камера и экран итога закрытия — без прокрутки.</p>
+<p>Те же три опорных размера, что у «Мой код»: 360×640, 390×844, 430×932. Экраны со списками (смена, сканер, выбор объекта, закрытие, прошлые смены) прокручиваются — кнопка «Сканировать пропуск» стоит выше списка людей и видна без прокрутки; на сканере камера и кнопка «Готово» видны без прокрутки, список — под ними. Экран итога закрытия — без прокрутки.</p>
 `;
 
 /* ══ ЖИВОЙ ПРОТОТИП ══
@@ -981,7 +1032,7 @@ const P = {};
 function resetProto(){
   TEAM.splice(0, TEAM.length, ...JSON.parse(TEAM0));
   Object.assign(P, {screen:'login', sheet:null, install:false, net:true, clock:7*3600+43*60+30, shift:null, res:null, resTimer:0,
-    report:'', photos:0, chosen:null, closedInfo:null, lastClosed:null, past:PAST0.map(d=>({...d})), pastIdx:0,
+    report:'', photos:0, voice:null, aiOff:false, chosen:null, closedInfo:null, lastClosed:null, past:PAST0.map(d=>({...d})), pastIdx:0,
     lc:null, failNext:false, worker:0, log:[], drawer:P.drawer||false});
   logEv('Бригадир открыл приложение — экран входа.');
 }
@@ -1016,7 +1067,9 @@ const ACT = {
     const open = P.shift.marks.filter(x=>!x.out && !x.miss);
     open.forEach(x=>{ x.miss = true; });
     const info = {today:true, date:'21.11', obj:objName(P.shift.obj), from:P.shift.opened, to:hhmm(P.clock), report:P.report, photos:P.photos, marks:P.shift.marks, miss:open.length};
-    P.past.unshift(info); P.closedInfo = info; P.lastClosed = P.shift.obj; P.shift = null; go('closed');
+    const how = P.voice==='ai' ? 'исправленный AI' : P.voice==='raw' ? 'надиктованный, как есть' : 'набранный руками';
+    logEv(`Отчёт ушёл ${how}.`);
+    P.past.unshift(info); P.closedInfo = info; P.lastClosed = P.shift.obj; P.shift = null; P.voice = null; go('closed');
     logEv(`Смена закрыта${open.length?` без ухода у ${open.length} чел. (${open.map(x=>x.n).join(', ')}) — у них «уход не отмечен»`:''}. Отчёт ушёл руководителю.`);
   },
   tab(arg){ go(arg==='past' ? 'past' : home()); },
@@ -1042,9 +1095,42 @@ const ACT = {
   },
   logout(){ go('login'); logEv('Бригадир вышел. Открытая смена остаётся открытой на сервере.'); },
 
+  /* голос: запись → надиктовано → (AI поправил ⇄ как было) */
+  vrec(){ P.voice='rec'; logEv('Бригадир нажал «Надиктовать» — телефон слушает и превращает речь в текст.'); },
+  vstop(){
+    const had = (P.report||'').trim();
+    P.voice='raw'; P.report = had ? had + ' ' + VOICE_RAW : VOICE_RAW;
+    logEv('Распознано: текст '+(had ? 'дописан к набранному' : 'в поле')+' как есть — без знаков и цифр. Можно отправить так или поправить с AI.');
+  },
+  vfix(){
+    if (P.aiOff){ logEv('AI недоступен — остаётся отправить как есть.'); return; }
+    P.beforeAi = P.report; P.voice='ai'; P.report = VOICE_AI; logEv('AI поправил отчёт: знаки, цифры, опечатки (движок: AI-задача «поправить текст»).');
+  },
+  vundo(){ P.voice='raw'; P.report = P.beforeAi ?? VOICE_RAW; logEv('Бригадир вернул текст, каким он был до AI.'); },
+
   /* остальной мир */
+  /* Главный путь: рабочий подходит и показывает код. Смена открыта, а камера нет — бригадир открывает её (пульт делает это за него). */
+  come(i){
+    P.worker = +i;
+    if (!P.shift){ logEv(`${WORKERS[P.worker]} показывает код, но смены нет: без чекина на объекте сканировать нельзя. Начните смену.`); return; }
+    if (P.screen!=='scan'){ go('scan'); logEv('Бригадир открыл камеру в приложении.'); }
+    ACT.show('live');
+  },
+  /* Конец дня одной кнопкой: 17:00, все четверо пришли, двое ушли со сканом, двое уехали без скана ухода — экран закрытия. */
+  endday(){
+    if (!P.shift){ logEv('Смены нет — закрывать нечего. Начните смену.'); return; }
+    P.clock = Math.max(P.clock, 17*3600);
+    WORKERS.forEach((n,i)=>{ if (!P.shift.marks.some(x=>x.n===n)) P.shift.marks.push({n, in:hhmm(8*3600+i*120), inSec:0}); });
+    const open = P.shift.marks.filter(x=>!x.out && !x.miss);
+    open.slice(0, Math.max(0, open.length-2)).forEach(x=>{ x.out = hhmm(P.clock - 5*60); });
+    const left = P.shift.marks.filter(x=>!x.out && !x.miss).map(x=>x.n);
+    go('close');
+    logEv(`Конец дня, ${hhmm(P.clock)}. Без скана ухода уехали: ${left.join(', ')}. Экран закрытия смены.`);
+  },
+  aioff(){ P.aiOff = !P.aiOff; if (P.aiOff && P.voice==='ai'){ P.voice='raw'; P.report = P.beforeAi ?? VOICE_RAW; } logEv(P.aiOff ? 'AI платформы недоступен (аварийный режим): кнопки «Поправить с AI» нет.' : 'AI снова доступен.'); },
   show(kind){
     const name = WORKERS[P.worker];
+    if (P.shift && P.screen!=='scan'){ go('scan'); logEv('Бригадир открыл камеру в приложении.'); }
     if (P.screen!=='scan'){ logEv(`${name} показывает код, но у бригадира не открыт сканер${P.shift?'':' — и смены нет: без чекина на объекте сканировать нельзя'}.`); return; }
     if (!P.net){ scanRes('offline', name); logEv('Камера прочитала код, но у бригадира нет сети — гасит сервер, отметки нет.'); return; }
     if (P.failNext){ P.failNext=false; scanRes('error', name); logEv('Движок ответил 503 на гашение кода.'); return; }
@@ -1067,7 +1153,6 @@ const ACT = {
   fail(){ P.failNext = true; logEv('Сервер сломался: следующий запрос получит 503.'); },
   reset(){ resetProto(); },
   drawer(){ P.drawer = !P.drawer; renderPult(); },
-  worker(i){ P.worker = +i; renderPult(); },
 };
 function protoModel(){ return {...P, id:P.screen}; }
 
@@ -1096,6 +1181,10 @@ const STATES = [
   {id:'scan-offline', screen:'scan', net:false, shift:sh(MK.slice(0,2)), res:{kind:'offline', name:'Kiss Péter'}, clock:8*3600+12*60},
   {id:'close0', screen:'close', dec:true, shift:sh(MK.map(x=>({...x, out:x.out||'17:00'}))), report:'', photos:0, clock:17*3600+5*60},
   {id:'close', screen:'close', dec:true, shift:sh(), report:'Zsaluzás a 3. szinten kész. Holnap betonozás 7:00-tól.', photos:2, clock:17*3600+5*60},
+  {id:'voice-rec', screen:'close', dec:true, shift:sh(), voice:'rec', report:'', photos:0, clock:17*3600+5*60},
+  {id:'voice-raw', screen:'close', dec:true, shift:sh(), voice:'raw', report:VOICE_RAW, photos:1, clock:17*3600+6*60},
+  {id:'voice-ai', screen:'close', dec:true, shift:sh(), voice:'ai', report:VOICE_AI, photos:1, clock:17*3600+6*60},
+  {id:'voice-aioff', screen:'close', dec:true, shift:sh(), voice:'raw', aiOff:true, report:VOICE_RAW, photos:1, clock:17*3600+6*60},
   {id:'closed', screen:'closed', clock:17*3600+6*60, closedInfo:{obj:'Ferihegy, 2-es terminál', to:'17:06', marks:MK, miss:2}},
   {id:'past', screen:'past', clock:17*3600+8*60, past:[{today:true, date:'21.11', obj:'Ferihegy, 2-es terminál', from:'07:45', to:'17:06', marks:MK.map(x=>({...x, miss:!x.out})), report:'', photos:2}, ...PAST0]},
   {id:'pastday', screen:'pastday', pastIdx:0, clock:17*3600+9*60},
@@ -1115,12 +1204,15 @@ function screenHtml(){
   const sizes = Object.keys(DEV).map(k=>`<figure class="cell">${phone(main, k)}
       <figcaption><b>${t('dev.'+k)}</b><code>foreman · shift · ${DEV[k].w}×${DEV[k].h}</code></figcaption></figure>`).join('');
   const states = STATES.map(s=>`<figure class="cell" id="cell-${s.id}">${phone(s, S.size)}
-      <figcaption><b>${t('c.'+s.id)}</b>${t('c.'+s.id+'.d')}${['pick','confirm','close0','close','shift','closed'].includes(s.id)?`<br><span class="dec">${t('dec')}</span>`:''}<br><code>foreman · ${s.id} · ${DEV[S.size].w}×${DEV[S.size].h}</code></figcaption></figure>`).join('');
+      <figcaption><b>${t('c.'+s.id)}</b>${t('c.'+s.id+'.d')}${['noshift','pick','confirm','close0','close','voice-raw','voice-ai','voice-aioff','closed'].includes(s.id)?`<br><span class="dec">${t('dec')}</span>`:''}<br><code>foreman · ${s.id} · ${DEV[S.size].w}×${DEV[S.size].h}</code></figcaption></figure>`).join('');
   return `<h3 class="sec">${t('sec.sizes')}</h3><div class="sizes">${sizes}</div>
     <h3 class="sec">${t('sec.states',{size:DEV[S.size].w+'×'+DEV[S.size].h})}</h3><div class="board">${states}</div>`;
 }
 function renderScreens(){
+  // Часы перерисовывают экран раз в секунду — прокрутку того же экрана сохраняем, иначе список прыгает наверх.
+  const was = document.querySelector('.proto .phone'), keep = was && was.dataset.state === P.screen ? was.querySelector('.body').scrollTop : 0;
   document.getElementById('screens').innerHTML = screenHtml();
+  if (keep){ const b = document.querySelector('.proto .phone .body'); if (b) b.scrollTop = keep; }
   // В режиме приложения шапка и меню прибиты к краям экрана (position:fixed), контенту нужны отступы на высоту шапки
   document.querySelectorAll('body.standalone .phone').forEach(ph => ph.style.setProperty('--top-h', ph.querySelector('.top').offsetHeight + 'px'));
   if (DEBUG) document.querySelectorAll('.phone .body:not(.scroll)').forEach(b=>{ if (b.scrollHeight > b.clientHeight + 1) b.closest('.phone').classList.add('overflow'); });
@@ -1169,11 +1261,12 @@ setInterval(()=>{
 }, 1000);
 
 const BTN = [
-  ['show',    '📱 Рабочий показывает живой код', 'live'],
+  ['endday',  '🌇 Конец дня: двое ушли без скана'],
   ['show',    '⌛ Просроченный код', 'expired'],
   ['show',    '♻ Уже использованный код', 'used'],
   ['show',    '❓ Чужой QR (не пропуск)', 'unknown'],
   ['signedin','🔑 Человек вошёл по коду для входа'],
+  ['aioff',   null],
   ['net',     null],
   ['hour',    '⏩ Время дня +1 час'],
   ['fail',    '💥 Ошибка сервера'],
@@ -1187,10 +1280,11 @@ function renderPult(){
   el.innerHTML = `<button class="handle" data-act="drawer">Пульт — остальной мир ${P.drawer?'▼':'▲'}</button>
     <div class="pin">
       <b class="ptitle">Пульт — остальной мир</b>
-      <p class="how">Войдите, начните смену на объекте и откройте сканер. Кнопки ниже — то, что делают другие: рабочие со своими кодами, сеть, сервер. Первый скан рабочего — приход, второй — уход; скан того же рабочего сразу после прихода — «приход ещё в пути».</p>
-      <p class="who-l">Кто показывает код:</p>
-      <span class="seg workers">${WORKERS.map((w,i)=>`<button data-act="worker" data-arg="${i}" aria-pressed="${i===P.worker}">${esc(w)}</button>`).join('')}</span>
-      <div class="acts">${BTN.map(([a,l,arg],i)=>`<button data-act="${a}" ${arg?`data-arg="${arg}"`:''} class="${i===0?'main':''}">${a==='net' ? (P.net?'📵 Связь пропала':'📶 Связь вернулась') : l}</button>`).join('')}</div>
+      <p class="how">Войдите и начните смену на объекте. Дальше рабочие подходят по одному: кнопка с именем — человек показывает свой код, бригадир его сканирует, и он появляется в списке «Рабочие на смене». Первый скан — приход, второй — уход; тот же человек сразу после прихода — «приход ещё в пути».</p>
+      <p class="who-l">Подходит и показывает код:</p>
+      <div class="acts come">${WORKERS.map((w,i)=>`<button data-act="come" data-arg="${i}" class="main">📱 ${esc(w)}</button>`).join('')}</div>
+      <p class="who-l" style="margin-top:12px">Код с ошибкой — у того, кто подходил последним (${esc(WORKERS[P.worker])}):</p>
+      <div class="acts">${BTN.map(([a,l,arg])=>`<button data-act="${a}" ${arg?`data-arg="${arg}"`:''}>${a==='net' ? (P.net?'📵 Связь пропала':'📶 Связь вернулась') : a==='aioff' ? (P.aiOff?'🤖 AI снова доступен':'🤖 AI недоступен') : l}</button>`).join('')}</div>
       <div class="pctl">${ctlHtml()}</div>
       <div class="log"><b>Что произошло</b>${P.log.map(e=>`<div><time>${e.at}</time>${e.text}</div>`).join('')}</div>
     </div>`;
@@ -1210,7 +1304,7 @@ document.addEventListener('click', e=>{
     // доска состояний — только для обзора: нажатия внутри неё не двигают прототип
     if (a.closest('.board, .sizes')) return;
     const pultAct = !!a.closest('.pult');
-    if (pultAct && !['drawer','worker'].includes(a.dataset.act) && (STANDALONE || matchMedia('(max-width:460px)').matches)) P.drawer = false;
+    if (pultAct && a.dataset.act!=='drawer' && (STANDALONE || matchMedia('(max-width:460px)').matches)) P.drawer = false;
     ACT[a.dataset.act](a.dataset.arg); renderScreens(); renderPult(); return;
   }
   const b = e.target.closest('[data-seg] button, #seg-lang button, #seg-view button, #seg-size button');
