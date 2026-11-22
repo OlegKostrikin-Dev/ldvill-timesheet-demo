@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LD Kód — «Мой код» · LD Vill</title>
+<meta name="theme-color" content="#213946">
+<!-- Ставится на телефон как приложение (PWA): на iPhone — «Поделиться → На экран „Домой“», на Android — «Установить». -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="LD Kód">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<!--
+  Чистовой макет одного экрана мобильного приложения LD Vill — «Мой код» рабочего (TG-411).
+  По нему пишется первый настоящий экран приложения. Черновик всех экранов — index.html рядом.
+
+  Что здесь:
+    · живой прототип (вид по умолчанию): вход, «Мой код» с настоящим отсчётом минуты; пульт играет
+      остальной мир — бригадир сканирует, связь пропала и вернулась, перемотка к концу минуты, ошибка
+      сервера, перезапуск приложения; журнал пульта говорит, что произошло и какую точку движка звал экран.
+      На телефоне пульт — выдвижная панель снизу;
+    · доска всех состояний для обзора на компьютере (вид «все состояния»);
+    · три размера экрана: узкий Android 360×640, iPhone 390×844, большой iPhone 430×932; тексты hu / ru / en;
+    · блок «Данные экрана»: какое поле откуда берётся у движка (PR движка #601, задача TG-408).
+  Адрес принимает ?lang=hu|ru|en&view=proto|all&size=s|m|l — для ссылок и снимков;
+  ?debug красит рамку телефона, где содержимое не влезло без прокрутки.
+
+  Палитра и шрифт — ldvill.com: лаймовый #C7FF00 и графит #343A42 сверены с логотипом и иконками
+  сайта 17.11.2026; остальные токены — из чернового макета (index.html). Прямые углы — бренд.
+  Данные выдуманы, сервера нет.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<style>
+  /* ══ ТОКЕНЫ LD VILL — кандидаты в brand/tokens.json ══ */
+  :root{
+    --c-dark:#213946;      /* шапка, нижняя панель */
+    --c-ink:#343A42;       /* основной текст (графит с ldvill.com) */
+    --c-muted:#6B7680;     /* вторичный текст */
+    --c-line:#E2E7E9;      /* рамки */
+    --c-surface:#FFFFFF;   /* карточки */
+    --c-ground:#F5F7F7;    /* фон экрана */
+    --c-lime:#C7FF00;      /* акцент: активная вкладка, полоса срока (лайм с ldvill.com) */
+    --c-lime-ink:#7FA300;  /* акцент на светлом фоне */
+    --c-warn:#E8A100;      --c-warn-bg:#FFF6DD; --c-warn-ink:#7A5400;
+    --c-bad:#D64545;       --c-bad-bg:#FDECEC;
+    --c-ok:#2E9E5B;        --c-ok-bg:#E7F6EE;
+    --font:"Plus Jakarta Sans","Segoe UI",Arial,sans-serif;
+    --radius:2px;          /* бренд — прямые углы */
+    /* размеры телефона */
+    --ph-w:390px; --ph-h:844px; --safe-top:47px; --safe-bottom:34px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#E9EEF0;color:var(--c-ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  button{font:inherit;color:inherit;cursor:pointer}
+
+  /* ══ ПУЛЬТ МАКЕТА (не часть экрана) ══ */
+  .deck{max-width:1440px;margin:0 auto;padding:20px 20px 40px}
+  .deck h1{font-size:22px;margin:0 0 4px;font-weight:800}
+  .deck .sub{color:var(--c-muted);margin:0 0 16px;font-size:14px}
+  .controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;margin-bottom:20px}
+  .seg{display:inline-flex;border:1px solid #C9D2D6;background:#fff}
+  .seg button{border:0;background:none;padding:7px 12px;font-size:13px;font-weight:600}
+  .seg button[aria-pressed="true"]{background:var(--c-dark);color:#fff}
+  .ctl-l{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--c-muted);margin-right:6px;font-family:ui-monospace,Menlo,monospace}
+  select{font:inherit;font-size:13px;padding:6px 8px;border:1px solid #C9D2D6;background:#fff;border-radius:0}
+
+  .stage{display:flex;flex-direction:column;gap:36px}
+  .board{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:28px 24px;justify-items:center}
+  .sizes{display:flex;flex-wrap:wrap;gap:28px 40px;align-items:flex-end;margin-bottom:12px}
+  .sec{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);font-family:ui-monospace,Menlo,monospace;margin:8px 0 20px}
+  .cell figcaption{margin-top:8px;font-size:13px;max-width:var(--ph-w)}
+  .cell figcaption b{display:block;font-size:14px}
+  .cell figcaption code{font-size:11px;color:var(--c-muted)}
+  figure{margin:0}
+
+  .notes{max-width:860px;background:#fff;border:1px solid var(--c-line);padding:18px 20px;font-size:14px;line-height:1.5}
+  .notes h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);margin:18px 0 6px;font-family:ui-monospace,Menlo,monospace}
+  .notes h2:first-child{margin-top:0}
+  .notes table{border-collapse:collapse;width:100%;font-size:13px}
+  .notes td,.notes th{border-top:1px solid var(--c-line);padding:5px 6px 5px 0;vertical-align:top;text-align:left}
+  .notes code{font-size:12px;background:var(--c-ground);padding:0 3px}
+  .tag{display:inline-block;font-size:10px;font-weight:700;padding:1px 5px;letter-spacing:.04em;text-transform:uppercase}
+  .tag.have{background:var(--c-ok-bg);color:var(--c-ok)}
+  .tag.ask{background:var(--c-warn-bg);color:var(--c-warn-ink)}
+  .tag.cli{background:var(--c-ground);color:var(--c-muted)}
+
+  /* ══ ТЕЛЕФОН ══ */
+  .phone{width:var(--ph-w);height:var(--ph-h);background:var(--c-ground);position:relative;overflow:hidden;
+    outline:10px solid #11181C;border-radius:44px;box-shadow:0 18px 40px rgba(0,0,0,.18);display:flex;flex-direction:column}
+  .top{flex:none}
+  .sb{height:var(--safe-top);background:var(--c-dark);color:#fff;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 8px;font-size:15px;font-weight:600;flex:none}
+  .sb .net{font-size:12px;letter-spacing:.05em}
+  .appbar{background:var(--c-dark);color:#fff;padding:10px 20px 16px;flex:none}
+  .appbar .row{display:flex;align-items:center;gap:12px}
+  .logo{width:34px;height:34px;background:var(--c-lime);color:var(--c-dark);display:grid;place-items:center;font-weight:800;font-size:14px;letter-spacing:-.02em}
+  .who{line-height:1.2}
+  .who b{display:block;font-size:15px}
+  .who span{font-size:12px;color:#B9C6CD}
+  .appbar h2{margin:14px 0 0;font-size:26px;font-weight:800;letter-spacing:-.01em}
+
+  .body{flex:1;overflow:hidden;padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+  .tabs{flex:none;display:flex;background:var(--c-dark);padding-bottom:var(--safe-bottom)}
+  .tabs span{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 6px;font-size:12px;font-weight:600;color:rgba(255,255,255,.6);border-top:3px solid transparent}
+  .tabs span.on{color:#fff;border-top-color:var(--c-lime)}
+  .tabs svg{width:22px;height:22px}
+
+  .state{display:flex;gap:12px;align-items:flex-start;background:var(--c-surface);border:1px solid var(--c-line);padding:12px 14px}
+  .state svg{flex:none;width:22px;height:22px;margin-top:1px}
+  .state b{display:block;font-size:15px}
+  .state span{font-size:13px;color:var(--c-muted)}
+  .state.on{border-left:4px solid var(--c-ok)} .state.on svg{color:var(--c-ok)}
+  .state.off svg{color:var(--c-muted)}
+
+  .banner{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;font-size:13px;line-height:1.35}
+  .banner svg{flex:none;width:20px;height:20px}
+  .banner.warn{background:var(--c-warn-bg);color:var(--c-warn-ink);border-left:4px solid var(--c-warn)}
+  .banner b{display:block;font-size:14px}
+
+  .qrbox{background:#fff;border:1px solid var(--c-line);padding:18px 18px 14px;display:flex;flex-direction:column;align-items:center;gap:12px}
+  .qr{width:var(--qr);height:var(--qr);position:relative;display:grid;place-items:center}
+  .qr svg{width:var(--qr);height:var(--qr);display:block}
+  .qr .fallback{width:var(--qr);height:var(--qr);display:grid;place-items:center;background:repeating-conic-gradient(#343A42 0 25%,#fff 0 50%) 0 0/24px 24px;opacity:.85}
+  .qr .veil{position:absolute;inset:0;background:rgba(255,255,255,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;font-weight:700;padding:0 18px}
+  .qr .veil.bad{color:var(--c-bad)}
+  .qr .veil svg{width:40px;height:40px}
+  .qr .veil small{font-weight:500;color:var(--c-muted);font-size:13px}
+  .spin{width:28px;height:28px;border:3px solid var(--c-line);border-top-color:var(--c-dark);border-radius:50%;animation:sp 0.9s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .ttl{width:100%;height:6px;background:var(--c-line)}
+  .ttl i{display:block;height:100%;background:var(--c-lime-ink);transition:width .9s linear}
+  .ttl.low i{background:var(--c-warn)}
+  .count{font-size:14px;color:var(--c-muted);font-variant-numeric:tabular-nums}
+  .count b{color:var(--c-ink)}
+  .hint{margin:0;text-align:center;font-size:13px;color:var(--c-muted)}
+
+  .done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;background:var(--c-ok-bg);border:1px solid #BFE5CF}
+  .done .big{width:84px;height:84px;border-radius:50%;background:var(--c-ok);color:#fff;display:grid;place-items:center;margin-bottom:10px}
+  .done .big svg{width:46px;height:46px}
+  .done .what{font-size:16px;font-weight:700;color:var(--c-ok)}
+  .done .time{font-size:56px;font-weight:800;letter-spacing:-.02em;line-height:1}
+  .done .by{font-size:15px;margin-top:6px}
+  .done .back{font-size:13px;color:var(--c-muted);margin-top:18px}
+
+  .err{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:0 10px}
+  .err .big{width:72px;height:72px;border-radius:50%;background:var(--c-bad-bg);color:var(--c-bad);display:grid;place-items:center}
+  .err .big svg{width:38px;height:38px}
+  .err b{font-size:19px}
+  .err p{margin:0;font-size:14px;color:var(--c-muted)}
+  .err small{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--c-muted)}
+  /* узкий экран (360×640): шапка и отступы сжимаются, QR меньше — всё влезает без прокрутки */
+  .compact .appbar{padding:6px 16px 10px} .compact .appbar h2{font-size:21px;margin-top:8px}
+  .compact .logo{width:28px;height:28px;font-size:12px}
+  .compact .body{padding:10px 16px;gap:10px}
+  .compact .state{padding:8px 12px} .compact .state span{font-size:12px}
+  .compact .qrbox{padding:12px 12px 10px;gap:8px}
+  .compact .banner{padding:7px 10px;font-size:12px}
+  .compact .tabs span{padding:7px 0 5px}
+  .compact .done .time{font-size:46px} .compact .done .big{width:68px;height:68px;margin-bottom:4px}
+  .compact .err .big{width:56px;height:56px}
+  .phone.overflow{outline-color:var(--c-bad)}
+
+  /* установка на iPhone */
+  .safari{flex:none;display:flex;justify-content:space-around;align-items:center;background:#F2F2F4;border-top:1px solid #D6D6DA;padding:10px 0 calc(var(--safe-bottom) + 4px);color:#0A84FF;font-size:22px}
+  .safari svg{width:22px;height:22px}
+  .safari .hl{outline:2px solid var(--c-lime-ink);outline-offset:5px;border-radius:4px}
+  .dim{position:absolute;inset:0;background:rgba(17,24,28,.45)}
+  .sheet{position:absolute;left:12px;right:12px;bottom:calc(var(--safe-bottom) + 64px);background:#fff;padding:18px 18px 12px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .sheet .st{font-size:18px;display:block}
+  .sheet p{margin:4px 0 12px;font-size:13px;color:var(--c-muted)}
+  .sheet ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+  .sheet li{display:flex;gap:10px;align-items:center;font-size:14px}
+  .sheet .n{flex:none;width:24px;height:24px;background:var(--c-dark);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px}
+  .sheet .inl{width:18px;height:18px;vertical-align:-4px;color:#0A84FF}
+  .ghost{border:0;background:none;color:var(--c-muted);font-weight:700;font-size:14px;padding:12px 0 2px;width:100%}
+  .sheet .arrow{position:absolute;left:50%;bottom:-10px;margin-left:-10px;width:20px;height:20px;background:#fff;transform:rotate(45deg)}
+
+  .btn{border:0;background:var(--c-lime);color:var(--c-dark);font-weight:800;font-size:16px;padding:14px 22px;width:100%;margin-top:10px;border-radius:var(--radius)}
+
+  /* вход */
+  .login{flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:0 6px}
+  .login .logo.big{width:64px;height:64px;font-size:24px;margin-bottom:6px}
+  .login > b{font-size:26px;font-weight:800} .login > span{color:var(--c-muted);margin-bottom:18px}
+  .login label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--c-muted)}
+  .login input{font:inherit;font-size:16px;color:var(--c-ink);padding:12px;border:1px solid var(--c-line);background:#fff;border-radius:0}
+
+  /* живой прототип: телефон и пульт рядом */
+  .work{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap}
+  body[data-view="proto"] .controls{display:none}
+  body[data-view="proto"] .notes{margin-top:8px}
+  .pult{width:420px;max-width:100%;background:#fff;border:1px solid var(--c-line);font-size:14px}
+  .pult .handle{display:none}
+  .pult .pin{padding:16px 18px}
+  .pult .ptitle{display:block;font-size:16px;margin-bottom:4px}
+  .pult .how{margin:0 0 12px;color:var(--c-muted);font-size:13px;line-height:1.45}
+  .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .acts button{border:1px solid #C9D2D6;background:#fff;padding:11px 10px;font-weight:700;font-size:13px;text-align:left}
+  .acts button.main{grid-column:1/-1;background:var(--c-dark);color:#fff;border-color:var(--c-dark);font-size:15px;text-align:center}
+  .acts button:active{transform:translateY(1px)}
+  .pctl{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+  .log{border-top:1px solid var(--c-line);padding-top:10px;font-size:12.5px;line-height:1.4;max-height:360px;overflow:auto}
+  .log b{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);margin-bottom:6px;font-family:ui-monospace,Menlo,monospace}
+  .log div{padding:4px 0;border-bottom:1px dashed var(--c-line)}
+  .log div:first-of-type{color:var(--c-ink);font-weight:600}
+  .log time{font-family:ui-monospace,Menlo,monospace;color:var(--c-muted);margin-right:6px;font-weight:400}
+
+  /* На узком экране (телефон Oleg) — один телефон на всю ширину, без рамки; пульт — выдвижная панель снизу */
+  @media (max-width:460px){
+    .deck{padding:12px 0 30px}
+    .deck h1,.deck .sub,.controls,.notes{margin-left:12px;margin-right:12px}
+    .phone{outline:0;border-radius:0;box-shadow:none;width:100vw}
+    .board{grid-template-columns:1fr}
+    .cell figcaption{padding:0 12px}
+    body[data-view="proto"] .deck{padding:0 0 60px}
+    body[data-view="proto"] .deck > h1, body[data-view="proto"] .deck > .sub{display:none}
+    body[data-view="proto"] .proto .phone{height:calc(100dvh - 48px)}
+    .pult{position:fixed;left:0;right:0;bottom:0;width:auto;z-index:10;border:0;box-shadow:0 -8px 24px rgba(0,0,0,.2);
+      max-height:72dvh;display:flex;flex-direction:column;transform:translateY(calc(100% - 48px));transition:transform .25s}
+    .pult.open{transform:none}
+    .pult .handle{display:block;flex:none;height:48px;border:0;background:var(--c-lime);color:var(--c-dark);font-weight:800;font-size:15px;width:100%}
+    .pult .ptitle{display:none}
+    .pult .pin{overflow:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+    .log{max-height:none}
+  }
+
+  /* Установленное приложение (с экрана «Домой»): только телефонный вид на весь экран. Нарисованной строки
+     состояния нет — настоящая поверх тёмной полосы; безопасные зоны даёт телефон. Пульт — за кнопкой в углу. */
+  #corner{display:none}
+  body.standalone{background:var(--c-ground);overscroll-behavior:none}
+  body.standalone .deck{padding:0;max-width:none}
+  body.standalone .deck > h1, body.standalone .deck > .sub, body.standalone .controls, body.standalone .notes{display:none}
+  body.standalone .phone{position:fixed;top:0;right:0;bottom:0;left:0;width:auto;height:auto;outline:0;border-radius:0;box-shadow:none;
+    --safe-top:env(safe-area-inset-top, 20px);--safe-bottom:env(safe-area-inset-bottom, 0px)}
+  body.standalone .sb{padding:0}
+  body.standalone .sb span{display:none}
+  body.standalone #corner{display:block;position:fixed;z-index:11;top:calc(env(safe-area-inset-top, 0px) + 10px);right:10px;
+    width:34px;height:34px;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:17px;line-height:34px;padding:0}
+  body.standalone .pult{position:fixed;left:0;right:0;bottom:0;width:auto;z-index:10;border:0;box-shadow:0 -8px 24px rgba(0,0,0,.3);
+    max-height:78dvh;display:flex;flex-direction:column;transform:translateY(105%);transition:transform .25s}
+  body.standalone .pult.open{transform:none}
+  body.standalone .pult .handle{display:block;flex:none;height:44px;border:0;background:var(--c-lime);color:var(--c-dark);font-weight:800;font-size:15px;width:100%}
+  body.standalone .pult .ptitle{display:none}
+  body.standalone .pult .pin{overflow:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px))}
+  body.standalone .log{max-height:none}
+  /* Отступы по краям (замечание Oleg с iPhone): нижний безопасный отступ — один раз и только под меню.
+     Меню — как таббар iPhone (49pt) + ровно safe-area; на экране входа меню нет вовсе.
+     Обычная колонка (TG-440): телефон прибит к краям окна, внутри шапка — содержимое (flex:1) — меню. Ничего не прибито
+     поверх и ничего не досчитывает скрипт после отрисовки — поэтому вход не съезжает в первую секунду. Строка состояния
+     значка — black, не black-translucent: окно начинается под ней и кончается на дне экрана, меню стоит у нижнего края,
+     а его отступ — ровно safe-area (почему — app/README.md, «Экран во весь телефон»). Оттягивание выключено у html:
+     iOS тянет окно за корень страницы. */
+  html.standalone{background:var(--c-ground);overscroll-behavior:none}
+  body.standalone .tabs span{box-sizing:border-box;height:49px;justify-content:center;gap:2px;padding:0}
+  body.standalone .tabs:empty{display:none}
+  body.standalone[data-view] .proto .phone, body.standalone[data-view] .phone{height:auto}
+  body.standalone .pult:not(.open){visibility:hidden}
+  body.standalone .sheet{bottom:calc(var(--safe-bottom) + 49px + 14px)}
+</style>
+</head>
+<body>
+<div class="deck">
+  <h1 data-t="deck.title"></h1>
+  <p class="sub" data-t="deck.sub"></p>
+
+  <div class="controls">
+    <span><span class="ctl-l" data-t="ctl.lang"></span><span class="seg" id="seg-lang">
+      <button data-v="hu">hu</button><button data-v="ru">ru</button><button data-v="en">en</button></span></span>
+    <span><span class="ctl-l" data-t="ctl.view"></span><span class="seg" id="seg-view">
+      <button data-v="proto" data-t="ctl.one"></button><button data-v="all" data-t="ctl.all"></button></span></span>
+    <span><span class="ctl-l" data-t="ctl.size"></span><span class="seg" id="seg-size">
+      <button data-v="s">360</button><button data-v="m">390</button><button data-v="l">430</button></span></span>
+  </div>
+
+  <div class="stage">
+    <div class="work"><div id="screens"></div><aside id="pult" hidden></aside></div>
+    <button id="corner" data-act="drawer" aria-label="Пульт">⚙︎</button>
+    <aside class="notes" id="notes"></aside>
+  </div>
+</div>
+
+<script>
+/* ══ ДАННЫЕ (выдуманы; формы — как у движка, PR #601) ══ */
+const WORKER = {name:'Horváth Ádám'};
+const FOREMAN = 'Kovács Péter';
+const TTL = 60; // ttl_sec из ответа выдачи; экран берёт его из ответа, а не держит у себя
+
+/* Размеры экрана в CSS-пикселях: узкий Android, обычный iPhone, большой iPhone.
+   top/bottom — безопасные зоны (полоса статуса, полоска «домой»); qr — сторона QR; compact — сжатая шапка. */
+const DEV = {
+  s: {w:360, h:640, top:24, bottom:0,  qr:188, compact:true},
+  m: {w:390, h:844, top:47, bottom:34, qr:236},
+  l: {w:430, h:932, top:59, bottom:34, qr:264},
+};
+
+/* Состояния экрана. at — что показать на «доске» (застывший миг); live — для режима «один экран». */
+const STATES = [
+  {id:'login',           clock:'07:57'},
+  {id:'code',            clock:'07:58', left:42},
+  {id:'refresh',         clock:'07:59', left:0},
+  {id:'offline',         clock:'07:59', left:35, net:false},
+  {id:'offline-expired', clock:'08:00', left:0,  net:false},
+  {id:'done-in',         clock:'08:02', mark:'08:02'},
+  {id:'onsite',          clock:'12:40', left:51, since:'08:02'},
+  /* since — рабочий на объекте: плашка «на объекте с …» вместо «не отмечены» */
+  {id:'done-out',        clock:'17:10', mark:'17:10'},
+  {id:'error',           clock:'07:58'},
+  {id:'install',         clock:'07:55', left:57},
+];
+
+/* ══ ТЕКСТЫ hu / ru / en — единственное место переводов ══ */
+const T = {
+  'deck.title': ['«Kódom» — prototípus · LD Vill','«Мой код» — прототип · LD Vill','“My code” — prototype · LD Vill'],
+  'deck.sub':   ['A dolgozó képernyője, ahol a QR-kódot mutatja a brigádvezetőnek. Android és iPhone, három méret, minden állapot.',
+                 'Экран рабочего, где он показывает QR-код бригадиру. Android и iPhone, три размера, все состояния.',
+                 'The worker’s screen that shows the QR code to the foreman. Android and iPhone, three sizes, every state.'],
+  'ctl.lang':['nyelv','язык','language'], 'ctl.view':['nézet','вид','view'], 'ctl.state':['állapot','состояние','state'],
+  'ctl.all':['minden állapot','все состояния','all states'], 'ctl.one':['élő prototípus','живой прототип','live prototype'],
+
+  'app.title':['Kódom','Мой код','My code'], 'app.role':['dolgozó','рабочий','worker'],
+  'tab.code':['Kódom','Мой код','My code'], 'tab.days':['Műszakjaim','Мои смены','My shifts'],
+  'net.off':['Nincs hálózat','Нет сети','No network'],
+
+  'st.notin.t':['Most nem vagy bejelentkezve','Вы сейчас не отмечены','You are not checked in'],
+  'st.notin.s':['Mutasd a kódot a brigádvezetőnek — ő beolvassa az érkezést','Покажите код бригадиру — он отсканирует приход','Show the code to the foreman — they scan your arrival'],
+  'st.on.t':['A munkaterületen vagy {since} óta','Вы на объекте с {since}','On site since {since}'],
+  'st.on.s':['Az érkezést {foreman} rögzítette','Приход отметил бригадир {foreman}','Check-in by foreman {foreman}'],
+
+  'qr.count':['Frissül <b>{s} mp</b> múlva · egyszer használható','Обновится через <b>{s} с</b> · одноразовый','Refreshes in <b>{s} s</b> · single use'],
+  'qr.expired':['A kód lejárt','Код истёк','Code expired'],
+  'qr.getting':['Új kódot kérünk…','Получаем новый код…','Getting a new code…'],
+  'qr.cantget':['Nem tudunk új kódot kérni','Новый код не получить','Can’t get a new code'],
+  'qr.cantget.s':['A képernyő magától frissül, amint lesz hálózat','Экран обновится сам, как только появится сеть','The screen refreshes itself once the network is back'],
+  'hint.in':['A kód személyes: csak a saját telefonodról mutatható meg.','Код личный: показать его можно только с вашего телефона.','The code is personal: it only shows on your phone.'],
+  'hint.out':['Távozás — ugyanitt, a brigádvezetőnél.','Уход — тем же экраном, у бригадира.','Check-out — same screen, at the foreman.'],
+
+  'off.t':['Nincs hálózat','Нет связи','No connection'],
+  'off.s':['A kód még {s} mp-ig érvényes — a brigádvezető így is be tudja olvasni.','Код ещё действует {s} с — бригадир всё равно может его отсканировать.','The code is valid for {s} more s — the foreman can still scan it.'],
+  'off2.s':['A kód lejárt, újat csak hálózattal kapsz. Menj oda, ahol van térerő.','Код истёк, новый — только при связи. Подойдите туда, где ловит сеть.','The code expired; a new one needs a connection. Move to where there is signal.'],
+
+  'done.in':['Érkezés rögzítve','Приход отмечен','Checked in'],
+  'done.out':['Távozás rögzítve','Уход отмечен','Checked out'],
+  'done.by':['rögzítette: {foreman} brigádvezető','отметил бригадир {foreman}','by foreman {foreman}'],
+  'done.back':['Néhány másodperc múlva visszatér a kódhoz','Через несколько секунд экран вернётся к коду','Back to the code in a few seconds'],
+
+  'err.t':['Nem sikerült kódot kérni','Не удалось получить код','Couldn’t get a code'],
+  'err.s':['A szerver hibát adott. Nem a te hibád — próbáld újra.','Сервер ответил ошибкой. Вы ничего не сломали — попробуйте ещё раз.','The server returned an error. It’s not your fault — try again.'],
+  'err.btn':['Újra','Попробовать снова','Try again'],
+  /* 403 PASS_ISSUER_FORBIDDEN: тот же экран ошибки, но без кнопки — повтор не поможет */
+  'err.403.t':['Neked nem jár kód','Вам код не выдаётся','No code for you'],
+  'err.403.s':['Kérdezd a brigádvezetőt — ő tudja beállítatni.','Обратитесь к бригадиру — он попросит это настроить.','Ask your foreman — they can get it set up.'],
+
+  'login.sub':['Műszaknyilvántartás','Учёт смен','Shift tracking'],
+  'login.user':['Felhasználónév','Логин','Username'],
+  'login.pass':['Jelszó','Пароль','Password'],
+  'login.btn':['Belépés','Войти','Sign in'],
+
+  /* подписи состояний на доске */
+  'c.login':['0 · Belépés','0 · Вход','0 · Sign in'],
+  'c.login.d':['Első indításkor; utána az alkalmazás emlékszik a belépésre.','При первом запуске; дальше приложение помнит вход.','On first launch; afterwards the app remembers the sign-in.'],
+  'c.code':['1 · Kód, visszaszámlálás','1 · Код и обратный отсчёт','1 · Code and countdown'],
+  'c.code.d':['Az érkezés előtt. A sáv és a másodpercek a lejáratig fogynak.','До прихода. Полоса и секунды тают до конца срока.','Before check-in. The bar and seconds run down to expiry.'],
+  'c.refresh':['2 · Lejárt, frissül','2 · Код истёк и обновляется','2 · Expired, refreshing'],
+  'c.refresh.d':['Nullánál a képernyő magától kér új kódot; a régit nem mutatja érvényesnek.','На нуле экран сам берёт новый код; старый не выглядит годным.','At zero the screen fetches a new code; the old one never looks valid.'],
+  'c.offline':['3 · Nincs hálózat, a kód még él','3 · Нет связи, код ещё действует','3 · Offline, code still valid'],
+  'c.offline.d':['A lejáratot a szerver ellenőrzi beolvasáskor, a brigádvezető hálózatán át — ezért a kód a lejáratig használható.','Срок проверяет сервер, когда бригадир сканирует, — по сети бригадира; поэтому код годен до конца срока и без сети у рабочего.','The server checks expiry when the foreman scans, over the foreman’s network — so the code stays usable until it expires.'],
+  'c.offline-expired':['4 · Nincs hálózat, a kód lejárt','4 · Нет связи, код истёк','4 · Offline, code expired'],
+  'c.offline-expired.d':['Kód nincs; a képernyő vár a hálózatra és magától frissül.','Кода нет; экран ждёт сеть и обновится сам.','No code; the screen waits for the network and refreshes itself.'],
+  'c.done-in':['5 · Érkezés rögzítve','5 · Отметка прихода прошла','5 · Check-in recorded'],
+  'c.done-in.d':['A brigádvezető beolvasta. Idő — a szerveré, név — a beolvasóé.','Бригадир отсканировал. Время — сервера, имя — того, кто гасил.','The foreman scanned. Time is the server’s, the name is the scanner’s.'],
+  'c.onsite':['6 · A munkaterületen, kód távozáshoz','6 · На объекте, код для ухода','6 · On site, code for check-out'],
+  'c.onsite.d':['Ugyanaz a képernyő; a motor maga dönti el, hogy távozás.','Тот же экран; что это уход, движок решает сам.','Same screen; the engine decides it is a check-out.'],
+  'c.done-out':['7 · Távozás rögzítve','7 · Отметка ухода прошла','7 · Check-out recorded'],
+  'c.done-out.d':['Mint az 5., csak távozás.','Как 5, только уход.','Like 5, but check-out.'],
+  'c.error':['8 · Hiba','8 · Ошибка','8 · Error'],
+  'c.error.d':['A szerver nem adott kódot. Gomb — újra kér.','Сервер не выдал код. Кнопка — запросить снова.','The server gave no code. The button asks again.'],
+  'c.install':['9 · Első belépés iPhone-on: telepítés','9 · Первый вход на iPhone: установка','9 · First visit on iPhone: install'],
+  'c.install.d':['Csak Safariban, ha az alkalmazás még nincs a főképernyőn. Androidon a Chrome maga ajánlja fel a telepítést.','Только в Safari, пока приложения нет на экране «Домой». На Android установку Chrome предлагает сам.','Only in Safari while the app isn’t on the Home Screen. On Android, Chrome offers the install itself.'],
+
+  /* установка на iPhone: названия пунктов — как в меню iOS на этом языке */
+  'ins.t':['Tedd ki a főképernyőre','Добавьте на экран «Домой»','Add to your Home Screen'],
+  'ins.s':['Így a kód egy érintéssel nyílik, mint egy alkalmazás.','Так код откроется одним касанием, как приложение.','Then the code opens with one tap, like an app.'],
+  'ins.1':['Koppints lent a <b>Megosztás</b> gombra','Нажмите внизу <b>Поделиться</b>','Tap <b>Share</b> at the bottom'],
+  'ins.2':['Válaszd: <b>Főképernyőhöz adás</b>','Выберите <b>На экран «Домой»</b>','Choose <b>Add to Home Screen</b>'],
+  'ins.3':['Koppints a <b>Hozzáadás</b> gombra','Нажмите <b>Добавить</b>','Tap <b>Add</b>'],
+  'ins.ok':['Később','Позже','Later'],
+
+  'dev.s':['Szűk Android · 360×640','Узкий Android · 360×640','Narrow Android · 360×640'],
+  'dev.m':['iPhone 14/15 · 390×844','iPhone 14/15 · 390×844','iPhone 14/15 · 390×844'],
+  'dev.l':['Nagy iPhone · 430×932','Большой iPhone · 430×932','Large iPhone · 430×932'],
+  'sec.sizes':['Fő nézet három méretben','Главный вид в трёх размерах','Main view in three sizes'],
+  'sec.states':['Minden állapot · {size}','Все состояния · {size}','All states · {size}'],
+  'ctl.size':['méret','размер','size'],
+};
+const LI = {hu:0, ru:1, en:2};
+
+/* ══ СОСТОЯНИЕ МАКЕТА ══ */
+const qs = new URLSearchParams(location.search);
+const S = {
+  lang: LI[qs.get('lang')] !== undefined ? qs.get('lang') : 'ru',
+  view: qs.get('view')==='all' ? 'all' : 'proto',   // по умолчанию — живой прототип
+  size: DEV[qs.get('size')] ? qs.get('size') : 'm',
+};
+/* Открыт с экрана «Домой» (установленное приложение) — телефонный вид на весь экран, пульт за кнопкой в углу.
+   ?standalone — тот же вид в обычном браузере, чтобы посмотреть его без установки. */
+const INSTALLED = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true || qs.has('standalone');
+/* Телефон в обычном браузере (сенсорный экран без наведения — и стоя, и повёрнутый) — тот же вид на весь экран, без таблиц и заметок; служебное — только на компьютере.
+   ?desktop — вернуть служебный вид, чтобы проверить его с телефона. */
+const PHONE = !qs.has('desktop') && matchMedia('(pointer:coarse) and (hover:none)').matches;
+const STANDALONE = INSTALLED || PHONE;
+if (STANDALONE){ S.view = 'proto'; document.body.classList.add('standalone'); document.documentElement.classList.add('standalone'); }
+/* В установленном приложении размер экрана — настоящий; ключ размера нужен только для стороны QR и сжатой шапки. */
+const nativeSize = () => innerWidth < 380 || innerHeight < 700 ? 's' : innerWidth < 420 ? 'm' : 'l';
+// ?debug — красная рамка у телефона, где содержимое не влезло, и замер окна. Значок на «Домой» открывает адрес из
+// манифеста, без ?debug, поэтому значок, поставленный с localhost (проверка на симуляторе), показывает замер всегда, а
+// значок с GitHub Pages — после пяти касаний логотипа «LD» подряд (TG-440): включает и выключает, помнит до выключения.
+const DEBUG_KEY = 'ldvill.my-code.debug';
+const DEBUG = qs.has('debug') || (INSTALLED && location.hostname === 'localhost') || localStorage.getItem(DEBUG_KEY) === '1';
+let logoTaps = 0, logoTimer = 0;
+document.addEventListener('click', e=>{
+  if (!e.target.closest('.appbar .logo')) return;
+  clearTimeout(logoTimer); logoTimer = setTimeout(()=>{ logoTaps = 0; }, 1500);
+  if (++logoTaps < 5) return;
+  if (DEBUG) localStorage.removeItem(DEBUG_KEY); else localStorage.setItem(DEBUG_KEY, '1');
+  location.reload();
+});
+function t(k, v={}){ const row=T[k]; if(!row) return k; let s=row[LI[S.lang]]; for(const [a,b] of Object.entries(v)) s=s.replace('{'+a+'}', b); return s; }
+function newCode(){ const a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789_-'; let s=''; for(let i=0;i<32;i++) s+=a[Math.floor(Math.random()*a.length)]; return s; }
+
+/* ══ ИКОНКИ (lucide, ISC) ══ */
+const IC = {
+  qr:'<rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>',
+  list:'<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  checkc:'<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+  wifioff:'<path d="M12 20h.01"/><path d="M8.5 16.43a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 13a10 10 0 0 1 5.24-2.76"/><path d="m2 2 20 20"/>',
+  alert:'<path d="M12 8v4"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="10"/>',
+  share:'<path d="M12 2v13"/><path d="m16 6-4-4-4 4"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>',
+  plusq:'<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/>',
+  book:'<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  tabs:'<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+};
+const ic = (n, cls='') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</svg>`;
+
+/* ══ ЭКРАН ══ */
+function qrSvg(code){
+  // В QR — сам код, без адреса: код ходит только в теле запроса (правило движка К-18), сканер встроен в приложение бригадира.
+  if (!window.qrcode) return '<div class="fallback"></div>';
+  const q = qrcode(0,'M'); q.addData(code); q.make(); return q.createSvgTag({cellSize:6, margin:0, scalable:true});
+}
+function qrBlock(st, code){
+  const left = st.left, net = st.net !== false;
+  let veil = '';
+  if (left===0 && net)  veil = `<div class="veil"><div class="spin"></div>${t('qr.getting')}<small>${t('qr.expired')}</small></div>`;
+  if (left===0 && !net) veil = `<div class="veil bad">${ic('wifioff')}${t('qr.cantget')}<small>${t('qr.cantget.s')}</small></div>`;
+  const qr = left===0 ? '<div class="fallback" style="opacity:.25"></div>' : qrSvg(code);
+  const pct = Math.max(0, left/TTL*100);
+  return `<div class="qrbox"><div class="qr">${qr}${veil}</div>
+    <div class="ttl ${left<=10?'low':''}"><i style="width:${pct}%"></i></div>
+    <div class="count">${left>0 ? t('qr.count',{s:left}) : '&nbsp;'}</div></div>`;
+}
+function stateCard(st){
+  return st.since
+    ? `<div class="state on">${ic('checkc')}<div><b>${t('st.on.t',{since:st.since})}</b><span>${t('st.on.s',{foreman:FOREMAN})}</span></div></div>`
+    : `<div class="state off">${ic('clock')}<div><b>${t('st.notin.t')}</b><span>${t('st.notin.s')}</span></div></div>`;
+}
+function body(st, code){
+  const onSite = !!st.since;
+  if (st.id==='login'){
+    return `<div class="login"><div class="logo big">LD</div><b>LD Vill</b><span>${t('login.sub')}</span>
+      <label>${t('login.user')}<input value="${loginOf(WORKER.name)}" readonly></label>
+      <label>${t('login.pass')}<input type="password" value="12345678" readonly></label>
+      <button class="btn" data-act="login">${t('login.btn')}</button></div>`;
+  }
+  if (st.id==='done-in' || st.id==='done-out'){
+    return `<div class="done"><div class="big">${ic('check')}</div>
+      <div class="what">${t(st.id==='done-in'?'done.in':'done.out')}</div>
+      <div class="time">${st.mark}</div>
+      <div class="by">${t('done.by',{foreman:'<b>'+FOREMAN+'</b>'})}</div>
+      <div class="back">${t('done.back')}</div></div>`;
+  }
+  if (st.id==='error'){
+    return `${stateCard(st)}
+      <div class="err"><div class="big">${ic('alert')}</div><b>${t('err.t')}</b><p>${t('err.s')}</p>
+      <button class="btn" data-act="retry">${t('err.btn')}</button><small>HTTP 503</small></div>`;
+  }
+  let h = stateCard(st);
+  if (st.net===false){
+    h += `<div class="banner warn">${ic('wifioff')}<div><b>${t('off.t')}</b>${st.left>0 ? t('off.s',{s:st.left}) : t('off2.s')}</div></div>`;
+  }
+  h += qrBlock(st, code);
+  h += `<p class="hint">${t(onSite?'hint.out':'hint.in')}</p>`;
+  return h;
+}
+/* Подсказка установки (iPhone, Safari, не с экрана «Домой»): шторка над экраном, стрелка — на кнопку «Поделиться» панели Safari. */
+function installSheet(){
+  return `<div class="dim"></div><div class="sheet">
+    <b class="st">${t('ins.t')}</b><p>${t('ins.s')}</p>
+    <ol><li><span class="n">1</span><span>${t('ins.1')} ${ic('share','inl')}</span></li>
+        <li><span class="n">2</span><span>${t('ins.2')} ${ic('plusq','inl')}</span></li>
+        <li><span class="n">3</span><span>${t('ins.3')}</span></li></ol>
+    <button class="ghost" data-act="later">${t('ins.ok')}</button><div class="arrow"></div></div>`;
+}
+const loginOf = n => n.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(' ','.');
+function phone(st, code, size, native){
+  const d = DEV[size], ins = st.id==='install' || !!st.install, login = st.id==='login';
+  // native — установленное приложение: размеры и безопасные зоны даёт сам телефон (CSS body.standalone), здесь только QR
+  const vars = native ? `--qr:${d.qr}px`
+    : `--ph-w:${d.w}px;--ph-h:${d.h}px;--safe-top:${d.top}px;--safe-bottom:${d.bottom}px;--qr:${d.qr}px`;
+  // Рисованная панель Safari — только в макете-доске: на настоящем телефоне Safari свой, светлая полоса снизу была бы лишней
+  const bottom = ins && !native
+    ? `<div class="safari"><span>‹</span><span>›</span><span class="hl">${ic('share')}</span><span>${ic('book')}</span><span>${ic('tabs')}</span></div>`
+    : login ? '<div class="tabs"></div>'
+    : `<nav class="tabs"><span class="on">${ic('qr')}${t('tab.code')}</span><span>${ic('list')}${t('tab.days')}</span></nav>`;
+  const bar = login ? '' : `<div class="appbar"><div class="row"><span class="logo">LD</span><div class="who"><b>${WORKER.name}</b><span>${t('app.role')}</span></div></div>
+      <h2>${t('app.title')}</h2></div>`;
+  return `<div class="phone ${d.compact?'compact':''}" style="${vars}" data-screen="my-code" data-state="${st.id}" data-size="${d.w}x${d.h}">
+    <header class="top"><div class="sb"><span>${st.clock}</span><span class="net">${st.net===false ? t('net.off') : '5G ▮▮▮'}</span></div>
+    ${bar}</header>
+    <div class="body">${body(st, code)}</div>
+    ${bottom}${ins ? installSheet() : ''}
+  </div>`;
+}
+
+/* ══ ЗАПИСКА ДЛЯ РАЗРАБОТЧИКА (на русском: читатель — команда) ══ */
+const NOTES = `
+<h2>Данные экрана</h2>
+<table>
+<tr><th>Что на экране</th><th>Откуда</th></tr>
+<tr><td>QR-код</td><td><span class="tag have">есть</span> <code>code</code> из <code>POST /api/modules/{process}/passes</code>. В QR — сам код, без адреса: код ходит только в теле запроса (К-18); движок про QR не знает, рисует клиент.</td></tr>
+<tr><td>Секунды и полоса срока</td><td><span class="tag have">есть</span> <code>expires_at − now</code>, доля — от <code>ttl_sec</code>. Срок задаёт контракт процесса, 60 с — не константа клиента.</td></tr>
+<tr><td>Имя и роль в шапке</td><td><span class="tag cli">клиент</span> вошедший человек (Keycloak). Код всегда свой: выдача не отдаёт, чей он, — он того, кто спросил.</td></tr>
+<tr><td>«Отметка прошла», время, бригадир</td><td><span class="tag have">есть</span> точка «что стало с моим кодом» <code>POST /api/passes/status {pass_code}</code> (общая, без процесса; код в теле): <code>state</code> live / consumed / expired, <code>consumed_at</code> — время отметки (сервера), <code>consumed_by.label</code> — имя бригадира, <code>action</code> open — приход, close — уход (подпись «Приход отмечен» / «Уход отмечен» экран берёт по <code>action</code>, ключа подписи в ответе нет). Отвечает только хозяину кода; чужой и несуществующий код — один и тот же <code>404 PASS_NOT_FOUND</code>. Опрос дешёвый, работает и в режиме «только чтение». Описание — <code>engine/docs/tech/contracts-reference/pass-format.md#status</code> (PR движка #601).</td></tr>
+<tr><td>«Вы на объекте с 08:02»</td><td><span class="tag have">есть</span> сразу после прихода — <code>consumed_at</code> и <code>consumed_by.label</code> той же точки. <span class="tag ask">нет</span> после перезапуска приложения: открытую отметку рабочего движок пока не отдаёт, экран показывает «не отмечены» — код всё равно правильный, приход или уход выберет движок при гашении.</td></tr>
+</table>
+
+<h2>Как экран переходит из состояния в состояние</h2>
+<p>Экран открыт — берёт код (1). Пока код на экране, раз в 2–3 секунды спрашивает, что с ним стало (<code>state</code>: live — ждём, consumed — отметка прошла, expired — срок вышел). Бригадир погасил код — экран показывает отметку (5 или 7) несколько секунд и возвращается к новому коду: после прихода — с плашкой «на объекте» (6), после ухода — «не отмечены» (1). Срок вышел — сам берёт новый код (2), без кнопки.</p>
+<p>Связь пропала — код остаётся на экране, пока не вышел срок (3): срок и одноразовость проверяет движок в момент гашения по сети бригадира, так что код годен. Срок вышел без связи — кода нет, экран ждёт сеть (4) и обновится сам.</p>
+<p>Ошибка выдачи (8): 5xx и обрыв по таймауту — «попробовать снова»; <code>403 PASS_ISSUER_FORBIDDEN</code> — человеку не положен код: тот же экран без кнопки, тексты <code>err.403.t</code> и <code>err.403.s</code> в таблице переводов; <code>404 PASS_NOT_CONFIGURED</code> — ошибка настройки стенда, текст тот же, что у 5xx.</p>
+
+<h2>Размеры: экран подстраивается</h2>
+<p>Приложение — для Android и iPhone, поэтому экран не привязан к одному размеру. В макете три опорных: узкий Android 360×640, iPhone 14/15 390×844 и большой iPhone 430×932 (CSS-пиксели). Безопасные зоны берутся у системы (<code>env(safe-area-inset-*)</code>); в макете — 24/0, 47/34 и 59/34.</p>
+<p>Правило: всё на экране кода видно без прокрутки. QR — самый большой квадрат, который влезает: 188 на узком, 236 на обычном, 264 на большом; меньше 180 не делать — с 40–60 см его хуже читает камера бригадира. На узком экране (по высоте меньше 700) шапка и отступы сжимаются. Ширина текста — по экрану, длинные венгерские фразы переносятся.</p>
+<p>Шрифт Plus Jakarta Sans; лайм <code>#C7FF00</code> и графит <code>#343A42</code> — с ldvill.com; углы прямые.</p>
+
+<h2>Первый вход на iPhone: установка (9)</h2>
+<p>На iPhone приложение ставится только из Safari через «Поделиться», затем «На экран „Домой“». Экран показывает шторку с тремя шагами, когда открыт в Safari на iOS и не с экрана «Домой» (<code>navigator.standalone === false</code>). Код под шторкой продолжает жить: бригадир может сканировать и до установки. «Позже» прячет шторку до следующего открытия. Названия пунктов в шагах — как в меню iOS на языке телефона. На Android установку предлагает сам Chrome (<code>beforeinstallprompt</code>), отдельной подсказки не нужно.</p>
+`;
+
+/* ══ РЕНДЕР ══ */
+function screenHtml(){
+  if (S.view==='proto') return `<div class="proto">${STANDALONE ? phone(protoState(), P.code, nativeSize(), true) : phone(protoState(), P.code, S.size)}</div>`;
+  const main = STATES.find(s=>s.id==='code');
+  const sizes = Object.keys(DEV).map(k=>`<figure class="cell">${phone(main, 'demo-size-'+k+'-Qx7Lr2mVb9TzKp4N', k)}
+      <figcaption><b>${t('dev.'+k)}</b><code>my-code · code · ${DEV[k].w}×${DEV[k].h}</code></figcaption></figure>`).join('');
+  const states = STATES.map(s=>`<figure class="cell" id="cell-${s.id}">${phone(s, 'demo-'+s.id+'-Qx7Lr2mVb9TzKp4N', S.size)}
+      <figcaption><b>${t('c.'+s.id)}</b>${t('c.'+s.id+'.d')}<br><code>my-code · ${s.id} · ${DEV[S.size].w}×${DEV[S.size].h}</code></figcaption></figure>`).join('');
+  return `<h3 class="sec">${t('sec.sizes')}</h3><div class="sizes">${sizes}</div>
+    <h3 class="sec">${t('sec.states',{size:DEV[S.size].w+'×'+DEV[S.size].h})}</h3><div class="board">${states}</div>`;
+}
+function renderScreens(){
+  document.getElementById('screens').innerHTML = screenHtml();
+  if (DEBUG) document.querySelectorAll('.phone .body').forEach(b=>{ if (b.scrollHeight > b.clientHeight + 1) b.closest('.phone').classList.add('overflow'); });
+  if (DEBUG) measure();
+}
+/* ?debug — замер окна поверх экрана: высота окна, экрана и безопасного отступа снизу, где кончаются меню и телефон.
+   По этим числам на снимке симулятора ищут полосу у нижнего края (TG-425, TG-428), а не правят вслепую. Числа
+   обновляются, пока экран тянут пальцем, а в скобках — наименьшее и наибольшее с запуска (TG-440): один кадр после
+   оттягивания показывает, что плавало. «inner@start» — высота окна в момент запуска скрипта, «top.h» — высота шапки:
+   по ним видно, что меняется в первую секунду. */
+const INNER_AT_START = innerHeight;
+const SEEN = {};
+const span = (k, v) => { const r = SEEN[k] ||= [v, v]; r[0] = Math.min(r[0], v); r[1] = Math.max(r[1], v);
+  return r[0] === r[1] ? `${k} ${v}` : `${k} ${v} (${r[0]}…${r[1]})`; };
+function measure(){
+  let box = document.getElementById('measure');
+  if (!box){ box = document.createElement('pre'); box.id = 'measure';
+    box.style.cssText = 'position:fixed;z-index:30;left:8px;top:45%;margin:0;padding:6px 8px;font:11px/1.35 monospace;background:rgba(255,255,255,.92);color:#000;border:1px solid red;pointer-events:none';
+    document.body.appendChild(box); }
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;visibility:hidden;padding-bottom:env(safe-area-inset-bottom, 0px);padding-top:env(safe-area-inset-top, 0px)';
+  document.body.appendChild(probe);
+  const tall = h => { const d = document.createElement('div'); d.style.cssText = `position:absolute;visibility:hidden;width:1px;height:${h}`;
+    document.body.appendChild(d); const v = Math.round(d.getBoundingClientRect().height); d.remove(); return v; };
+  const cs = getComputedStyle(probe), px = s => Math.round(parseFloat(s) || 0);
+  const box1 = sel => document.querySelector(sel)?.getBoundingClientRect();
+  const sab = px(cs.paddingBottom), svh = tall('100svh'), dvh = tall('100dvh'), lvh = tall('100lvh');
+  const ph = box1('.phone'), tabs = box1('.tabs'), top = box1('.phone .top');
+  box.textContent = [
+    `screen ${screen.width}×${screen.height}`, `inner@start ${INNER_AT_START}`, span('inner', innerHeight),
+    span('visual', Math.round(visualViewport?.height ?? 0)), span('html', document.documentElement.clientHeight),
+    span('svh', svh), span('dvh', dvh), span('lvh', lvh), `safe top ${px(cs.paddingTop)} bottom ${sab}`,
+    top ? span('top.h', Math.round(top.height)) : 'top —',
+    ph ? span('phone.bottom', Math.round(ph.bottom)) : 'phone —',
+    tabs ? `${span('tabs.bottom', Math.round(tabs.bottom))}\n${span('tabs.h', Math.round(tabs.height))}` : 'tabs —',
+    `standalone ${matchMedia('(display-mode: standalone)').matches} nav ${navigator.standalone}`,
+  ].join('\n');
+  probe.remove();
+}
+if (DEBUG){
+  let queued = false;
+  const again = () => { if (!queued){ queued = true; requestAnimationFrame(() => { queued = false; measure(); }); } };
+  addEventListener('resize', again); addEventListener('scroll', again, {passive:true});
+  addEventListener('touchmove', again, {passive:true}); addEventListener('touchend', again, {passive:true});
+  visualViewport?.addEventListener('resize', again); visualViewport?.addEventListener('scroll', again);
+  setTimeout(measure, 1000);
+}
+function render(){
+  document.documentElement.lang = S.lang;
+  document.querySelectorAll('[data-t]').forEach(el=>el.innerHTML=t(el.dataset.t));
+  document.querySelectorAll('#seg-lang button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.lang));
+  document.querySelectorAll('#seg-view button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.view));
+  document.querySelectorAll('#seg-size button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.size));
+  document.body.dataset.view = S.view;
+  renderScreens();
+  renderPult();
+  document.getElementById('notes').innerHTML = NOTES;
+}
+/* ══ ЖИВОЙ ПРОТОТИП ══
+   Телефон рабочего ведёт себя как настоящий экран, а пульт играет «остальной мир»: бригадира, сеть, сервер.
+   Всё, что делает телефон, — то же, что будет делать приложение: берёт код у движка, раз в 2–3 с
+   спрашивает «что стало с моим кодом» и по ответу показывает отметку. Время — часы сервера. */
+const P = {};
+function resetProto(){
+  // onSite — что знает телефон (плашка «на объекте»); serverOn — что знает движок (открыта ли отметка).
+  // Они расходятся, пока у телефона нет связи и после перезапуска приложения.
+  Object.assign(P, {screen:'login', phase:'none', online:true, code:'', left:0, consumed:false,
+    onSite:null, serverOn:null, done:null, pending:null, failNext:false, hint:false, clock:8*3600+60+55, log:[], drawer:P.drawer||false});
+  logEv('Рабочий открыл приложение — экран входа.');
+}
+const hhmm = s => String(Math.floor(s/3600)%24).padStart(2,'0')+':'+String(Math.floor(s/60)%60).padStart(2,'0');
+function logEv(text){ P.log.unshift({at:hhmm(P.clock)+':'+String(P.clock%60).padStart(2,'0'), text}); if (P.log.length>30) P.log.pop(); renderPult(); }
+const later = (ms, fn) => setTimeout(()=>{ fn(); if (S.view==='proto') renderScreens(); }, ms);
+
+function fetchCode(){
+  if (!P.online){ P.phase='nocode'; logEv('Новый код не получить: у телефона нет сети. Экран ждёт связь.'); return; }
+  P.phase='refreshing';
+  later(1200, ()=>{
+    if (!P.online){ P.phase='nocode'; logEv('Сеть пропала, пока ждали код.'); return; }
+    if (P.failNext){ P.failNext=false; P.phase='error'; logEv('Движок ответил 503 на выдачу кода — экран ошибки.'); return; }
+    P.code=newCode(); P.left=TTL; P.consumed=false; P.phase='live';
+    logEv(`Движок выдал код на ${TTL} с (POST …/passes).`);
+  });
+}
+/* Шторка «как установить» — только в браузере на iPhone-размере; в установленном приложении её нет. */
+const needHint = () => !INSTALLED && S.size!=='s';
+const ACT = {
+  login(){ P.screen='app'; P.hint = needHint(); logEv('Вход выполнен.'+(P.hint?' Открыто в Safari на iPhone — шторка «как установить».':INSTALLED?' Приложение открыто с экрана «Домой» — шторки установки нет.':'')); fetchCode(); },
+  later(){ P.hint=false; logEv('Рабочий нажал «Позже» — шторка спрятана до следующего открытия.'); },
+  retry(){ logEv('Рабочий нажал «Попробовать снова».'); fetchCode(); },
+  scan(){
+    if (P.screen!=='app' || P.phase!=='live'){ logEv('Бригадир навёл камеру — на экране рабочего сейчас нет кода.'); return; }
+    if (P.consumed){ logEv('Бригадир сканирует — движок: «код уже использован». Пусть рабочий дождётся нового кода.'); return; }
+    const action = P.serverOn ? 'close' : 'open', time = hhmm(P.clock);
+    P.consumed = true;
+    P.serverOn = action==='open' ? {since:time} : null;
+    logEv(`Бригадир ${FOREMAN} отсканировал код. Движок сам выбрал ${action==='open'?'ПРИХОД (открытой отметки нет)':'УХОД (отметка открыта)'}, время сервера ${time}.`);
+    if (P.online) later(1500, ()=>showDone({action, time}));
+    else { P.pending = {action, time}; logEv('У телефона рабочего нет сети — он узнает об отметке, когда связь вернётся.'); }
+  },
+  net(){
+    P.online = !P.online;
+    logEv(P.online ? 'Связь у телефона рабочего вернулась.' : 'Связь у телефона рабочего пропала. Код на экране ещё годен до конца срока.');
+    if (P.online && P.pending){ const p=P.pending; P.pending=null; later(1500, ()=>showDone(p)); }
+    else if (P.online && P.phase==='nocode') fetchCode();
+  },
+  rewind(){
+    if (P.phase!=='live' || P.left<=4){ logEv('Перематывать нечего: код сейчас не идёт.'); return; }
+    P.clock += P.left-4; P.left = 4; logEv('Перемотали к концу минуты.');
+  },
+  fail(){
+    P.failNext = true; logEv('Сервер сломался: следующая выдача кода получит 503.');
+    if (P.screen==='app' && ['live','nocode'].includes(P.phase)) fetchCode();
+  },
+  restart(){
+    if (P.screen!=='app'){ logEv('Приложение и так на экране входа.'); return; }
+    P.onSite = null; P.done = null; P.pending = null; P.hint = needHint();
+    logEv(P.serverOn
+      ? 'Приложение перезапущено. Открытую отметку рабочего движок пока не отдаёт — экран покажет «не отмечены», хотя рабочий на объекте. Скан всё равно даст уход: решает движок.'
+      : 'Приложение перезапущено.');
+    fetchCode();
+  },
+  reset(){ resetProto(); },
+  drawer(){ P.drawer = !P.drawer; renderPult(); },
+};
+function showDone(d){
+  P.phase='done'; P.done=d; P.onSite = d.action==='open' ? {since:d.time} : null;
+  logEv(`Экран спросил «что стало с моим кодом» (POST /api/passes/status) — consumed: ${d.action==='open'?'приход':'уход'} ${d.time}, ${FOREMAN}.`);
+  later(4000, ()=>{ if (P.phase==='done') fetchCode(); });
+}
+function protoState(){
+  const base = {clock:hhmm(P.clock), net:P.online?undefined:false, since:P.onSite?.since, install:P.hint};
+  if (P.screen==='login') return {...base, id:'login', install:false};
+  switch (P.phase){
+    case 'live':       return {...base, id: P.online ? (P.onSite?'onsite':'code') : 'offline', left:P.left};
+    case 'refreshing': return {...base, id:'refresh', left:0};
+    case 'nocode':     return {...base, id:'offline-expired', left:0, net:false};
+    case 'done':       return {...base, id: P.done.action==='open'?'done-in':'done-out', mark:P.done.time, install:false};
+    case 'error':      return {...base, id:'error'};
+    default:           return {...base, id:'refresh', left:0};
+  }
+}
+setInterval(()=>{
+  if (S.view!=='proto') return;
+  P.clock++;
+  if (P.screen==='app' && P.phase==='live'){
+    P.left--;
+    if (P.left<=0){ logEv('Срок кода вышел.'+(P.online?' Экран сам берёт новый.':'')); fetchCode(); }
+  }
+  renderScreens();
+}, 1000);
+
+const BTN = [
+  ['scan',   '📷 Бригадир сканирует код'],
+  ['net',    null],
+  ['rewind', '⏩ Перемотать к концу минуты'],
+  ['fail',   '💥 Ошибка сервера'],
+  ['restart','🔄 Перезапуск приложения'],
+  ['reset',  '↺ Начать сначала'],
+];
+function renderPult(){
+  const el = document.getElementById('pult'); if (!el) return;
+  if (S.view!=='proto'){ el.hidden = true; return; }
+  el.hidden = false;
+  el.className = 'pult' + (P.drawer ? ' open' : '');
+  el.innerHTML = `<button class="handle" data-act="drawer">Пульт — остальной мир ${P.drawer?'▼':'▲'}</button>
+    <div class="pin">
+      <b class="ptitle">Пульт — остальной мир</b>
+      <p class="how">Войдите и покажите код. Кнопки ниже — то, что делают другие: бригадир, сеть, сервер. Первый скан — приход, второй — уход.</p>
+      <div class="acts">${BTN.map(([a,l])=>`<button data-act="${a}" class="${a==='scan'?'main':''}">${a==='net' ? (P.online?'📵 Связь пропала':'📶 Связь вернулась') : l}</button>`).join('')}</div>
+      <div class="pctl">${ctlHtml()}</div>
+      <div class="log"><b>Что произошло</b>${P.log.map(e=>`<div><time>${e.at}</time>${e.text}</div>`).join('')}</div>
+    </div>`;
+}
+function ctlHtml(){
+  const seg = (id, items, cur) => `<span class="seg" data-seg="${id}">${items.map(([v,l])=>`<button data-v="${v}" aria-pressed="${v===cur}">${l}</button>`).join('')}</span>`;
+  if (STANDALONE) return seg('lang', [['hu','hu'],['ru','ru'],['en','en']], S.lang); // размер — настоящий, доска — на компьютере
+  return seg('lang', [['hu','hu'],['ru','ru'],['en','en']], S.lang) + seg('size', [['s','360'],['m','390'],['l','430']], S.size)
+    + seg('view', [['proto',t('ctl.one')],['all',t('ctl.all')]], S.view);
+}
+
+function syncUrl(){ history.replaceState(null,'','?'+new URLSearchParams({lang:S.lang, view:S.view, size:S.size})); }
+function setOpt(kind, v){ S[kind]=v; syncUrl(); render(); }
+document.addEventListener('click', e=>{
+  const a = e.target.closest('[data-act]');
+  if (a && ACT[a.dataset.act]){
+    // на телефоне пульт после действия сворачивается — сразу видно, что стало с экраном
+    if (a.dataset.act!=='drawer' && (STANDALONE || matchMedia('(max-width:460px)').matches)) P.drawer = false;
+    ACT[a.dataset.act](); renderScreens(); renderPult(); return;
+  }
+  const b = e.target.closest('[data-seg] button, #seg-lang button, #seg-view button, #seg-size button');
+  if (b){ const kind = b.parentElement.dataset.seg || b.parentElement.id.replace('seg-',''); setOpt(kind, b.dataset.v); }
+});
+resetProto();
+render();
+/* Как у чернового приложения: оболочка в кэше, открывается и без сети (sw.js рядом). */
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
