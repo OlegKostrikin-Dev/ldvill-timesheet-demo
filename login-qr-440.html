@@ -1,0 +1,1051 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LD Vill — вход по QR · прототип</title>
+<meta name="theme-color" content="#213946">
+<!-- Ставится на телефон как приложение (PWA): на iPhone — «Поделиться → На экран „Домой“», на Android — «Установить». -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="LD Belépés">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<!--
+  Кликабельный макет входа по QR и экрана владельца «Люди» (TG-443). Утверждает Oleg; по нему потом пишется
+  настоящий вход в движке и приложении. Образец формы — принятый прототип «Мой код» (my-code.html рядом).
+
+  Что здесь:
+    · живой прототип (вид по умолчанию): слева телефон владельца (или бригадира), справа — нового человека.
+      Владелец заводит человека и показывает QR-приглашение; человек наводит камеру iPhone, в Safari ставит
+      значок и уже в значке входит по одноразовому коду (QR или 6 цифр) с экрана владельца или бригадира.
+      Потерял или сменил телефон — обычный повторный вход, старый телефон отключается сам; уволенного владелец
+      блокирует (поправка Oleg 21.11). Пульт играет остальной мир (прошло 5 минут, нет связи, новый телефон,
+      перезапуск значка); журнал пульта говорит, что произошло и что делал бы движок;
+    · решения оркестратора 21.11, которые можно поменять, — в пульте и в записке под макетом;
+    · доска всех экранов для обзора на компьютере (вид «все экраны»);
+    · три размера экрана: узкий Android 360×640, iPhone 390×844, большой iPhone 430×932; тексты экранов hu / ru / en.
+  Адрес принимает ?lang=hu|ru|en&view=proto|all&size=s|m|l, а на телефоне ещё &show=left|right (какой телефон
+  показать); ?debug красит рамку телефона, где содержимое не влезло без прокрутки.
+  На телефоне в браузере и со значка — один телефон на весь экран, переключатель «чей телефон» — в пульте (⚙︎).
+
+  Палитра, шрифт и вёрстка у краёв экрана — как в my-code.html. Данные выдуманы, сервера нет.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<style>
+  /* ══ ТОКЕНЫ LD VILL — как в my-code.html ══ */
+  :root{
+    --c-dark:#213946; --c-ink:#343A42; --c-muted:#6B7680; --c-line:#E2E7E9; --c-surface:#FFFFFF; --c-ground:#F5F7F7;
+    --c-lime:#C7FF00; --c-lime-ink:#7FA300;
+    --c-warn:#E8A100; --c-warn-bg:#FFF6DD; --c-warn-ink:#7A5400;
+    --c-bad:#D64545; --c-bad-bg:#FDECEC; --c-ok:#2E9E5B; --c-ok-bg:#E7F6EE;
+    --font:"Plus Jakarta Sans","Segoe UI",Arial,sans-serif; --radius:2px;
+    --ph-w:390px; --ph-h:844px; --safe-top:47px; --safe-bottom:34px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#E9EEF0;color:var(--c-ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  button{font:inherit;color:inherit;cursor:pointer}
+
+  /* ══ СЛУЖЕБНОЕ (не часть экрана) ══ */
+  .deck{max-width:1600px;margin:0 auto;padding:20px 20px 40px}
+  .deck h1{font-size:22px;margin:0 0 4px;font-weight:800}
+  .deck .sub{color:var(--c-muted);margin:0 0 16px;font-size:14px;max-width:900px}
+  .controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;margin-bottom:20px}
+  .seg{display:inline-flex;border:1px solid #C9D2D6;background:#fff}
+  .seg button{border:0;background:none;padding:7px 12px;font-size:13px;font-weight:600}
+  .seg button[aria-pressed="true"]{background:var(--c-dark);color:#fff}
+  .ctl-l{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--c-muted);margin-right:6px;font-family:ui-monospace,Menlo,monospace}
+  .stage{display:flex;flex-direction:column;gap:36px}
+  .board{display:grid;grid-template-columns:repeat(auto-fill,minmax(430px,1fr));gap:28px 24px;justify-items:center}
+  .sec{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);font-family:ui-monospace,Menlo,monospace;margin:8px 0 20px}
+  .cell figcaption{margin-top:8px;font-size:13px;max-width:var(--ph-w)}
+  .cell figcaption b{display:block;font-size:14px}
+  .cell figcaption code{font-size:11px;color:var(--c-muted)}
+  figure{margin:0}
+  .notes{max-width:900px;background:#fff;border:1px solid var(--c-line);padding:18px 20px;font-size:14px;line-height:1.5}
+  .notes h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);margin:18px 0 6px;font-family:ui-monospace,Menlo,monospace}
+  .notes h2:first-child{margin-top:0}
+  .notes table{border-collapse:collapse;width:100%;font-size:13px}
+  .notes td,.notes th{border-top:1px solid var(--c-line);padding:5px 6px 5px 0;vertical-align:top;text-align:left}
+  .notes code{font-size:12px;background:var(--c-ground);padding:0 3px}
+  .tag{display:inline-block;font-size:10px;font-weight:700;padding:1px 5px;letter-spacing:.04em;text-transform:uppercase}
+  .tag.have{background:var(--c-ok-bg);color:var(--c-ok)} .tag.ask{background:var(--c-warn-bg);color:var(--c-warn-ink)} .tag.cli{background:var(--c-ground);color:var(--c-muted)}
+
+  /* ══ ТЕЛЕФОН ══ */
+  .phone{width:var(--ph-w);height:var(--ph-h);background:var(--c-ground);position:relative;overflow:hidden;
+    outline:10px solid #11181C;border-radius:44px;box-shadow:0 18px 40px rgba(0,0,0,.18);display:flex;flex-direction:column}
+  .top{flex:none}
+  .sb{height:var(--safe-top);background:var(--c-dark);color:#fff;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 8px;font-size:15px;font-weight:600;flex:none}
+  .sb .net{font-size:12px;letter-spacing:.05em}
+  .appbar{background:var(--c-dark);color:#fff;padding:10px 20px 16px;flex:none}
+  .appbar .row{display:flex;align-items:center;gap:12px}
+  .logo{width:34px;height:34px;background:var(--c-lime);color:var(--c-dark);display:grid;place-items:center;font-weight:800;font-size:14px;letter-spacing:-.02em;flex:none}
+  .who{line-height:1.2}
+  .who b{display:block;font-size:15px}
+  .who span{font-size:12px;color:#B9C6CD}
+  .appbar h2{margin:14px 0 0;font-size:26px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:6px}
+  .appbar .bk{border:0;background:none;color:#fff;padding:0;width:28px;height:28px;margin-left:-6px;display:grid;place-items:center}
+  .appbar .bk svg{width:26px;height:26px}
+
+  .body{flex:1;overflow:hidden;padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+  .tabs{flex:none;display:flex;background:var(--c-dark);padding-bottom:var(--safe-bottom)}
+  .tabs span{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 6px;font-size:12px;font-weight:600;color:rgba(255,255,255,.6);border-top:3px solid transparent}
+  .tabs span.on{color:#fff;border-top-color:var(--c-lime)}
+  .tabs svg{width:22px;height:22px}
+
+  .btn{border:0;background:var(--c-lime);color:var(--c-dark);font-weight:800;font-size:16px;padding:14px 22px;width:100%;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn svg{width:20px;height:20px}
+  .btn.dark{background:var(--c-dark);color:#fff}
+  .btn.line{background:#fff;color:var(--c-ink);border:1px solid #C9D2D6}
+  .btn.bad{background:#fff;color:var(--c-bad);border:1px solid #EBB9B9}
+  .btn.sm{font-size:14px;padding:11px 14px}
+  .note{margin:0;font-size:13px;color:var(--c-muted);line-height:1.4}
+  .note.c{text-align:center}
+
+  /* список людей */
+  .list{display:flex;flex-direction:column;background:#fff;border:1px solid var(--c-line)}
+  .prow{display:flex;align-items:center;gap:12px;padding:11px 12px;border:0;border-top:1px solid var(--c-line);background:none;text-align:left;width:100%}
+  .prow:first-child{border-top:0}
+  .ava{width:38px;height:38px;flex:none;background:var(--c-ground);border:1px solid var(--c-line);display:grid;place-items:center;font-weight:800;font-size:13px;color:var(--c-dark)}
+  .prow .tx{flex:1;min-width:0;line-height:1.25}
+  .prow .tx b{display:block;font-size:15px}
+  .prow .tx span{font-size:12px;color:var(--c-muted);display:flex;align-items:center;gap:5px}
+  .prow .tx span svg{width:13px;height:13px;flex:none}
+  .prow .tx span.on{color:var(--c-ok)} .prow .tx span.off{color:var(--c-bad)}
+  .prow .go{color:var(--c-muted);width:18px;height:18px;flex:none}
+  .prow.new{background:#FBFFE9}
+  .rtag{font-size:11px;font-weight:700;padding:2px 6px;background:var(--c-ground);color:var(--c-dark);letter-spacing:.02em;flex:none}
+  .rtag.f{background:var(--c-dark);color:var(--c-lime)}
+
+  /* форма */
+  .form{display:flex;flex-direction:column;gap:12px}
+  .form label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--c-muted)}
+  .form input{font:inherit;font-size:16px;color:var(--c-ink);padding:12px;border:1px solid var(--c-line);background:#fff;border-radius:0;width:100%}
+  .roles{display:grid;grid-template-columns:1fr 1fr;border:1px solid #C9D2D6;background:#fff}
+  .roles button{border:0;background:none;padding:12px 8px;font-weight:700;font-size:15px}
+  .roles button[aria-pressed="true"]{background:var(--c-dark);color:#fff}
+
+  /* QR и код */
+  .qrbox{background:#fff;border:1px solid var(--c-line);padding:16px 16px 12px;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .qr{width:var(--qr);height:var(--qr);position:relative;display:grid;place-items:center}
+  .qr svg{width:var(--qr);height:var(--qr);display:block}
+  .qr .fallback{width:var(--qr);height:var(--qr);background:repeating-conic-gradient(#343A42 0 25%,#fff 0 50%) 0 0/24px 24px;opacity:.85}
+  .qr .veil{position:absolute;inset:0;background:rgba(255,255,255,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;font-weight:700;padding:0 14px}
+  .qr .veil svg{width:40px;height:40px}
+  .qr .veil.ok{color:var(--c-ok)} .qr .veil.bad{color:var(--c-bad)}
+  .qr .veil small{font-weight:500;color:var(--c-muted);font-size:13px}
+  .digits{font-size:38px;font-weight:800;letter-spacing:.12em;font-variant-numeric:tabular-nums;line-height:1}
+  .digits.dead{color:var(--c-line);text-decoration:line-through}
+  .ttl{width:100%;height:6px;background:var(--c-line)}
+  .ttl i{display:block;height:100%;background:var(--c-lime-ink);transition:width .9s linear}
+  .ttl.low i{background:var(--c-warn)}
+  .count{font-size:14px;color:var(--c-muted);font-variant-numeric:tabular-nums;text-align:center}
+  .count b{color:var(--c-ink)}
+  .invlink{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--c-muted);word-break:break-all;text-align:center}
+  /* «Выдать доступ» — два шага на одном экране (Oleg 22.11) */
+  .steps{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .steps span{border-top:4px solid var(--c-line);padding-top:6px;font-size:12px;font-weight:700;color:var(--c-muted);line-height:1.25}
+  .steps span small{display:block;font-weight:600;font-size:11px}
+  .steps span.on{border-top-color:var(--c-lime-ink);color:var(--c-ink)}
+  .steps span.past{border-top-color:var(--c-ok)}
+  .way{display:flex;gap:6px;align-items:flex-start;width:100%;font-size:13px;font-weight:700;color:var(--c-ink);line-height:1.3}
+  .way svg{width:16px;height:16px;flex:none;margin-top:1px;color:var(--c-lime-ink)}
+  .way.tel{border-top:1px dashed var(--c-line);padding-top:8px}
+  .compact .way{font-size:12px} .compact .way.tel{padding-top:5px}
+  .compact .steps span{padding-top:3px;font-size:11px;border-top-width:3px} .compact .steps span small{display:none}
+  .compact .lead{font-size:13px !important}
+
+  /* карточка человека */
+  .pcard{background:#fff;border:1px solid var(--c-line);padding:14px;display:flex;flex-direction:column;gap:8px}
+  .pcard .kv{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+  .pcard .kv span{color:var(--c-muted)}
+  .pcard .kv b.on{color:var(--c-ok)} .pcard .kv b.off{color:var(--c-bad)}
+  .stack{display:flex;flex-direction:column;gap:8px}
+
+  /* диалог подтверждения */
+  .dim{position:absolute;inset:0;background:rgba(17,24,28,.45);z-index:6}
+  .dialog{position:absolute;left:18px;right:18px;top:34%;background:#fff;padding:20px 18px 14px;z-index:7;box-shadow:0 10px 30px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:10px}
+  .dialog b{font-size:18px}
+  .dialog p{margin:0;font-size:14px;color:var(--c-muted)}
+  .dialog .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+
+  /* экран «Домой» телефона человека */
+  .body.flush{padding:0}
+  .spring{flex:1;background:linear-gradient(160deg,#5B7B8C,#213946 70%);padding:40px 26px;display:grid;grid-template-columns:repeat(4,1fr);align-content:start;gap:26px 10px}
+  .app-ic{border:0;background:none;color:#fff;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:0}
+  .app-ic i{width:60px;height:60px;border-radius:14px;display:grid;place-items:center;font-style:normal}
+  .app-ic i svg{width:30px;height:30px}
+  .app-ic.cam i{background:#D9DCDF;color:#333} .app-ic.saf i{background:#fff;color:#0A84FF}
+  .app-ic.ld i{background:var(--c-lime);color:var(--c-dark);font-weight:800;font-size:22px}
+  .app-ic.ghost{opacity:.35} .app-ic.ghost i{background:rgba(255,255,255,.25)}
+  .spring .shint{grid-column:1/-1;margin-top:auto;color:rgba(255,255,255,.85);font-size:13px;text-align:center;background:rgba(0,0,0,.25);padding:10px}
+  .spring .pulse i{box-shadow:0 0 0 4px var(--c-lime)}
+
+  /* Safari: страница приглашения */
+  .saf-url{flex:none;background:#F2F2F4;border-bottom:1px solid #D6D6DA;padding:6px 14px;font-size:13px;color:#333;text-align:center}
+  .welcome{display:flex;flex-direction:column;gap:10px;padding-top:10px}
+  .welcome .logo.big{width:64px;height:64px;font-size:24px}
+  .welcome b.hi{font-size:26px;font-weight:800}
+  .welcome p{margin:0;font-size:15px}
+  .safari{flex:none;display:flex;justify-content:space-around;align-items:center;background:#F2F2F4;border-top:1px solid #D6D6DA;padding:10px 0 calc(var(--safe-bottom) + 4px);color:#0A84FF;font-size:22px}
+  .safari svg{width:22px;height:22px}
+  .safari .hl{outline:2px solid var(--c-lime-ink);outline-offset:5px;border-radius:4px}
+  .sheet{position:absolute;left:12px;right:12px;bottom:calc(var(--safe-bottom) + 64px);background:#fff;padding:18px 18px 12px;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:7}
+  .sheet .st{font-size:18px;display:block}
+  .sheet p{margin:4px 0 12px;font-size:13px;color:var(--c-muted)}
+  .sheet ol{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:10px}
+  .sheet li{display:flex;gap:10px;align-items:center;font-size:14px}
+  .sheet .n{flex:none;width:24px;height:24px;background:var(--c-dark);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px}
+  .sheet .inl{width:18px;height:18px;vertical-align:-4px;color:#0A84FF}
+  .sheet .arrow{position:absolute;left:50%;bottom:-10px;margin-left:-10px;width:20px;height:20px;background:#fff;transform:rotate(45deg)}
+
+  /* первый запуск значка, камера, цифры */
+  .login{flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:0 6px}
+  .login .logo.big{width:64px;height:64px;font-size:24px;margin-bottom:6px}
+  .login > b{font-size:26px;font-weight:800} .login > span{color:var(--c-muted);margin-bottom:10px}
+  .login label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--c-muted)}
+  .login input{font:inherit;font-size:16px;color:var(--c-ink);padding:12px;border:1px solid var(--c-line);background:#fff;border-radius:0}
+  .cam{flex:1;background:#0E1418;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:0 20px;text-align:center}
+  .cam .vf{width:230px;height:230px;border:3px solid var(--c-lime);position:relative;background:rgba(255,255,255,.04);display:grid;place-items:center;color:rgba(255,255,255,.75);font-size:13px;padding:16px}
+  .cam b{font-size:18px} .cam span{font-size:13px;opacity:.75}
+  .cam .btn.line{background:transparent;color:#fff;border-color:rgba(255,255,255,.4);max-width:260px}
+  .cells{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+  .cells i{height:52px;background:#fff;border:1px solid var(--c-line);display:grid;place-items:center;font-style:normal;font-size:26px;font-weight:800}
+  .cells i.cur{border:2px solid var(--c-dark)}
+  .cells.bad i{border-color:var(--c-bad);color:var(--c-bad)}
+  .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:auto}
+  .pad button{border:0;background:#fff;border:1px solid var(--c-line);font-size:22px;font-weight:700;padding:10px 0}
+  .pad button.go{background:var(--c-lime);border-color:var(--c-lime);font-size:15px;font-weight:800}
+  .pad button[disabled]{opacity:.4}
+  .errline{font-size:13px;color:var(--c-bad);font-weight:600;min-height:18px;text-align:center}
+
+  .done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;background:var(--c-ok-bg);border:1px solid #BFE5CF;padding:0 16px}
+  .done .big{width:84px;height:84px;border-radius:50%;background:var(--c-ok);color:#fff;display:grid;place-items:center;margin-bottom:6px}
+  .done .big svg{width:46px;height:46px}
+  .done b{font-size:22px} .done p{margin:0;font-size:14px}
+  .err{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:0 10px}
+  .err .big{width:72px;height:72px;border-radius:50%;background:var(--c-bad-bg);color:var(--c-bad);display:grid;place-items:center}
+  .err .big.warn{background:var(--c-warn-bg);color:var(--c-warn-ink)}
+  .err .big svg{width:38px;height:38px}
+  .err b{font-size:19px}
+  .err p{margin:0;font-size:14px;color:var(--c-muted)}
+  .err small{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--c-muted)}
+  .stub{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;border:1px dashed #C9D2D6;padding:16px;color:var(--c-muted);font-size:14px}
+  .stub svg{width:40px;height:40px}
+
+  /* узкий экран (360×640): шапка и отступы сжимаются */
+  .compact .appbar{padding:6px 16px 10px} .compact .appbar h2{font-size:21px;margin-top:8px}
+  .compact .logo{width:28px;height:28px;font-size:12px}
+  .compact .body{padding:10px 16px;gap:10px}
+  .compact .prow{padding:8px 10px} .compact .ava{width:32px;height:32px}
+  .compact .qrbox{padding:10px 10px 8px;gap:6px} .compact .digits{font-size:30px}
+  .compact .tabs span{padding:7px 0 5px}
+  .compact .cells i{height:42px;font-size:22px} .compact .pad button{padding:6px 0;font-size:19px}
+  .compact .cam .vf{width:180px;height:180px}
+  .compact .spring{padding:24px 18px;gap:18px 8px} .compact .app-ic i{width:52px;height:52px}
+  .phone.overflow{outline-color:var(--c-bad)}
+
+  /* живой прототип: два телефона и пульт */
+  .work{display:flex;gap:36px;align-items:flex-start;flex-wrap:wrap}
+  .pair{display:flex;gap:36px;flex-wrap:wrap}
+  .pair figcaption{margin-top:10px;font-size:13px;font-weight:700;color:var(--c-muted);text-align:center}
+  body[data-view="proto"] .controls{display:none}
+  .pult{width:420px;max-width:100%;background:#fff;border:1px solid var(--c-line);font-size:14px}
+  .pult .handle{display:none}
+  .pult .pin{padding:16px 18px}
+  .pult .ptitle{display:block;font-size:16px;margin-bottom:4px}
+  .pult .how{margin:0 0 12px;color:var(--c-muted);font-size:13px;line-height:1.45}
+  .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .acts button{border:1px solid #C9D2D6;background:#fff;padding:11px 10px;font-weight:700;font-size:13px;text-align:left}
+  .acts button:active{transform:translateY(1px)}
+  .pctl{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+  .dec{border:1px solid var(--c-warn);background:var(--c-warn-bg);padding:8px 10px;margin:0 0 12px;font-size:12.5px;line-height:1.4}
+  .dec summary{font-weight:800;cursor:pointer;color:var(--c-warn-ink)}
+  .dec ol{margin:6px 0 0;padding-left:18px} .dec li{margin-bottom:4px}
+  .log{border-top:1px solid var(--c-line);padding-top:10px;font-size:12.5px;line-height:1.4;max-height:360px;overflow:auto}
+  .log b{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);margin-bottom:6px;font-family:ui-monospace,Menlo,monospace}
+  .log div{padding:4px 0;border-bottom:1px dashed var(--c-line)}
+  .log div:first-of-type{color:var(--c-ink);font-weight:600}
+  .log time{font-family:ui-monospace,Menlo,monospace;color:var(--c-muted);margin-right:6px;font-weight:400}
+
+  @media (max-width:460px){
+    .deck{padding:12px 0 30px}
+    .deck h1,.deck .sub,.controls,.notes{margin-left:12px;margin-right:12px}
+    .phone{outline:0;border-radius:0;box-shadow:none;width:100vw}
+    .board{grid-template-columns:1fr}
+    .cell figcaption{padding:0 12px}
+  }
+
+  /* Телефон в браузере и значок на «Домой»: один телефон на весь экран, служебного нет, пульт — за кнопкой в углу.
+     Вёрстка у краёв экрана — та же, что у my-code.html (TG-428): телефон прибит к краям окна, без своей высоты. */
+  #corner{display:none}
+  body.standalone{background:var(--c-ground);overscroll-behavior:none}
+  body.standalone .deck{padding:0;max-width:none}
+  body.standalone .deck > h1, body.standalone .deck > .sub, body.standalone .controls, body.standalone .notes{display:none}
+  body.standalone .phone{position:fixed;top:0;right:0;bottom:0;left:0;width:auto;height:auto;outline:0;border-radius:0;box-shadow:none;
+    --safe-top:env(safe-area-inset-top, 20px);--safe-bottom:env(safe-area-inset-bottom, 0px)}
+  body.standalone .pair figcaption{display:none}
+  body.standalone .sb{padding:0}
+  body.standalone .sb span{display:none}
+  body.standalone #corner{display:block;position:fixed;z-index:11;top:calc(env(safe-area-inset-top, 0px) + 10px);right:10px;
+    width:34px;height:34px;border:0;border-radius:50%;background:rgba(33,57,70,.6);color:#fff;font-size:17px;line-height:34px;padding:0}
+  body.standalone .pult{position:fixed;left:0;right:0;bottom:0;width:auto;z-index:10;border:0;box-shadow:0 -8px 24px rgba(0,0,0,.3);
+    max-height:78dvh;display:flex;flex-direction:column;transform:translateY(105%);transition:transform .25s}
+  body.standalone .pult.open{transform:none}
+  body.standalone .pult .handle{display:block;flex:none;height:44px;border:0;background:var(--c-lime);color:var(--c-dark);font-weight:800;font-size:15px;width:100%}
+  body.standalone .pult .ptitle{display:none}
+  body.standalone .pult .pin{overflow:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px))}
+  body.standalone .log{max-height:none}
+  /* Обычная колонка (TG-440), как в my-code.html: шапка — содержимое (flex:1) — меню; ничего не прибито поверх и ничего
+     не досчитывает скрипт. Строка состояния значка — black: окно кончается на дне экрана, отступ меню — ровно safe-area;
+     экран без меню сам отступает от полоски «домой». Оттягивание выключено у html. */
+  html.standalone{background:var(--c-ground);overscroll-behavior:none}
+  body.standalone .tabs span{box-sizing:border-box;height:49px;justify-content:center;gap:2px;padding:0}
+  body.standalone .tabs:empty{display:none}
+  body.standalone[data-view] .phone{height:auto}
+  body.standalone .body.notabs{padding-bottom:calc(var(--safe-bottom) + 16px)}
+  body.standalone .body.flush{padding:0}   /* «Домой» и камера — во весь экран до самого края, хоть и без меню: весомее notabs */
+  body.standalone .pult:not(.open){visibility:hidden}
+  body.standalone .sheet{bottom:calc(var(--safe-bottom) + 49px + 14px)}
+</style>
+</head>
+<body>
+<div class="deck">
+  <h1 data-t="deck.title"></h1>
+  <p class="sub" data-t="deck.sub"></p>
+
+  <div class="controls">
+    <span><span class="ctl-l" data-t="ctl.lang"></span><span class="seg" id="seg-lang">
+      <button data-v="hu">hu</button><button data-v="ru">ru</button><button data-v="en">en</button></span></span>
+    <span><span class="ctl-l" data-t="ctl.view"></span><span class="seg" id="seg-view">
+      <button data-v="proto" data-t="ctl.one"></button><button data-v="all" data-t="ctl.all"></button></span></span>
+    <span><span class="ctl-l" data-t="ctl.size"></span><span class="seg" id="seg-size">
+      <button data-v="s">360</button><button data-v="m">390</button><button data-v="l">430</button></span></span>
+  </div>
+
+  <div class="stage">
+    <div class="work"><div id="screens"></div><aside id="pult" hidden></aside></div>
+    <button id="corner" data-act="drawer" aria-label="Пульт">⚙︎</button>
+    <aside class="notes" id="notes"></aside>
+  </div>
+</div>
+
+<script>
+/* ══ ДАННЫЕ (выдуманы) ══ */
+const FOREMAN_ID = 1;   // владелец — Дорин, как в timesheet-pwa.html (имя — в таблице переводов, owner.name)
+const CODE_TTL = 300;   // код для входа живёт 5 минут: хватает продиктовать 6 цифр по телефону (Oleg 22.11)
+const TRIES = 5;        // неверных вводов 6 цифр до паузы
+const INVITE_HOST = 'ldvill.theguild.hu';
+const PEOPLE0 = [
+  {id:1, sur:'Kovács',  name:'Péter', role:'foreman', phone:'on',   since:'03.11', last:{d:0,  t:'07:40'}},
+  {id:2, sur:'Horváth', name:'Ádám',  role:'worker',  phone:'on',   since:'05.11', last:{d:-1, t:'17:10'}},
+  {id:3, sur:'Tóth',    name:'Bence', role:'worker',  phone:'none'},
+  {id:4, sur:'Varga',   name:'Zsolt', role:'worker',  phone:'none', blocked:true},
+];
+const full = p => p.sur + ' ' + p.name;   // по-венгерски фамилия впереди
+const initials = p => p.sur[0] + p.name[0];
+
+const DEV = {
+  s: {w:360, h:640, top:24, bottom:0,  qr:150, compact:true},
+  m: {w:390, h:844, top:47, bottom:34, qr:176},
+  l: {w:430, h:932, top:59, bottom:34, qr:224},
+};
+
+/* ══ ТЕКСТЫ ЭКРАНОВ hu / ru / en — единственное место переводов экранов (пульт и подписи доски — по-русски) ══ */
+const T = {
+  'deck.title': ['Belépés QR-kóddal — prototípus · LD Vill','Вход по QR — прототип · LD Vill','Sign-in by QR — prototype · LD Vill'],
+  'deck.sub': ['A tulajdonos felvesz egy embert, az ember jelszó nélkül lép be az ikonba. Balra a tulajdonos (vagy brigádvezető) telefonja, jobbra az új emberé.',
+               'Владелец заводит человека, человек входит в значок без пароля. Слева телефон владельца (или бригадира), справа — нового человека.',
+               'The owner adds a person; the person signs in to the home-screen app without a password. Left: the owner’s (or foreman’s) phone, right: the new person’s.'],
+  'ctl.lang':['nyelv','язык','language'], 'ctl.view':['nézet','вид','view'], 'ctl.size':['méret','размер','size'],
+  'ctl.one':['élő prototípus','живой прототип','live prototype'], 'ctl.all':['minden képernyő','все экраны','all screens'],
+
+  'owner.name':['Dorin','Дорин','Dorin'],
+  'role.owner':['tulajdonos','владелец','owner'], 'role.foreman':['brigádvezető','бригадир','foreman'], 'role.worker':['dolgozó','рабочий','worker'],
+  'tab.people':['Emberek','Люди','People'], 'tab.shifts':['Műszakok','Смены','Shifts'],
+  'tab.myshift':['Műszakom','Моя смена','My shift'], 'tab.team':['Brigád','Бригада','Crew'],
+  'tab.code':['Kódom','Мой код','My code'], 'tab.days':['Műszakjaim','Мои смены','My shifts'],
+  'net.off':['Nincs hálózat','Нет сети','No network'],
+
+  'login.sub':['Műszaknyilvántartás','Учёт смен','Shift tracking'],
+  'login.user':['Felhasználónév','Логин','Username'], 'login.pass':['Jelszó','Пароль','Password'], 'login.btn':['Belépés','Войти','Sign in'],
+
+  'people.add':['Ember hozzáadása','Добавить человека','Add person'],
+  'ph.on':['Telefon csatolva · {when}','Телефон привязан · {when}','Phone linked · {when}'],
+  'ph.none':['Még nem lépett be','Ещё не входил','Not signed in yet'],
+  'ph.blocked':['Letiltva — nem léphet be','Заблокирован — входить не может','Blocked — can’t sign in'],
+  'when.today':['ma {t}','сегодня {t}','today {t}'], 'when.yday':['tegnap {t}','вчера {t}','yesterday {t}'],
+
+  'add.title':['Új ember','Новый человек','New person'],
+  'add.sur':['Vezetéknév','Фамилия','Surname'], 'add.name':['Keresztnév','Имя','First name'], 'add.role':['Szerep','Роль','Role'],
+  'add.save':['Hozzáadás','Добавить','Add'],
+  'add.note':['Jelszó nincs. Utána kiadod neki a hozzáférést: alkalmazás telepítése és belépés.','Пароля нет. Дальше вы выдадите ему доступ: установка приложения и вход.','No password. Next you grant access: install the app and sign in.'],
+
+  /* Кнопки — прямым действием, тем, что даём человеку (правило Oleg 21.11): одна «Выдать доступ» с двумя шагами
+     (Oleg 22.11), «Заблокировать доступ» / «Разблокировать». Слово «пропуск» не используем:
+     оно занято кодом рабочего на объекте. */
+  'inv.title':['Hozzáférés kiadása','Выдать доступ','Grant access'],
+  'inv.t':['{name} nyissa meg a telefon kameráját, és irányítsa erre a kódra','Пусть {name} откроет камеру телефона и наведёт на этот код','Have {name} open their phone camera and point it at this code'],
+  'inv.s':['Megnyílik a Safari, és megmutatja, hogyan tegye ki az ikont a főképernyőre. Belépni még nem kell.','Откроется Safari и подскажет, как поставить значок на экран «Домой». Входить пока не нужно.','Safari opens and shows how to add the icon to the Home Screen. No sign-in yet.'],
+  'inv.code':['Az alkalmazás már megvan — tovább','Приложение уже есть — дальше','App already there — next'],
+
+  'card.role':['Szerep','Роль','Role'], 'card.phone':['Telefon','Телефон','Phone'],
+  'card.since':['csatolva {d}','привязан {d}','linked {d}'], 'card.last':['Utoljára','Последний раз','Last used'],
+  /* Одна кнопка «Выдать доступ» (Oleg 22.11): шаг 1 — QR установки приложения, шаг 2 — QR и 6 цифр для входа */
+  'card.access':['Hozzáférés kiadása','Выдать доступ','Grant access'],
+  'card.access.s':['Két lépés: QR az alkalmazás telepítéséhez, majd QR és 6 számjegy a belépéshez. Jelszó nem kell.','Два шага: QR, чтобы установить приложение, потом QR и 6 цифр для входа. Пароль не нужен.','Two steps: a QR to install the app, then a QR and 6 digits to sign in. No password.'],
+  'card.access.again.s':['A hozzáférés már ki van adva egy telefonra. Ha újra kiadod, a régi telefon nem fog működni.','Доступ уже выдан на телефон. Если выдать снова, старый телефон перестанет работать.','Access is already granted to a phone. If you grant it again, the old phone will stop working.'],
+  'step.of':['{n}. lépés / 2','Шаг {n} из 2','Step {n} of 2'],
+  'step.1':['Alkalmazás telepítése','Установить приложение','Install the app'],
+  'step.2':['Belépés','Вход','Sign in'],
+  'card.block':['Hozzáférés letiltása','Заблокировать доступ','Block access'], 'card.unblock':['Letiltás feloldása','Разблокировать','Unblock'],
+  'card.state':['Állapot','Доступ','Access'], 'card.blocked':['letiltva','заблокирован','blocked'],
+  'card.blocked.s':['Nem léphet be egyik telefonról sem, kódot nem kaphat.','Не входит ни с какого телефона, коды для него не выпускаются.','Can’t sign in from any phone; no codes are issued.'],
+
+  'conf.t':['Letiltod a hozzáférést? {name}','Заблокировать доступ: {name}?','Block access: {name}?'],
+  'conf.s':['Például ha már nem dolgozik nálatok. Azonnal kilép minden telefonról, és új kódot sem kaphat, amíg fel nem oldod.','Например, если человек у вас больше не работает. Он сразу выйдет со всех телефонов и не получит новый код, пока не разблокируете.','For example, if they no longer work for you. They are signed out of every phone at once and get no new code until you unblock.'],
+  'conf.yes':['Hozzáférés letiltása','Заблокировать доступ','Block access'], 'conf.no':['Mégse','Отмена','Cancel'],
+
+  'code.title':['Hozzáférés kiadása','Выдать доступ','Grant access'],
+  /* Шаг 2 — два способа (Oleg 22.11): рядом — QR, издалека — продиктовать 6 цифр по телефону, человек не едет в офис */
+  'code.how':['{name} megnyitja az LD Vill ikont, és kétféleképpen léphet be:','{name} откроет значок LD Vill и войдёт одним из двух способов:','{name} opens the LD Vill icon and signs in one of two ways:'],
+  'code.near':['Melletted van — beolvassa ezt a QR-kódot («Kód beolvasása»)','Рядом с вами — сканирует этот QR («Сканировать код»)','Next to you — scans this QR (“Scan code”)'],
+  'code.or':['Messze van — diktáld be telefonon ezt a 6 számjegyet («6 számjegy beírása»)','Далеко — продиктуйте по телефону эти 6 цифр («Ввести 6 цифр»)','Far away — read these 6 digits out over the phone (“Type 6 digits”)'],
+  'code.ok':['{name} bent van az alkalmazásban','{name} в приложении','{name} is in the app'],
+  'code.left':['Érvényes még <b>{t}</b> · egyszer használható','Действует ещё <b>{t}</b> · срабатывает один раз','Valid for <b>{t}</b> · works once'],
+  'code.expired':['A kód lejárt','Код истёк','Code expired'], 'code.new':['Új kód','Новый код','New code'],
+  'code.ok.s':['A telefon csatolva. Ezzel a kóddal már nem lehet belépni.','Телефон привязан. Этим кодом больше не войти.','Phone linked. This code can’t be used again.'],
+
+  'team.hint':['Embert felvenni csak a tulajdonos tud. A brigádod tagjainak te is kiadhatod a hozzáférést: koppints a nevére.','Заводит людей только владелец. Выдать доступ людям своей бригады можете и вы: нажмите на человека.','Only the owner adds people. You can grant access to your crew too: tap a name.'],
+
+  'home.camera':['Kamera','Камера','Camera'],
+  'home.hint':['Koppints a Kamerára: az ember a bal oldali QR-ra irányítja.','Нажмите «Камера»: человек наведёт её на QR слева.','Tap Camera: the person points it at the QR on the left.'],
+  'home.hint2':['Nyisd meg az LD Vill ikont.','Откройте значок LD Vill.','Open the LD Vill icon.'],
+
+  'saf.hi':['Szia, {name}!','Здравствуйте, {name}!','Hello, {name}!'],
+  'saf.t':['Ez az LD Vill alkalmazás — műszakok és érkezés a munkaterületre.','Это приложение LD Vill — смены и отметки на объекте.','This is the LD Vill app — shifts and check-ins on site.'],
+  'saf.s':['Tedd ki a főképernyőre — belépni már az ikonban fogsz.','Поставьте значок на экран «Домой» — войдёте уже в нём.','Add it to your Home Screen — you’ll sign in inside the app.'],
+  'saf.why':['Itt nincs belépés: a Safari és az ikon nem osztoznak a belépésen.','Здесь входа нет: Safari и значок не делят вход между собой.','No sign-in here: Safari and the home-screen app don’t share it.'],
+  /* Safari не знает, стоит ли значок, — поэтому страница одна для всех, с подсказкой для тех, у кого он уже есть */
+  'saf.already':['Már kint van az LD Vill ikon? Akkor csak nyisd meg.','Значок LD Vill уже есть? Тогда просто откройте его.','Already have the LD Vill icon? Then just open it.'],
+  'ins.t':['Tedd ki a főképernyőre','Добавьте на экран «Домой»','Add to your Home Screen'],
+  'ins.s':['Így az alkalmazás egy érintéssel nyílik.','Так приложение откроется одним касанием.','Then the app opens with one tap.'],
+  'ins.1':['Koppints lent a <b>Megosztás</b> gombra','Нажмите внизу <b>Поделиться</b>','Tap <b>Share</b> at the bottom'],
+  'ins.2':['Válaszd: <b>Főképernyőhöz adás</b>','Выберите <b>На экран «Домой»</b>','Choose <b>Add to Home Screen</b>'],
+  'ins.3':['Koppints a <b>Hozzáadás</b> gombra','Нажмите <b>Добавить</b>','Tap <b>Add</b>'],
+  'ins.do':['Hozzáadás (a prototípusban)','Добавить (в прототипе)','Add (in the prototype)'],
+
+  'first.t':['Belépés','Вход','Sign in'],
+  'first.s':['Kérd meg a tulajdonost vagy a brigádvezetőt, hogy adjon hozzáférést: a képernyőjén megmutatja a kódot.','Попросите владельца или бригадира выдать вам доступ — они покажут код на своём экране.','Ask the owner or your foreman to grant you access — they show a code on their screen.'],
+  'first.scan':['Kód beolvasása','Сканировать код','Scan code'], 'first.dig':['6 számjegy beírása','Ввести 6 цифр','Type 6 digits'],
+  'first.nopass':['Jelszó nem kell.','Пароль не нужен.','No password needed.'],
+  'cam.t':['Irányítsd a kamerát a kódra','Наведите камеру на код','Point the camera at the code'],
+  'cam.s':['a tulajdonos vagy a brigádvezető képernyőjén','на экране владельца или бригадира','on the owner’s or foreman’s screen'],
+  'cam.tap':['(prototípus) koppints ide — a bal oldali kód beolvasása','(прототип) нажмите сюда — скан кода слева','(prototype) tap here to scan the code on the left'],
+  'cam.cancel':['Inkább beírom a számokat','Лучше введу цифры','I’ll type the digits'],
+  'dig.t':['Írd be a 6 számjegyet','Введите 6 цифр','Enter the 6 digits'],
+  'dig.s':['a tulajdonos vagy a brigádvezető képernyőjéről','с экрана владельца или бригадира','from the owner’s or foreman’s screen'],
+  'dig.go':['Belépés','Войти','Sign in'],
+  'wel.t':['Kész, {name}!','Готово, {name}!','Done, {name}!'],
+  'wel.s':['A telefon hozzád van csatolva. Legközelebb az ikon azonnal megnyílik.','Телефон привязан к вам. В следующий раз значок откроется сразу.','This phone is linked to you. Next time the app opens straight away.'],
+  'app.mycode.s':['Itt van a «Kódom» képernyő — a TG-411 prototípus szerint.','Здесь экран «Мой код» — как в прототипе TG-411.','The “My code” screen lives here — as in the TG-411 prototype.'],
+  'app.shift.s':['Nincs nyitott műszak','Смена не открыта','No open shift'], 'app.shift.b':['Műszak nyitása','Открыть смену','Open shift'],
+
+  'err.expired.t':['A kód lejárt','Код истёк','The code has expired'],
+  'err.expired.s':['Kérj új kódot a tulajdonostól vagy a brigádvezetőtől.','Попросите новый код у владельца или бригадира.','Ask the owner or foreman for a new code.'],
+  'err.used.t':['Ezzel a kóddal már beléptek','Этим кодом уже вошли','This code was already used'],
+  'err.used.s':['A kód egyszer használható. Kérj újat.','Код срабатывает один раз. Попросите новый.','A code works once. Ask for a new one.'],
+  'err.wrong':['Hibás kód. Még {n} próbálkozás.','Неверный код. Осталось попыток: {n}.','Wrong code. Attempts left: {n}.'],
+  'err.locked.t':['Túl sok próbálkozás','Слишком много попыток','Too many attempts'],
+  'err.locked.s':['Várj 5 percet, és kérj új kódot.','Подождите 5 минут и попросите новый код.','Wait 5 minutes and ask for a new code.'],
+  'err.offline.t':['Nincs kapcsolat','Нет связи','No connection'],
+  'err.offline.s':['A belépéshez hálózat kell. Menj oda, ahol van térerő.','Для входа нужна сеть. Подойдите туда, где ловит.','Signing in needs a network. Move to where there is signal.'],
+  'err.again':['Újra','Ещё раз','Try again'],
+  'rev.t':['A hozzáférés le van tiltva','Доступ отключён','Access disabled'],
+  'rev.new':['Másik telefonon léptél be, ez kikapcsolt.','Вы вошли на другом телефоне — этот отключился.','You signed in on another phone — this one was switched off.'],
+  'rev.new.s':['Ha ez a te telefonod, kérd meg a tulajdonost vagy a brigádvezetőt, hogy adjon hozzáférést.','Если это ваш телефон — попросите владельца или бригадира выдать доступ.','If this is your phone, ask the owner or foreman to grant access.'],
+  'rev.blocked':['A tulajdonos letiltotta a belépésedet.','Владелец заблокировал ваш вход.','The owner has blocked your sign-in.'],
+  'rev.blocked.s':['Kérdezd a tulajdonost.','Обратитесь к владельцу.','Talk to the owner.'],
+  'rev.btn':['Belépés kóddal','Войти по коду','Sign in with a code'],
+};
+const LI = {hu:0, ru:1, en:2};
+
+/* ══ СОСТОЯНИЕ МАКЕТА ══ */
+const qs = new URLSearchParams(location.search);
+const S = {
+  lang: LI[qs.get('lang')] !== undefined ? qs.get('lang') : 'ru',
+  view: qs.get('view')==='all' ? 'all' : 'proto',
+  size: DEV[qs.get('size')] ? qs.get('size') : 'm',
+  show: qs.get('show')==='right' ? 'right' : 'left',   // какой телефон на весь экран (телефон и значок)
+};
+/* Открыт значком (установленное приложение) или на телефоне в браузере — один телефон на весь экран, пульт за кнопкой в углу.
+   ?standalone — тот же вид в браузере; ?desktop — вернуть служебный вид на телефоне. */
+const INSTALLED = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true || qs.has('standalone');
+const PHONE = !qs.has('desktop') && matchMedia('(pointer:coarse) and (hover:none)').matches;
+const STANDALONE = INSTALLED || PHONE;
+if (STANDALONE){ S.view = 'proto'; document.body.classList.add('standalone'); document.documentElement.classList.add('standalone'); }
+const nativeSize = () => innerWidth < 380 || innerHeight < 700 ? 's' : innerWidth < 420 ? 'm' : 'l';
+const DEBUG = qs.has('debug') || (INSTALLED && location.hostname === 'localhost');
+function t(k, v={}){ const row=T[k]; if(!row) return k; let s=row[LI[S.lang]]; for(const [a,b] of Object.entries(v)) s=s.replace('{'+a+'}', b); return s; }
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const six = () => String(Math.floor(Math.random()*1e6)).padStart(6,'0');
+const tok = n => { const a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'; let s=''; for(let i=0;i<n;i++) s+=a[Math.floor(Math.random()*a.length)]; return s; };
+const mmss = s => Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+const when = w => w==null ? '' : w.d===0 ? t('when.today',{t:w.t}) : t('when.yday',{t:w.t});
+
+/* ══ ИКОНКИ (lucide, ISC) ══ */
+const IC = {
+  qr:'<rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>',
+  list:'<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>',
+  users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  plus:'<path d="M5 12h14"/><path d="M12 5v14"/>',
+  back:'<path d="m15 18-6-6 6-6"/>', go:'<path d="m9 18 6-6-6-6"/>',
+  camera:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+  phone:'<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+  phoneoff:'<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/><path d="m2 2 20 20"/>',
+  key:'<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
+  lock:'<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  alert:'<path d="M12 8v4"/><path d="M12 16h.01"/><circle cx="12" cy="12" r="10"/>',
+  wifioff:'<path d="M12 20h.01"/><path d="M8.5 16.43a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 13a10 10 0 0 1 5.24-2.76"/><path d="m2 2 20 20"/>',
+  share:'<path d="M12 2v13"/><path d="m16 6-4-4-4 4"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>',
+  plusq:'<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M12 8v8"/>',
+  book:'<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  tabs:'<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  compass:'<circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z"/>',
+};
+const ic = (n, cls='') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IC[n]}</svg>`;
+function qrSvg(data){
+  if (!window.qrcode) return '<div class="fallback"></div>';
+  const q = qrcode(0,'M'); q.addData(data); q.make(); return q.createSvgTag({cellSize:6, margin:0, scalable:true});
+}
+
+/* ══ РАМКА ТЕЛЕФОНА ══
+   o: {clock, net, bar:{name, role, title, back}|null, body, tabs:[[icon,key,on]]|null, safari, over, size, native, screen, state} */
+function frame(o){
+  const d = DEV[o.size];
+  const vars = o.native ? `--qr:${d.qr}px` : `--ph-w:${d.w}px;--ph-h:${d.h}px;--safe-top:${d.top}px;--safe-bottom:${d.bottom}px;--qr:${d.qr}px`;
+  const bar = o.bar ? `<div class="appbar"><div class="row"><span class="logo">LD</span><div class="who"><b>${esc(o.bar.name)}</b><span>${o.bar.role}</span></div></div>
+      <h2>${o.bar.back ? `<button class="bk" data-act="${o.bar.back}" aria-label="back">${ic('back')}</button>` : ''}${o.bar.title}</h2></div>` : '';
+  const bottom = o.safari && !o.native
+    ? `<div class="safari"><span>‹</span><span>›</span><span class="hl">${ic('share')}</span><span>${ic('book')}</span><span>${ic('tabs')}</span></div>`
+    : o.tabs ? `<nav class="tabs">${o.tabs.map(([i,k,on])=>`<span class="${on?'on':''}">${ic(i)}${t(k)}</span>`).join('')}</nav>`
+    : '<div class="tabs"></div>';
+  return `<div class="phone ${d.compact?'compact':''}" style="${vars}" data-screen="${o.screen}" data-state="${o.state}" data-size="${d.w}x${d.h}">
+    <header class="top"><div class="sb"><span>${o.clock}</span><span class="net">${o.net===false ? t('net.off') : '5G ▮▮▮'}</span></div>
+    ${o.urlbar ? `<div class="saf-url">🔒 ${INVITE_HOST}</div>` : ''}${bar}</header>
+    <div class="body ${o.tabs?'':'notabs'} ${o.flush?'flush':''}">${o.body}</div>
+    ${bottom}${o.over||''}
+  </div>`;
+}
+
+/* ══ ЛЕВЫЙ ТЕЛЕФОН: владелец или бригадир ══
+   L: {who:'owner'|'foreman', scr, sel, dlg}; W: мир {people, code, newId, clock} */
+const OWNER_TABS = on => [['users','tab.people',on==='people'],['list','tab.shifts',false]];
+const FOREMAN_TABS = [['clock','tab.myshift',false],['users','tab.team',true]];
+function personRow(p, act, newId){
+  const st = p.blocked ? `<span class="off">${ic('lock')}${t('ph.blocked')}</span>`
+    : p.phone==='on' ? `<span class="on">${ic('phone')}${t('ph.on',{when: p.last ? when(p.last) : ''})}</span>`
+    : `<span>${ic('clock')}${t('ph.none')}</span>`;
+  return `<button class="prow ${p.id===newId?'new':''}" data-act="${act}" data-id="${p.id}"><span class="ava">${esc(initials(p))}</span>
+    <span class="tx"><b>${esc(full(p))}</b>${st}</span><span class="rtag ${p.role==='foreman'?'f':''}">${t('role.'+p.role)}</span>${ic('go','go')}</button>`;
+}
+/* Полоска шагов экрана «Выдать доступ»: шаг 1 — установить приложение, шаг 2 — вход */
+function stepsBar(n){
+  return `<div class="steps">${[1,2].map(i=>`<span class="${i===n?'on':i<n?'past':''}"><small>${t('step.of',{n:i})}</small>${t('step.'+i)}</span>`).join('')}</div>`;
+}
+function codeBlock(W, p){
+  const c = W.code;
+  let veil = '', count = '';
+  if (c.used) veil = `<div class="veil ok">${ic('check')}${t('code.ok',{name:esc(full(p))})}<small>${t('code.ok.s')}</small></div>`;
+  else if (c.left<=0) veil = `<div class="veil bad">${ic('clock')}${t('code.expired')}</div>`;
+  else count = t('code.left',{t:mmss(c.left)});
+  const live = !c.used && c.left>0;
+  // Два способа на одном экране (Oleg 22.11): рядом — QR, далеко — 6 цифр по телефону
+  return `<div class="qrbox">${live ? `<div class="way">${ic('qr')}${t('code.near')}</div>` : ''}
+    <div class="qr">${live ? qrSvg('LDV1:'+c.digits+':'+c.tok) : '<div class="fallback" style="opacity:.2"></div>'}${veil}</div>
+    ${live ? `<div class="way tel">${ic('phone')}${t('code.or')}</div>` : ''}
+    <div class="digits ${live?'':'dead'}">${c.digits.slice(0,3)} ${c.digits.slice(3)}</div>
+    <div class="ttl ${c.left<=20?'low':''}"><i style="width:${live ? c.left/CODE_TTL*100 : 0}%"></i></div>
+    <div class="count">${count||'&nbsp;'}</div></div>`;
+}
+function leftPhone(L, W, size, native){
+  const P_ = id => W.people.find(p=>p.id===id);
+  const owner = L.who==='owner';
+  const me = owner ? {name:t('owner.name'), role:t('role.owner')} : {name:full(P_(FOREMAN_ID)), role:t('role.foreman')};
+  const base = {clock:W.clock, size, native, screen: owner?'owner':'foreman', state:L.scr};
+  const sel = P_(L.sel);
+  switch (L.scr){
+    case 'login':
+      return frame({...base, bar:null, body:`<div class="login"><div class="logo big">LD</div><b>LD Vill</b><span>${t('login.sub')}</span>
+        <label>${t('login.user')}<input value="dorin" readonly></label>
+        <label>${t('login.pass')}<input type="password" value="12345678" readonly></label>
+        <button class="btn" data-act="ownerLogin">${t('login.btn')}</button></div>`});
+    case 'people':
+      return frame({...base, bar:{...me, title:t('tab.people')}, tabs:OWNER_TABS('people'),
+        body:`<button class="btn" data-act="toAdd">${ic('plus')}${t('people.add')}</button>
+          <div class="list">${W.people.map(p=>personRow(p,'toCard',W.newId)).join('')}</div>`});
+    case 'add':
+      return frame({...base, bar:{...me, title:t('add.title'), back:'toPeople'}, tabs:OWNER_TABS('people'),
+        body:`<div class="form">
+          <label>${t('add.sur')}<input id="f-sur" value="${esc(L.draft.sur)}" data-field="sur" autocomplete="off"></label>
+          <label>${t('add.name')}<input id="f-name" value="${esc(L.draft.name)}" data-field="name" autocomplete="off"></label>
+          <label>${t('add.role')}<span class="roles">
+            <button type="button" data-act="setRole" data-v="worker" aria-pressed="${L.draft.role==='worker'}">${t('role.worker')}</button>
+            <button type="button" data-act="setRole" data-v="foreman" aria-pressed="${L.draft.role==='foreman'}">${t('role.foreman')}</button></span></label>
+          <button class="btn" data-act="save">${t('add.save')}</button>
+          <p class="note">${t('add.note')}</p></div>`});
+    case 'invite':
+      return frame({...base, bar:{...me, title:t('inv.title'), back:'toCardBack'}, tabs: owner?OWNER_TABS('people'):FOREMAN_TABS,
+        body:`${stepsBar(1)}<p class="note lead" style="color:var(--c-ink);font-weight:700;font-size:15px">${t('inv.t',{name:esc(sel.name)})}</p>
+          <div class="qrbox"><div class="qr">${qrSvg(`https://${INVITE_HOST}/app/join#${W.inviteTok}`)}</div>
+            <div class="invlink">${INVITE_HOST}/app/join#${W.inviteTok}</div></div>
+          <p class="note">${t('inv.s')}</p>
+          <button class="btn" data-act="showCode" data-id="${sel.id}">${t('inv.code')}</button>`});
+    case 'card': {
+      const ph = sel.phone==='on' ? `<b class="on">${t('card.since',{d:sel.since})}</b>` : `<b>${t('ph.none')}</b>`;
+      // Одна кнопка «Выдать доступ» (Oleg 22.11): два шага на одном экране. Доступ уже выдан (телефон привязан) —
+      // кнопка та же, а подпись предупреждает, что старый телефон перестанет работать.
+      const again = sel.phone==='on';
+      return frame({...base, bar:{...me, title:esc(full(sel)), back: owner?'toPeople':'toTeam'}, tabs: owner?OWNER_TABS('people'):FOREMAN_TABS,
+        body:`<div class="pcard"><div class="kv"><span>${t('card.role')}</span><b>${t('role.'+sel.role)}</b></div>
+            ${sel.blocked ? `<div class="kv"><span>${t('card.state')}</span><b class="off">${t('card.blocked')}</b></div>`
+              : `<div class="kv"><span>${t('card.phone')}</span>${ph}</div>
+            ${sel.phone==='on' && sel.last ? `<div class="kv"><span>${t('card.last')}</span><b>${when(sel.last)}</b></div>` : ''}`}</div>
+          ${sel.blocked ? `<p class="note">${t('card.blocked.s')}</p>
+            ${owner ? `<button class="btn" data-act="doUnblock">${ic('key')}${t('card.unblock')}</button>` : ''}`
+          : `<div class="stack">
+            <button class="btn" data-act="toInvite" data-id="${sel.id}">${ic('key')}${t('card.access')}</button>
+            <p class="note">${t(again?'card.access.again.s':'card.access.s')}</p>
+            ${owner ? `<button class="btn bad sm" data-act="askBlock">${ic('lock')}${t('card.block')}</button>` : ''}</div>`}`,
+        over: L.dlg ? `<div class="dim"></div><div class="dialog"><b>${t('conf.t',{name:esc(full(sel))})}</b><p>${t('conf.s')}</p>
+            <div class="row2"><button class="btn line sm" data-act="dlgNo">${t('conf.no')}</button>
+            <button class="btn sm" style="background:var(--c-bad);color:#fff" data-act="doBlock">${t('conf.yes')}</button></div></div>` : ''});
+    }
+    case 'code':
+      // «Назад» с шага 2 — на шаг 1; человек уже вошёл (код сработал) — сразу в карточку
+      return frame({...base, bar:{...me, title:t('code.title'), back: W.code && W.code.used ? 'toCardBack' : 'toStep1'}, tabs: owner?OWNER_TABS('people'):FOREMAN_TABS,
+        body:`${stepsBar(2)}<p class="note lead" style="color:var(--c-ink);font-weight:700;font-size:15px">${t('code.how',{name:esc(sel.name)})}</p>
+          ${codeBlock(W, sel)}
+          ${W.code.used ? '' : `<button class="btn line sm" data-act="showCode" data-id="${sel.id}">${t('code.new')}</button>`}`});
+    case 'team':
+      return frame({...base, bar:{...me, title:t('tab.team')}, tabs:FOREMAN_TABS,
+        body:`<div class="list">${W.people.filter(p=>p.role==='worker').map(p=>personRow(p,'toCard',W.newId)).join('')}</div>
+          <p class="note">${t('team.hint')}</p>`});
+  }
+}
+
+/* ══ ПРАВЫЙ ТЕЛЕФОН: новый человек ══
+   R: {scr, installed, personId, inviteFor, err, tries, input, online, why} */
+function rightPhone(R, W, size, native){
+  const p = W.people.find(x=>x.id===R.personId) || W.people.find(x=>x.id===R.inviteFor) || {sur:'', name:'', role:'worker'};
+  const base = {clock:W.clock, net:R.online, size, native, screen:'person', state:R.scr};
+  const appBar = title => ({name:full(p), role:t('role.'+p.role), title});
+  switch (R.scr){
+    case 'home': {
+      const pulseCam = !R.installed, pulseLd = R.installed;
+      return frame({...base, bar:null, flush:true, body:`<div class="spring">
+        <button class="app-ic cam ${pulseCam?'pulse':''}" data-act="camApp"><i>${ic('camera')}</i>${t('home.camera')}</button>
+        <span class="app-ic saf"><i>${ic('compass')}</i>Safari</span>
+        <span class="app-ic ghost"><i></i>&nbsp;</span><span class="app-ic ghost"><i></i>&nbsp;</span>
+        ${R.installed ? `<button class="app-ic ld ${pulseLd?'pulse':''}" data-act="openIcon"><i>LD</i>LD Vill</button>` : ''}
+        <div class="shint">${t(R.installed ? 'home.hint2' : 'home.hint')}</div></div>`});
+    }
+    case 'safari': {
+      // Страница одна и та же, стоит значок или нет: Safari этого не знает (наблюдение ревью PR #12).
+      const body = `<div class="welcome"><div class="logo big">LD</div><b class="hi">${t('saf.hi',{name:esc(p.name)})}</b>
+          <p>${t('saf.t')}</p>
+          <p><b>${t('saf.s')}</b></p><p class="note">${t('saf.why')}</p><p class="note">${t('saf.already')}</p></div>`;
+      const sheet = R.sheetOff ? '' : `<div class="dim"></div><div class="sheet"><b class="st">${t('ins.t')}</b><p>${t('ins.s')}</p>
+          <ol><li><span class="n">1</span><span>${t('ins.1')} ${ic('share','inl')}</span></li>
+              <li><span class="n">2</span><span>${t('ins.2')} ${ic('plusq','inl')}</span></li>
+              <li><span class="n">3</span><span>${t('ins.3')}</span></li></ol>
+          <button class="btn sm" data-act="install">${t('ins.do')}</button><div class="arrow"></div></div>`;
+      return frame({...base, bar:null, urlbar:true, safari:true, body, over:sheet});
+    }
+    case 'first':
+      return frame({...base, bar:null, body:`<div class="login"><div class="logo big">LD</div><b>${t('first.t')}</b><span>${t('first.s')}</span>
+        <button class="btn" data-act="toCam">${ic('camera')}${t('first.scan')}</button>
+        <button class="btn line" data-act="toDig">${t('first.dig')}</button>
+        <p class="note c">${t('first.nopass')}</p></div>`});
+    case 'camera':
+      return frame({...base, bar:null, flush:true, body:`<div class="cam"><b>${t('cam.t')}</b><span>${t('cam.s')}</span>
+        <button class="vf" data-act="scan" style="font:inherit;color:inherit;cursor:pointer">${t('cam.tap')}</button>
+        <button class="btn line sm" data-act="toDig">${t('cam.cancel')}</button></div>`});
+    case 'digits': {
+      const cells = Array.from({length:6}, (_,i)=>`<i class="${i===R.input.length?'cur':''}">${R.input[i]||''}</i>`).join('');
+      const keys = ['1','2','3','4','5','6','7','8','9','⌫','0','go'];
+      return frame({...base, bar:null, body:`<div style="display:flex;flex-direction:column;gap:6px"><b style="font-size:22px">${t('dig.t')}</b><span class="note">${t('dig.s')}</span></div>
+        <div class="cells ${R.err==='wrong'?'bad':''}">${cells}</div>
+        <div class="errline">${R.err==='wrong' ? t('err.wrong',{n:TRIES-R.tries}) : '&nbsp;'}</div>
+        <div class="pad">${keys.map(k=> k==='go' ? `<button class="go" data-act="digGo" ${R.input.length<6?'disabled':''}>${t('dig.go')}</button>`
+          : `<button data-act="key" data-k="${k}">${k}</button>`).join('')}</div>`});
+    }
+    case 'welcome':
+      return frame({...base, bar:null, body:`<div class="done"><div class="big">${ic('check')}</div><b>${t('wel.t',{name:esc(p.name)})}</b><p>${t('wel.s')}</p></div>`});
+    case 'app':
+      return p.role==='foreman'
+        ? frame({...base, bar:appBar(t('tab.myshift')), tabs:FOREMAN_TABS.map(([i,k],n)=>[i,k,n===0]),
+            body:`<div class="stub">${ic('clock')}<b>${t('app.shift.s')}</b><button class="btn" style="max-width:240px">${t('app.shift.b')}</button></div>`})
+        : frame({...base, bar:appBar(t('tab.code')), tabs:[['qr','tab.code',true],['list','tab.days',false]],
+            body:`<div class="stub">${ic('qr')}${t('app.mycode.s')}</div>`});
+    case 'err': {
+      const k = R.err, warn = k==='offline' || k==='locked';
+      const icon = {expired:'clock', used:'key', locked:'lock', offline:'wifioff'}[k];
+      return frame({...base, bar:null, body:`<div class="err"><div class="big ${warn?'warn':''}">${ic(icon)}</div>
+        <b>${t('err.'+k+'.t')}</b><p>${t('err.'+k+'.s')}</p>
+        ${k==='locked' ? '' : `<button class="btn" data-act="toFirst">${t('err.again')}</button>`}
+        <small>${{expired:'410 LOGIN_CODE_EXPIRED', used:'409 LOGIN_CODE_USED', locked:'429 TOO_MANY_ATTEMPTS', offline:'нет сети'}[k]}</small></div>`});
+    }
+    case 'revoked':
+      return frame({...base, bar:null, body:`<div class="err"><div class="big">${ic(R.why==='blocked'?'lock':'phoneoff')}</div>
+        <b>${t('rev.t')}</b><p>${t('rev.'+R.why)}</p><p>${t('rev.'+R.why+'.s')}</p>
+        ${R.why==='blocked' ? '' : `<button class="btn" data-act="toFirst">${ic('key')}${t('rev.btn')}</button>`}
+        <small>401 · ${R.why==='blocked' ? 'человек заблокирован' : 'вход перешёл на другой телефон'}</small></div>`});
+  }
+}
+
+/* ══ ЖИВОЙ ПРОТОТИП ══
+   Левый телефон — владелец (или бригадир), правый — новый человек; пульт играет остальной мир. */
+const P = {};
+function resetProto(){
+  Object.assign(P, {
+    clock: 7*3600 + 30*60,
+    people: PEOPLE0.map(p=>({...p, last:p.last?{...p.last}:undefined})),
+    newId: null, code: null, inviteTok: tok(10), ownerIn: false,
+    L: {who:'owner', scr:'login', sel:null, dlg:null, draft:{sur:'Nagy', name:'István', role:'worker'}},
+    R: {scr:'home', installed:false, personId:null, inviteFor:null, err:null, tries:0, input:'', online:true, why:'new', sheetOff:false},
+    log: [], drawer: P.drawer||false,
+  });
+  logEv('Начало. Слева владелец Дорин на экране входа, справа — телефон нового человека (экран «Домой»).');
+}
+const hhmm = s => String(Math.floor(s/3600)%24).padStart(2,'0')+':'+String(Math.floor(s/60)%60).padStart(2,'0');
+// Журнал выводится как текст: в нём имена из формы «Новый человек» (esc при выводе в renderPult).
+function logEv(text){ P.log.unshift({at:hhmm(P.clock)+':'+String(P.clock%60).padStart(2,'0'), text}); if (P.log.length>40) P.log.pop(); renderPult(); }
+const later = (ms, fn) => setTimeout(()=>{ fn(); if (S.view==='proto') renderScreens(); }, ms);
+const W = () => ({people:P.people, code:P.code, newId:P.newId, inviteTok:P.inviteTok, clock:hhmm(P.clock)});
+const person = id => P.people.find(p=>p.id===id);
+const nowW = () => ({d:0, t:hhmm(P.clock)});
+const today = () => '21.11';
+
+function newCode(id){
+  P.code = {forId:id, digits:six(), tok:tok(16), left:CODE_TTL, used:false};
+  P.R.tries = 0;
+  logEv(`${P.L.who==='owner'?'Владелец':'Бригадир'} показал код для входа для ${full(person(id))}: ${P.code.digits}, живёт ${CODE_TTL/60} мин, срабатывает один раз (движок: выдать код входа — новая точка).`);
+}
+/* Вход в значке: и скан, и 6 цифр приходят сюда. Проверяет «движок»: есть ли такой код, жив ли он, не погашен ли. */
+function tryLogin(digits, how){
+  const R = P.R;
+  if (!R.online){ R.scr='err'; R.err='offline'; logEv('Нет сети у телефона человека — войти нельзя, экран «Нет связи».'); return; }
+  const c = P.code;
+  if (!c || c.digits!==digits){
+    if (how==='scan'){ logEv('Камера в значке: на экране слева сейчас нет кода для входа — скан ничего не дал.'); return; }
+    R.tries++; R.input=''; R.err='wrong';
+    if (R.tries>=TRIES){ R.scr='err'; R.err='locked'; if (c) c.left=0;
+      logEv(`Неверные цифры ${TRIES}-й раз — пауза 5 минут, код слева сгорел (движок гасит код после ${TRIES} промахов).`); return; }
+    logEv(`Неверные цифры — осталось попыток: ${TRIES-R.tries}.`); return;
+  }
+  if (c.used){ R.scr='err'; R.err='used'; logEv('Этим кодом уже вошли — движок: 409, код одноразовый.'); return; }
+  if (c.left<=0){ R.scr='err'; R.err='expired'; logEv('Код уже истёк — движок: 410. Нужен новый код.'); return; }
+  const p = person(c.forId);
+  const hadPhone = p.phone==='on';
+  c.used = true; R.err=null; R.input='';
+  // Один телефон на человека: старый телефон этого человека отключается сам.
+  if (hadPhone && R.personId!==p.id) logEv(`У ${full(p)} уже был привязан телефон — движок отключил старый сам (один телефон на человека).`);
+  if (R.personId && R.personId!==p.id) logEv('Этот телефон был привязан к другому человеку — теперь он привязан к новому.');
+  p.phone='on'; p.since=today(); p.last=nowW();
+  R.personId = p.id; R.scr='welcome';
+  logEv(`${full(p)} вошёл ${how==='scan'?'сканом QR':'вводом 6 цифр'}. Движок привязал телефон и выдал значку долгий вход (до 30 дней простоя). У владельца строка: «Телефон привязан · сейчас».`);
+  later(2500, ()=>{ if (P.R.scr==='welcome'){ P.R.scr='app'; logEv(p.role==='worker' ? 'Значок открыл экран рабочего «Мой код».' : 'Значок открыл экран бригадира «Моя смена».'); } });
+}
+/* Заблокированный человек узнаёт об этом при следующем запросе значка к движку: ответ 401 — экран «Доступ отключён». */
+function kickPhone(id){
+  const R = P.R;
+  if (R.personId!==id) return;
+  R.revoked = true; R.why = 'blocked';
+  if (['app','welcome'].includes(R.scr)) later(1500, ()=>{ if (P.R.revoked){ P.R.scr='revoked'; logEv('Значок человека сделал следующий запрос — движок ответил 401, экран «Доступ отключён».'); } });
+}
+
+const ACT = {
+  /* левый телефон */
+  ownerLogin(){ P.L.scr='people'; P.ownerIn=true; logEv('Владелец вошёл логином и паролем (решение 3) — экран «Люди».'); },
+  toPeople(){ P.L.scr = P.L.who==='owner'?'people':'team'; P.L.dlg=null; },
+  toTeam(){ P.L.scr='team'; },
+  toAdd(){ P.L.scr='add'; },
+  setRole(el){ P.L.draft.role = el.dataset.v; },
+  save(){
+    const d = P.L.draft;
+    if (!d.sur.trim() || !d.name.trim()){ logEv('Фамилия и имя обязательны — экран не сохранит пустое.'); return; }
+    const id = Math.max(...P.people.map(p=>p.id))+1;
+    P.people.unshift({id, sur:d.sur.trim(), name:d.name.trim(), role:d.role, phone:'none'});
+    P.newId = id; P.L.sel = id; P.L.scr='invite'; P.inviteTok = tok(10);
+    P.R.inviteFor = id;
+    logEv(`Владелец добавил ${full(person(id))} (${d.role==='worker'?'рабочий':'бригадир'}) — без пароля. Сразу «Выдать доступ», шаг 1 из 2 — QR установки приложения: у нового человека значка ещё нет.`);
+  },
+  toCard(el){ P.L.sel = +el.dataset.id; P.L.scr='card'; P.L.dlg=null; },
+  toCardBack(){ P.L.scr='card'; },
+  toInvite(el){
+    const id = +el.dataset.id;
+    if (person(id).blocked){ logEv(`${full(person(id))} заблокирован — выдать доступ нельзя (движок откажет). Разблокировать может владелец.`); return; }
+    P.L.sel = id; P.L.scr='invite'; P.R.inviteFor = id; P.inviteTok = tok(10);
+    logEv(`«Выдать доступ» для ${full(person(id))}, шаг 1 из 2: QR, который ставит приложение. Значок уже есть — «Приложение уже есть — дальше».${person(id).phone==='on' ? ' Доступ уже был выдан: после входа на новом телефоне старый перестанет работать.' : ''}`);
+  },
+  toStep1(){ P.L.scr='invite'; },
+  showCode(el){
+    const id = +el.dataset.id;
+    if (person(id).blocked){ logEv(`${full(person(id))} заблокирован — выдать доступ нельзя (движок откажет). Разблокировать может владелец.`); return; }
+    P.L.sel = id; P.L.scr='code'; newCode(id);
+  },
+  askBlock(){ P.L.dlg='conf'; }, dlgNo(){ P.L.dlg=null; },
+  doBlock(){
+    const p = person(P.L.sel); P.L.dlg=null;
+    p.blocked = true; p.phone = 'none'; delete p.last;
+    if (P.code && P.code.forId===p.id) P.code.left = 0;
+    logEv(`Владелец заблокировал ${full(p)} (например, уволен): движок закрыл вход на всех его телефонах, коды для него больше не выпускаются.`);
+    kickPhone(p.id);
+  },
+  doUnblock(){
+    const p = person(P.L.sel); p.blocked = false;
+    logEv(`Владелец разблокировал ${full(p)}. Войдёт он так же, как в первый раз: по новому коду для входа.`);
+  },
+  /* правый телефон */
+  camApp(){
+    const R = P.R;
+    if (P.L.scr==='invite'){ R.inviteFor = P.L.sel; R.scr='safari'; R.sheetOff=false;
+      logEv(`Камера iPhone прочитала QR-приглашение и открыла ссылку в Safari: «Здравствуйте, ${person(R.inviteFor).name}!» и подсказку поставить значок.${R.installed?' Значок уже стоит, но Safari этого не знает — страница та же, с подсказкой «уже есть — просто откройте его».':''}`); return; }
+    if (P.L.scr==='code') { logEv('Камера iPhone видит код для входа, но это не ссылка — открывать нечего. Код сканируют изнутри значка («Сканировать код»).'); return; }
+    logEv('Камера открыта, но на экране слева нет QR-приглашения. Владелец: «Люди» → человек → «QR-приглашение».');
+  },
+  install(){
+    if (P.R.installed){ P.R.scr='home'; logEv('Значок уже стоял — человек вернулся на экран «Домой», второй не нужен.'); return; }
+    P.R.installed=true; P.R.scr='home'; logEv('Человек поставил значок LD Vill на экран «Домой». Входа в Safari не было — он и не нужен: Safari и значок вход не делят.'); },
+  openIcon(){
+    const R = P.R;
+    if (R.revoked && R.why==='blocked' && !person(R.personId)?.blocked){
+      R.revoked=false; R.personId=null; R.scr='first'; logEv('Значок открыт: человека разблокировали, но прежний вход закрыт — экран «Вход», нужен новый код.'); return; }
+    if (R.revoked){ R.scr='revoked'; logEv('Значок открыт — движок ответил 401, экран «Доступ отключён».'); return; }
+    if (R.personId){ R.scr='app'; logEv('Значок открыт повторно — вход помнится, сразу внутри, без кода.'); return; }
+    R.scr='first'; logEv('Первый запуск значка — экран «Вход»: «Сканировать код» или «Ввести 6 цифр». Пароля нет.');
+  },
+  toFirst(){ const R=P.R; R.scr='first'; R.err=null; R.input=''; if (R.revoked){ R.revoked=false; R.personId=null; } },
+  toCam(){ P.R.scr='camera'; P.R.err=null; },
+  toDig(){ P.R.scr='digits'; P.R.input=''; P.R.err=null; },
+  scan(){
+    if (P.L.scr!=='code' || !P.code){ logEv('Камера в значке: на экране слева сейчас нет кода для входа. Владелец или бригадир: карточка человека — «Выдать доступ».'); return; }
+    tryLogin(P.code.digits, 'scan');
+  },
+  key(el){ const R=P.R, k=el.dataset.k; if (R.err==='wrong') R.err=null;
+    if (k==='⌫') R.input = R.input.slice(0,-1); else if (R.input.length<6) R.input += k; },
+  digGo(){ if (P.R.input.length===6) tryLogin(P.R.input, 'digits'); },
+
+  /* пульт: остальной мир */
+  who(){ P.L.who = P.L.who==='owner' ? 'foreman' : 'owner'; P.L.dlg=null;
+    P.L.scr = P.L.who==='foreman' ? 'team' : (P.ownerIn ? 'people' : 'login');
+    logEv(P.L.who==='foreman' ? 'Слева теперь бригадир Kovács Péter: его вкладка «Бригада». Добавлять людей и блокировать доступ он не может; выдать доступ своим — может (решение 4).' : 'Слева снова владелец.'); },
+  expire(){ if (!P.code || P.code.used || P.code.left<=0){ logEv('Живого кода для входа сейчас нет — истекать нечему.'); return; } P.clock += P.code.left; P.code.left=0; logEv(`Прошло ${CODE_TTL/60} минут — код для входа истёк.`); },
+  net(){ P.R.online = !P.R.online; logEv(P.R.online ? 'Связь у телефона человека вернулась.' : 'Связь у телефона человека пропала.'); },
+  relaunch(){ if (!P.R.installed){ logEv('Значка ещё нет — перезапускать нечего.'); return; } P.R.scr='home'; logEv('Человек закрыл значок и вернулся на экран «Домой».'); },
+  lost(){
+    const was = P.R.personId, old = {...P.R};
+    P.R = {scr:'home', installed:false, personId:null, inviteFor: was || P.R.inviteFor, err:null, tries:0, input:'', online:true, why:'new', sheetOff:false, old: was ? old : null};
+    logEv(was ? `${full(person(was))} потерял телефон (или сменил, или удалил приложение) — справа новый телефон. Ничего особенного: владелец или бригадир нажмёт «Выдать доступ», человек войдёт, и потерянный телефон отключится сам.` : 'Справа теперь новый телефон.');
+  },
+  oldPhone(){
+    const o = P.R.old;
+    if (!o){ logEv('Старого телефона нет: сначала «Потерял телефон — новый».'); return; }
+    const p = person(o.personId);
+    logEv(p && p.phone==='on' && P.R.personId===o.personId
+      ? 'Кто-то открыл значок на потерянном телефоне — движок ответил 401: вход перешёл на новый телефон. Экран «Вы вошли на другом телефоне».'
+      : 'Кто-то открыл значок на потерянном телефоне — пока человек не вошёл на новом, старый ещё работает. Войдите на новом, и он отключится сам.');
+  },
+  show(){ S.show = S.show==='left' ? 'right' : 'left'; syncUrl(); },
+  reset(){ resetProto(); },
+  drawer(){ P.drawer = !P.drawer; renderPult(); },
+};
+
+setInterval(()=>{
+  if (S.view!=='proto') return;
+  P.clock++;
+  if (P.code && !P.code.used && P.code.left>0){ P.code.left--; if (P.code.left===0) logEv('Срок кода для входа вышел. Владелец может нажать «Новый код».'); }
+  renderScreens();
+}, 1000);
+
+/* ══ ДОСКА ВСЕХ ЭКРАНОВ (обзор на компьютере) ══ */
+function boardStates(){
+  const people = PEOPLE0.map(p=>({...p}));
+  const nagy = {id:9, sur:'Nagy', name:'István', role:'worker', phone:'none'};
+  const pp = [nagy, ...people];
+  const w = (extra={}) => ({people:pp, code:null, newId:9, inviteTok:'Hq7tKpZ2mX', clock:'07:42', ...extra});
+  const code = (o={}) => ({forId:9, digits:'482913', tok:'demo', left:87, used:false, ...o});
+  const nagyOn = {...nagy, phone:'on', since:'21.11', last:{d:0,t:'07:44'}};
+  const ppOn = [nagyOn, ...people];
+  const L = (o) => ({who:'owner', sel:9, dlg:null, draft:{sur:'Nagy', name:'István', role:'worker'}, ...o});
+  const R = (o) => ({installed:true, personId:9, inviteFor:9, err:null, tries:0, input:'', online:true, why:'new', ...o});
+  return {
+    left: [
+      ['o-login',   'Владелец: вход', 'Логином и паролем (решение 3). Экран — тот же, что у приложения сейчас.', L({scr:'login'}), w()],
+      ['o-people',  'Владелец: «Люди»', 'Кто заведён, роль, привязан ли телефон и когда им пользовались. Новый человек подсвечен.', L({scr:'people'}), w()],
+      ['o-add',     'Владелец: новый человек', 'Фамилия, имя, роль — и всё. Пароля нет.', L({scr:'add'}), w()],
+      ['o-card-new','Карточка: доступа ещё нет', 'Одна кнопка «Выдать доступ» с подписью, что дальше два шага (Oleg 22.11). Ниже — «Заблокировать доступ».', L({scr:'card'}), w()],
+      ['o-invite',  '«Выдать доступ», шаг 1 из 2', 'QR установки приложения: камера iPhone откроет ссылку в Safari, ссылка ставит значок, доступа не даёт. Значок уже есть — «Приложение уже есть — дальше».', L({scr:'invite'}), w()],
+      ['o-code',    '«Выдать доступ», шаг 2 из 2', 'Два способа: рядом — сканирует QR из значка, далеко — Дорин диктует 6 цифр по телефону (Oleg 22.11). Код живёт 5 минут, срабатывает один раз.', L({scr:'code'}), w({code:code()})],
+      ['o-code-ok', 'Код сработал', 'Человек вошёл — код погашен, телефон привязан.', L({scr:'code'}), w({code:code({used:true})})],
+      ['o-code-exp','Код истёк', 'Через 5 минут — «Новый код».', L({scr:'code'}), w({code:code({left:0})})],
+      ['o-card',    'Карточка: доступ уже выдан', 'Та же кнопка «Выдать доступ», подпись — «если выдать снова, старый телефон перестанет работать» (решение 2). Ниже — «Заблокировать доступ».', L({scr:'card'}), w({people:ppOn})],
+      ['o-block',   'Заблокировать?', 'Для уволенного: выходит со всех телефонов, коды ему не выпускаются (поправка Oleg 21.11).', L({scr:'card', dlg:'conf'}), w({people:ppOn})],
+      ['o-blocked', 'Заблокирован', 'Кода нет, есть «Разблокировать». После — вход по новому коду.', L({scr:'card', sel:4}), w({people:ppOn})],
+      ['f-team',    'Бригадир: «Бригада»', 'Добавлять людей и блокировать доступ не может; касание по человеку — та же карточка с «Выдать доступ» (решение 4).', L({who:'foreman', scr:'team'}), w({people:ppOn})],
+      ['f-card',    'Бригадир: карточка человека', 'Та же кнопка «Выдать доступ», без «Заблокировать доступ».', L({who:'foreman', scr:'card'}), w()],
+    ],
+    right: [
+      ['p-home',    'Телефон человека: «Домой»', 'Камера iPhone — штатная. Наводится на QR-приглашение.', R({scr:'home', installed:false, personId:null}), w()],
+      ['p-safari',  'Safari: приглашение', 'Здоровается по имени и просит поставить значок. Входа здесь нет: Safari и значок вход не делят (решение 1).', R({scr:'safari', installed:false, personId:null}), w()],
+      ['p-home-ld', '«Домой» со значком', 'Значок LD Vill поставлен.', R({scr:'home', personId:null}), w()],
+      ['p-first',   'Значок: первый запуск', '«Сканировать код» или «Ввести 6 цифр». Пароля нет.', R({scr:'first', personId:null}), w()],
+      ['p-camera',  'Значок: камера', 'Камера внутри значка читает код с экрана владельца или бригадира.', R({scr:'camera', personId:null}), w()],
+      ['p-digits',  'Значок: 6 цифр', 'Если камера не берёт или код показан издалека.', R({scr:'digits', personId:null, input:'4829'}), w()],
+      ['p-wrong',   'Неверные цифры', 'После 5 промахов — пауза, код сгорает.', R({scr:'digits', personId:null, input:'', err:'wrong', tries:2}), w()],
+      ['p-welcome', 'Вход выполнен', 'Телефон привязан, дальше значок открывается сразу.', R({scr:'welcome'}), w({people:ppOn})],
+      ['p-app',     'Рабочий внутри', 'Сразу «Мой код» (прототип TG-411).', R({scr:'app'}), w({people:ppOn})],
+      ['p-app-f',   'Бригадир внутри', 'Сразу «Моя смена» — вход тот же, разница только в роли.', R({scr:'app', personId:1}), w({people:ppOn})],
+      ['p-expired', 'Код истёк', '', R({scr:'err', err:'expired', personId:null}), w()],
+      ['p-used',    'Код уже использован', '', R({scr:'err', err:'used', personId:null}), w()],
+      ['p-locked',  'Слишком много попыток', '', R({scr:'err', err:'locked', personId:null}), w()],
+      ['p-offline', 'Нет связи при входе', '', R({scr:'err', err:'offline', personId:null, online:false}), w()],
+      ['p-rev-new', 'Потерянный телефон', 'Человек вошёл на новом — на старом при открытии этот экран (решение 2).', R({scr:'revoked', why:'new'}), w({people:ppOn})],
+      ['p-rev-blocked', 'Заблокирован', 'При следующем запросе значка — 401 и этот экран. Кнопки входа нет.', R({scr:'revoked', why:'blocked'}), w({people:ppOn})],
+    ],
+  };
+}
+
+/* ══ РЕНДЕР ══ */
+function screenHtml(){
+  if (S.view==='proto'){
+    if (STANDALONE) return `<div class="proto">${S.show==='left' ? leftPhone(P.L, W(), nativeSize(), true) : rightPhone(P.R, W(), nativeSize(), true)}</div>`;
+    return `<div class="proto pair"><figure>${leftPhone(P.L, W(), S.size)}<figcaption>${P.L.who==='owner'?'Телефон владельца':'Телефон бригадира'}</figcaption></figure>
+      <figure>${rightPhone(P.R, W(), S.size)}<figcaption>Телефон нового человека</figcaption></figure></div>`;
+  }
+  const B = boardStates(), dev = DEV[S.size], dim = dev.w+'×'+dev.h;
+  const cell = (side) => ([id, title, desc, st, w]) => `<figure class="cell" id="cell-${id}">${side==='left' ? leftPhone(st, w, S.size) : rightPhone(st, w, S.size)}
+      <figcaption><b>${title}</b>${desc}<br><code>login-qr · ${id} · ${dim}</code></figcaption></figure>`;
+  return `<h3 class="sec">Телефон владельца и бригадира · ${dim}</h3><div class="board">${B.left.map(cell('left')).join('')}</div>
+    <h3 class="sec">Телефон нового человека · ${dim}</h3><div class="board">${B.right.map(cell('right')).join('')}</div>`;
+}
+function renderScreens(){
+  // Поле формы «Новый человек» не перерисовываем под пальцем: прототип обновляется каждую секунду.
+  const f = document.activeElement;
+  if (f && f.dataset && f.dataset.field) return;
+  document.getElementById('screens').innerHTML = screenHtml();
+  if (DEBUG) document.querySelectorAll('.phone .body').forEach(b=>{ if (b.scrollHeight > b.clientHeight + 1) b.closest('.phone').classList.add('overflow'); });
+}
+
+/* ══ ПУЛЬТ ══ */
+const DECISIONS = `<details class="dec" open><summary>Решения — можно поменять</summary><ol>
+  <li><b>QR показывает владелец, человек наводит камеру.</b> Камера iPhone открывает ссылку в Safari, а вход Safari и значка хранятся раздельно — поэтому в Safari только приглашение и установка значка, а вход — внутри значка по одноразовому коду (QR или 6 цифр). <i>Иначе:</i> значок показывает свой код, владелец его сканирует или вводит.</li>
+  <li><b>Один телефон на человека.</b> Потерял, сменил, удалил приложение — это обычный повторный вход по новому коду, старый телефон отключается сам. Отдельная кнопка у владельца — «Заблокировать» для уволенного (поправка Oleg 21.11). <i>Иначе:</i> несколько телефонов на человека.</li>
+  <li><b>Владелец входит логином и паролем</b>, экран «Люди» — в том же приложении. <i>Иначе:</i> тоже по коду / только с компьютера.</li>
+  </ol></details>`;
+const BTN = [
+  ['who',     () => P.L.who==='owner' ? '👷 Слева — бригадир' : '👤 Слева — владелец'],
+  ['expire',  () => `⏩ Прошло ${CODE_TTL/60} минут`],
+  ['net',     () => P.R.online ? '📵 Связь у человека пропала' : '📶 Связь вернулась'],
+  ['relaunch',() => '🔄 Закрыть значок'],
+  ['lost',    () => '📱 Потерял телефон — новый'],
+  ['oldPhone',() => '🕵 Открыли потерянный'],
+  ['reset',   () => '↺ Начать сначала'],
+];
+function renderPult(){
+  const el = document.getElementById('pult'); if (!el) return;
+  if (S.view!=='proto'){ el.hidden = true; return; }
+  el.hidden = false;
+  el.className = 'pult' + (P.drawer ? ' open' : '');
+  const showBtn = STANDALONE ? `<button data-act="show" style="grid-column:1/-1;background:var(--c-dark);color:#fff;border-color:var(--c-dark);text-align:center">${S.show==='left' ? '➡ Показать телефон человека' : '⬅ Показать телефон владельца'}</button>` : '';
+  el.innerHTML = `<button class="handle" data-act="drawer">Пульт — остальной мир ${P.drawer?'▼':'▲'}</button>
+    <div class="pin">
+      <b class="ptitle">Пульт — остальной мир</b>
+      <p class="how">Путь: владелец входит, жмёт «Добавить человека» и сохраняет — на экране «Выдать доступ», шаг 1 (QR установки). Справа «Камера», затем «Добавить» значок. Слева «Приложение уже есть — дальше» (шаг 2), справа значок LD Vill и «Сканировать код». У уже добавленного человека — карточка, кнопка «Выдать доступ». Кнопки ниже — то, что делают время, сеть и люди вокруг.</p>
+      ${DECISIONS}
+      <div class="acts">${showBtn}${BTN.map(([a,l])=>`<button data-act="${a}">${l()}</button>`).join('')}</div>
+      <div class="pctl">${ctlHtml()}</div>
+      <div class="log"><b>Что произошло</b>${P.log.map(e=>`<div><time>${e.at}</time>${esc(e.text)}</div>`).join('')}</div>
+    </div>`;
+}
+function ctlHtml(){
+  const seg = (id, items, cur) => `<span class="seg" data-seg="${id}">${items.map(([v,l])=>`<button data-v="${v}" aria-pressed="${v===cur}">${l}</button>`).join('')}</span>`;
+  if (STANDALONE) return seg('lang', [['hu','hu'],['ru','ru'],['en','en']], S.lang);
+  return seg('lang', [['hu','hu'],['ru','ru'],['en','en']], S.lang) + seg('size', [['s','360'],['m','390'],['l','430']], S.size)
+    + seg('view', [['proto',t('ctl.one')],['all',t('ctl.all')]], S.view);
+}
+
+/* ══ ЗАПИСКА (на русском: читатели — Oleg, заказчик через Oleg, разработчик) ══ */
+const NOTES = `
+<h2>Решения — можно поменять</h2>
+<table>
+<tr><th>№</th><th>Как в макете</th><th>Альтернатива и цена</th></tr>
+<tr><td>1</td><td>QR-приглашение показывает владелец, новый человек наводит камеру iPhone. Камера открывает ссылку в Safari; у Safari и значка вход хранится раздельно, поэтому страница в Safari только здоровается и учит поставить значок, а вход — уже в значке, по одноразовому коду с экрана владельца или бригадира: QR (камера внутри значка) или те же 6 цифр.</td><td>Наоборот: значок показывает свой код, владелец сканирует или вводит его. Так из коробки умеет Keycloak («вход на устройстве по коду», Device Authorization Grant), но владельцу или бригадиру нужен сканер в приложении, а код длиннее (8 букв).</td></tr>
+<tr><td>2</td><td>Один телефон на человека. Потерял телефон, сменил, удалил приложение — обычный повторный вход: владелец или бригадир показывает новый код, человек входит на новом телефоне, старый отключается сам.</td><td>Несколько телефонов (например, бригадир с планшетом) — тогда в карточке список телефонов, и старый сам уже не отключается.</td></tr>
+<tr><td>3</td><td>Владелец (Дорин) входит логином и паролем; экран «Люди» — вкладка в том же приложении.</td><td>Владелец тоже по коду (кто тогда покажет ему код?) или «Люди» только в веб-интерфейсе с компьютера.</td></tr>
+<tr><td>4</td><td>Добавляет людей и блокирует доступ только владелец; бригадир выдаёт доступ людям своей бригады.</td><td>— (решение оркестратора 21.11)</td></tr>
+<tr><td>5</td><td>У владельца одна кнопка закрыть доступ — «Заблокировать доступ» для уволенного: человек выходит со всех телефонов, доступ ему не выдаётся. «Разблокировать» снимает блок — дальше «Выдать доступ», как в первый раз. Удаления из списка нет: заблокированный остаётся в нём (табель прошлых смен).</td><td>— (поправка Oleg 21.11)</td></tr>
+<tr><td>6</td><td>Каждая кнопка называется прямым действием — тем, что мы даём человеку: «Добавить человека» (фамилия, имя, роль), «Выдать доступ», «Заблокировать доступ» / «Разблокировать». «Выдать доступ» — одна кнопка, за ней два шага на одном экране: шаг 1 — QR установки приложения с кнопкой «Приложение уже есть — дальше», шаг 2 — QR и 6 цифр для входа. Если доступ уже был, кнопка та же, а подпись под ней говорит, что старый телефон перестанет работать. Слово «пропуск» не используется: оно занято кодом рабочего на объекте.</td><td>— (правило Oleg 21.11 и уточнение 22.11: «Установить приложение» и «Выдать доступ заново» — одно и то же; до них были «Код для входа» и «Впустить в приложение» — не считывались)</td></tr>
+</table>
+
+<h2>Вопросы заказчику</h2>
+<ul>
+<li>Человек далеко и приложения у него ещё нет — как поставить значок без QR на экране Дорина? Предложение: на шаге 1 кнопка «Отправить ссылку» (SMS или мессенджер), ссылка та же, что в QR. В макете не нарисовано.</li>
+<li>Что делать с рабочим без смартфона: бригадир отмечает его по списку? (Сейчас вне этой задачи.)</li>
+<li>Нужно ли владельцу видеть модель телефона («iPhone 13») или хватит «привязан · когда пользовались»?</li>
+</ul>
+
+<h2>Записка для разработчика: что потребует движок</h2>
+<table>
+<tr><th>Что на экране</th><th>Что нужно</th></tr>
+<tr><td>«Люди»: список, роль, телефон, «последний раз»</td><td><span class="tag ask">нет</span> У владельца в контрактах LD Vill сейчас только чтение смен. Нужны право «управлять людьми» у роли <code>owner</code> и точка списка людей картриджа; «последний раз» — время последнего обновления долгого входа значка (сессия Keycloak клиента <code>ldvill-app</code>).</td></tr>
+<tr><td>«Новый человек»: фамилия, имя, роль</td><td><span class="tag ask">нет</span> Заведение пользователя Keycloak без пароля и выдача роли <code>worker</code>/<code>foreman</code> от имени владельца — сейчас людей заводят руками в Keycloak, а роли раздаёт только <code>engine_admin</code> (<code>routers/admin_users.py</code>).</td></tr>
+<tr><td>QR-приглашение</td><td><span class="tag cli">клиент</span> Ссылка <code>/app/join#&lt;приглашение&gt;</code> на странице в <code>app/</code>: приглашение отдаёт только имя для приветствия и ничего не открывает. Часть после <code>#</code> не уходит на сервер и в журналы. Срок приглашения — на выбор (предложение: 7 дней).</td></tr>
+<tr><td>«Выдать доступ», шаг 2: QR + 6 цифр, 5 минут, один раз</td><td><span class="tag ask">нет</span> Новая точка «выдать код входа для человека» — владельцу для всех, бригадиру для своей бригады. Похожа на код отметки рабочего на объекте (<code>one_time_passes</code>), но это вход, а не отметка: отдельный вид кода. 6 цифр обязательны: Дорин выдаёт доступ издалека, диктуя их по телефону (Oleg 22.11). Срок — 5 минут, а не 2: человеку нужно дослушать, открыть значок, нажать «Ввести 6 цифр» и ввести; перебору срок не помогает — после 5 неверных вводов код сгорает, пауза 5 минут на телефон (10<sup>6</sup> вариантов против 5 попыток).</td></tr>
+<tr><td>Вход в значке по коду</td><td><span class="tag ask">нет</span> Главная работа. Keycloak не умеет входить по чужому одноразовому коду «из коробки»: нужен свой шаг входа (authenticator) в теме <code>ldvill</code> либо обмен кода на токен через движок. Итог — тот же долгий вход значка, что сейчас (офлайн-токен <code>ldvill-app</code>, до 30 дней простоя).</td></tr>
+<tr><td>Один телефон на человека</td><td><span class="tag ask">нет</span> При входе по коду закрыть прежние офлайн-сессии клиента <code>ldvill-app</code> у этого человека (Keycloak admin API). Потерянный телефон узнаёт об этом на следующем обновлении токена — экран «Вы вошли на другом телефоне».</td></tr>
+<tr><td>Заблокировать / разблокировать</td><td><span class="tag ask">нет</span> Блок — выключить пользователя Keycloak (<code>enabled: false</code>) и закрыть его сессии; движок не выпускает ему коды. Уже выданный короткий токен доживает свой срок (минуты) — если нужно мгновенно, движок проверяет блок на каждом запросе. Разблокировать — включить пользователя; прежние сессии не возвращаются, вход по новому коду.</td></tr>
+<tr><td>Экраны ошибок</td><td><span class="tag cli">клиент</span> Коды ответов в подписях (<code>410</code>, <code>409</code>, <code>429</code>, <code>401</code>) — предложение для новой точки, их нет в движке.</td></tr>
+</table>
+
+<h2>Что макет не показывает</h2>
+<p>Настоящую камеру в значке (на iPhone она доступна значку; в макете скан — нажатием на рамку), Android (там Chrome сам предлагает установку), смену языка на телефоне человека, сканер бригадира для отметок прихода (отдельная задача).</p>
+`;
+
+function render(){
+  document.documentElement.lang = S.lang;
+  document.querySelectorAll('[data-t]').forEach(el=>el.innerHTML=t(el.dataset.t));
+  document.querySelectorAll('#seg-lang button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.lang));
+  document.querySelectorAll('#seg-view button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.view));
+  document.querySelectorAll('#seg-size button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.size));
+  document.body.dataset.view = S.view;
+  renderScreens();
+  renderPult();
+  document.getElementById('notes').innerHTML = NOTES;
+}
+function syncUrl(){ const o={lang:S.lang, view:S.view, size:S.size}; if (STANDALONE) o.show=S.show; history.replaceState(null,'','?'+new URLSearchParams(o)); }
+function setOpt(kind, v){ S[kind]=v; syncUrl(); render(); }
+document.addEventListener('input', e=>{ const f = e.target.dataset && e.target.dataset.field; if (f) P.L.draft[f] = e.target.value; });
+document.addEventListener('focusout', e=>{ if (e.target.dataset && e.target.dataset.field) setTimeout(renderScreens, 0); });
+document.addEventListener('click', e=>{
+  const a = e.target.closest('[data-act]');
+  if (a && ACT[a.dataset.act]){
+    if (a.dataset.act!=='drawer' && a.closest('.pult') && STANDALONE) P.drawer = false;
+    if (document.activeElement && document.activeElement.dataset && document.activeElement.dataset.field) document.activeElement.blur();
+    ACT[a.dataset.act](a); renderScreens(); renderPult(); return;
+  }
+  const b = e.target.closest('[data-seg] button, #seg-lang button, #seg-view button, #seg-size button');
+  if (b){ const kind = b.parentElement.dataset.seg || b.parentElement.id.replace('seg-',''); setOpt(kind, b.dataset.v); }
+});
+resetProto();
+render();
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
