@@ -33,7 +33,8 @@
   invite и code из login-qr.html (TG-443, вход по QR; кнопки — прямым действием, правило Oleg 21.11)
   один в один: тексты, одноразовый QR на 5 минут (код внутри QR, человек его не видит), «Код истёк» и
   «Новый код», заблокированному кода нет. Издалека входят ПИН-кодом — его выдаёт владелец (Oleg 25.11).
-  Весь путь входа (камера, ПИН-код, ошибки) живёт там; здесь обе кнопки входа сразу открывают приложение.
+  Весь путь входа (камера, ПИН-код, ошибки) живёт там; здесь «Сканировать код» и ссылка «Войти по ПИН-коду» сразу
+  открывают приложение.
   Данные выдуманы, сервера нет.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -176,12 +177,10 @@
   .login{flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:0 6px}
   .login .logo.big{width:64px;height:64px;font-size:24px;margin-bottom:6px}
   .login > b{font-size:26px;font-weight:800} .login > span{color:var(--c-muted);margin-bottom:18px}
-  /* Экран входа с тремя способами — как в login-qr-456.html (TG-456, замечание Oleg 25.11) */
+  /* Вход по ПИН-коду — неприметная ссылка под главной «Сканировать код»: по ПИН-коду входят редко, две равные кнопки
+     отвлекают (Oleg 25.11); как в login-qr-456.html */
   .lnk{border:0;background:none;color:var(--c-muted);font:inherit;font-size:14px;text-decoration:underline;text-underline-offset:3px;padding:6px;align-self:center;cursor:pointer}
-  .lnk svg{width:15px;height:15px;vertical-align:-2px}
-  .lnk.strong{color:var(--c-ink);font-weight:700;font-size:15px}
-  .orline{display:flex;align-items:center;gap:10px;color:var(--c-muted);font-size:13px}
-  .orline::before,.orline::after{content:'';flex:1;border-top:1px solid var(--c-line)}
+  .login .lnk{font-size:13px}
 
   /* ══ ЭКРАНЫ БРИГАДИРА ══ */
   .h3{margin:4px 0 -4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);font-weight:700}
@@ -191,18 +190,19 @@
   .nums span{font-size:12px;color:var(--c-muted)}
   .nums .here b{color:var(--c-ok)}
   .compact .nums b{font-size:20px}
-  .people{background:#fff;border:1px solid var(--c-line)}
-  .people .p{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--c-line)}
-  .people .p:first-child{border-top:0}
-  .people .dot{flex:none;width:10px;height:10px;border-radius:50%;background:var(--c-muted)}
-  .people .p.in .dot{background:var(--c-ok)}
-  .people .p.miss .dot{background:var(--c-warn)}
-  .people .n{flex:1;font-weight:700;font-size:15px;min-width:0}
-  .people .tm{font-size:13px;color:var(--c-muted);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
-  .people .tm em{font-style:normal;color:var(--c-ok);font-weight:700}
-  .people .tm .w{color:var(--c-warn-ink);font-weight:700}
-  .compact .people .p{padding:7px 10px} .compact .people .n{font-size:14px}
-  .sumt td .w{white-space:normal}   /* «конец работы не отмечен» переносится: на 360 точек иначе не влезают часы */
+  /* ═ одна строка отметки — тот же вид в my-code-457, foreman-457, owner-web-457 (Oleg 25.11) ═
+     Атом отчётности: у рабочего, бригадира и владельца строка одна, меняется только группировка. */
+  .mks{background:#fff;border:1px solid var(--c-line);display:flex;flex-direction:column;flex:none}
+  .mk{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 12px;align-items:baseline;padding:9px 12px;border-top:1px solid var(--c-line);font-size:13.5px;line-height:1.35}
+  .mk:first-child{border-top:0}
+  .mk .l{min-width:0;color:var(--c-muted)}
+  .mk .l b{color:var(--c-ink);font-weight:700}
+  .mk .o{white-space:nowrap}
+  .mk .t{color:var(--c-ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .mk .h{font-size:16px;font-weight:800;color:var(--c-ink);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .mk .h.on{font-size:12.5px;font-weight:700;color:var(--c-ok)}
+  .mk .x{grid-column:1/-1;font-size:12.5px;font-weight:700;color:var(--c-warn-ink)}
+  /* ═ конец строки отметки ═ */
   .empty{background:#fff;border:1px dashed #C9D2D6;padding:18px 14px;text-align:center;color:var(--c-muted);font-size:14px}
 
   .objs{display:flex;flex-direction:column;gap:8px}
@@ -260,18 +260,9 @@
   .rh2{margin:4px 0 -4px;font-size:15px;font-weight:800}
   .rtext{font-size:14px;line-height:1.45;white-space:pre-wrap}
   .rnote{font-size:12.5px;color:var(--c-muted)}
-  .rcard .sumt{border:0}
   .compact .rh1{font-size:19px} .compact .rcard{padding:12px}
   .sent{display:flex;gap:10px;align-items:center;background:var(--c-ok-bg);border-left:4px solid var(--c-ok);padding:10px 12px}
   .sent svg{width:24px;height:24px;color:var(--c-ok);flex:none} .sent b{font-size:15px}
-  /* итог смены */
-  .sumt{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--c-line);font-size:13px;font-variant-numeric:tabular-nums}
-  .sumt th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--c-muted);text-align:left;padding:7px 8px;border-bottom:1px solid var(--c-line)}
-  .sumt td{padding:7px 8px;border-top:1px solid var(--c-line)} .sumt td:first-child{font-weight:700}
-  .sumt tr.miss td{background:var(--c-warn-bg)} .sumt .w{color:var(--c-warn-ink);font-weight:700}
-  .sumt tr.tot td{font-weight:800;background:var(--c-ground)}
-  .sumt td:nth-child(n+2){white-space:nowrap}
-  .compact .sumt{font-size:12px} .compact .sumt td,.compact .sumt th{padding:5px 6px}
   .lastscan{font-size:13px;color:var(--c-muted);display:flex;align-items:center;gap:8px}
   .lastscan i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--c-ok)}
   .lastscan.out i{background:var(--c-dark)} .lastscan b{color:var(--c-ink)}
@@ -498,6 +489,9 @@ const PENDING_SEC = 5;     // окно «начало работы ещё в п�
 /* Порог раннего ухода, минуты (Oleg 24.11): уход раньше не запрещён — бригадир подтверждает «точно уход?». В жизни —
    поле действующего документа «Настройки» контрактов LD Vill (меняет владелец), 15 — значение по умолчанию. */
 const SHORT_MIN = 15;
+/* «Настройки» Дорина (документ процесса «Настройки», owner-web-457.html): начало работы — от него считается опоздание
+   в строке отметки; то же значение, что в my-code-457.html. */
+const SET = {start:'08:00'};
 
 /* Прошлые смены бригадира — только чтение. */
 const PAST0 = [
@@ -506,7 +500,7 @@ const PAST0 = [
    marks:[{n:'Horváth Ádám',in:'07:44',out:'17:00'},{n:'Иван Петров',in:'07:46',out:'16:58'},{n:'Kiss Péter',in:'07:52',out:null,miss:true}]},
   {date:'19.11', obj:'Kelenföld, irodaház', from:'07:55', to:'16:40', photos:0,
    report:'Gipszkarton a 2. emeleten, 60% kész. Anyag elég péntekig.',
-   marks:[{n:'Horváth Ádám',in:'08:01',out:'16:35'},{n:'Szabó Márk',in:'08:03',out:'16:36'}]},
+   marks:[{n:'Horváth Ádám',in:'08:01',out:'16:35'},{n:'Szabó Márk',in:'08:03',out:'16:36'},{n:'Kiss Péter',in:'08:05',out:'08:12'}]},
 ];
 /* Ещё две недели смен, чтобы список «Прошлых» прокручивался и было видно, что «Назад» возвращает на то же место
    (ревью PR #21). Будни 18.11–06.11, объекты по очереди. */
@@ -535,16 +529,15 @@ const T = {
 
   /* вход в значке — экран «first» из login-qr.html (TG-443), тексты один в один */
   'first.t':['Belépés','Вход','Sign in'],
-  'first.s':['Olvasd be a QR-kódot a tulajdonos vagy a brigádvezető képernyőjéről, vagy írd be a PIN-kódot, amit a tulajdonostól kaptál.','Отсканируйте код с экрана владельца или бригадира или введите ПИН-код, который выдал владелец.','Scan the code on the owner’s or foreman’s screen, or enter the PIN the owner gave you.'],
+  'first.s':['Olvasd be a QR-kódot a tulajdonos vagy a brigádvezető képernyőjéről.','Отсканируйте код с экрана владельца или бригадира.','Scan the code on the owner’s or foreman’s screen.'],
   'first.scan':['Kód beolvasása','Сканировать код','Scan code'],
-  'first.pin':['PIN-kód megadása','Ввести ПИН-код','Enter PIN'],
+  'first.pin':['Belépés PIN-kóddal','Войти по ПИН-коду','Sign in with PIN'],   // неприметная ссылка (Oleg 25.11)
 
   't.noshift':['Műszak','Смена','Shift'],
   'ns.t':['Nincs nyitott műszak','Смена не открыта','No open shift'],
   'ns.start':['Műszak kezdése','Начать смену','Start shift'],
   'rc.dur':['műszak {h}','смена {h}','shift {h}'],
   'rc.people':['fő','человек','people'], 'rc.hours':['munkaóra, ó:p','часов работы, ч:мм','work hours, h:mm'], 'rc.miss':['befejezés nélkül','без конца работы','no end of work'],
-  'rc.people.n':['{n} fő','{n} чел.','{n} people'],
 
   't.pick':['Objektum választása','Выбор объекта','Choose a site'],
   'pk.last':['Legutóbb itt','В прошлый раз','Last time'],
@@ -560,12 +553,15 @@ const T = {
   'n.here':['a helyszínen','на объекте','on site'], 'n.came':['érkezett','пришли','arrived'], 'n.left':['távozott','ушли','left'],
   'sh.scan':['Belépő beolvasása','Сканировать пропуск','Scan a pass'],
   'sh.how':['Munkakezdést vagy befejezést a dolgozó választ a telefonján','Начало или конец работы рабочий выбирает у себя на телефоне','The worker picks start or end of work on their phone'],
-  'p.in':['érk.','пришёл','in'], 'p.out':['táv.','ушёл','out'],
   'sh.mine':['Dolgozók a műszakban','Рабочие на смене','Workers on this shift'],
   'sh.empty':['Még senki','Пока никого','Nobody yet'],
   'sh.close':['Műszak zárása','Закрыть смену','Close shift'],
-  'onsite':['a helyszínen','на объекте','on site'],
-  'nomiss':['befejezés nincs rögzítve','конец работы не отмечен','end of work missing'],
+  /* ═ одна строка отметки — ключи; тот же вид в my-code-457, foreman-457, owner-web-457 (Oleg 25.11) ═ */
+  'mk.late':['késés {m} perc','опоздание {m} мин','late {m} min'],
+  'mk.short':['rövid jelölés','короткая отметка','short mark'],
+  'mk.noend':['nincs rögzítve a munka vége','не отмечен конец работы','end of work not marked'],
+  'mk.here':['a helyszínen','на объекте','on site'],
+  /* ═ конец строки отметки ═ */
 
   't.scan':['Beolvasás','Сканер','Scanner'],
   'sc.aim':['Irányítsd a kamerát a dolgozó kódjára','Наведите камеру на код рабочего','Point the camera at the worker’s code'],
@@ -616,8 +612,6 @@ const T = {
   't.closed':['Műszak lezárva','Смена закрыта','Shift closed'],
   'cd.sent':['A jelentést megkapta a vezető','Отчёт ушёл руководителю','The report went to the manager'],
   'su.t':['A műszak összesítője','Итог смены','Shift summary'],
-  'su.who':['Dolgozó','Рабочий','Worker'], 'su.in':['Kezd.','Начало','In'], 'su.out':['Bef.','Конец','Out'], 'su.h':['Óra','Часы','Hours'],
-  'su.tot':['Összesen','Всего','Total'],
   'su.miss':['{names}: befejezés nincs rögzítve — a nyilvántartásba óra nélkül kerül.','{names}: конец работы не отмечен — в табель без часов.','{names}: no end of work — goes to the timesheet without hours.'],
   'su.rep':['Jelentés','Отчёт','Report'], 'su.photos':['Fotók: {n}','Фото: {n}','Photos: {n}'],
   'su.send':['Küldés és a műszak zárása','Отправить и закрыть смену','Send and close the shift'],
@@ -660,7 +654,7 @@ const T = {
   'code.title':['Hozzáférés kiadása','Выдать доступ','Grant access'],
   'code.how':['{name} megnyitja az LD Vill ikont, és beolvassa ezt a QR-kódot:','{name} откроет значок LD Vill и отсканирует этот QR:','{name} opens the LD Vill icon and scans this QR:'],
   'code.near':['Melletted van — beolvassa ezt a QR-kódot («Kód beolvasása»)','Рядом с вами — сканирует этот QR («Сканировать код»)','Next to you — scans this QR (“Scan code”)'],
-  'code.or':['Messze van? Belép a PIN-kódjával («PIN-kód megadása») — a PIN-kódot a tulajdonos adja','Далеко? Войдёт по своему ПИН-коду («Ввести ПИН-код») — ПИН-код выдаёт владелец','Far away? They sign in with their PIN (“Enter PIN”) — the owner issues PINs'],
+  'code.or':['Messze van? Belép a PIN-kódjával («Belépés PIN-kóddal») — a PIN-kódot a tulajdonos adja','Далеко? Войдёт по своему ПИН-коду («Войти по ПИН-коду») — ПИН-код выдаёт владелец','Far away? They sign in with their PIN (“Sign in with PIN”) — the owner issues PINs'],
   'code.left':['Érvényes még <b>{t}</b> · egyszer használható','Действует ещё <b>{t}</b> · срабатывает один раз','Valid for <b>{t}</b> · works once'],
   'code.expired':['A kód lejárt','Код истёк','Code expired'], 'code.new':['Új kód','Новый код','New code'],
   'code.ok':['{name} bent van az alkalmazásban','{name} в приложении','{name} is in the app'],
@@ -668,7 +662,7 @@ const T = {
 
   /* подписи состояний на доске */
   'c.login':['0 · Belépés','0 · Вход','0 · Sign in'],
-  'c.login.d':['A login-qr-456 makett «Belépés» képernyője: QR vagy PIN-kód; a kódolvasás és a PIN — ott.','Экран «Вход» из макета login-qr-456: QR или ПИН-код; сканер кода и ПИН-код — там.','The “Sign in” screen from the login-qr-456 mockup: QR or PIN; code scanning and PIN live there.'],
+  'c.login.d':['A login-qr-456 makett «Belépés» képernyője: egy fő gomb a QR-hoz, alatta halvány link a PIN-kódhoz; a kódolvasás és a PIN — ott.','Экран «Вход» из макета login-qr-456: одна главная кнопка — QR, под ней неприметная ссылка на ПИН-код; сканер кода и ПИН-код — там.','The “Sign in” screen from the login-qr-456 mockup: one main button for the QR, a quiet PIN link below it; code scanning and PIN live there.'],
   'c.noshift':['1 · Nincs nyitott műszak','1 · Смена не открыта','1 · No open shift'],
   'c.noshift.d':['Egy gomb: «Műszak kezdése». A korábbi műszakok — a «Korábbi» fülön.','Одна кнопка — «Начать смену». Прошлые смены — во вкладке «Прошлые».','One button: “Start shift”. Past shifts live under “Past”.'],
   'c.pick':['2 · Objektum a listából','2 · Объект из справочника','2 · Site from the system list'],
@@ -829,15 +823,15 @@ function marksStat(marks){
 /* Часы смены: по каждой отметке конец − начало работы, без вычетов (Oleg 25.11); без конца работы часов нет (так и в табель). */
 const mins = s => +s.slice(0,2)*60 + +s.slice(3,5);
 const hm = m => t('hm',{h:Math.floor(m/60), m:String(m%60).padStart(2,'0')});
-const hhmmDur = m => Math.floor(m/60)+':'+String(m%60).padStart(2,'0');   // часы в таблице и цифрах отчёта — коротко, «9:12»
+const hhmmDur = m => Math.floor(m/60)+':'+String(m%60).padStart(2,'0');   // часы в цифрах отчёта и в «Прошлых» — коротко, «9:12»
 function shiftTotals(marks){
   const rows = marks.map(x=>({...x, m: x.out ? mins(x.out)-mins(x.in) : null}));
   return {rows, people:new Set(marks.map(x=>x.n)).size, total:rows.reduce((a,r)=>a+(r.m||0),0),
     missing:rows.filter(r=>r.m===null).map(r=>r.n)};
 }
 /* Карточка отчёта смены — один вид везде (Oleg 22.11, третий круг): итог перед отправкой, «Отчёт отправлен» и
-   прошлая смена в ленте. Крупно объект (H1) и смена от открытия до закрытия, под ними цифры, таблица по рабочим
-   со строкой итогов и отчёт. d: {obj, date, from, to, marks, report, photos}; label — подпись над объектом, если нужна. */
+   прошлая смена в ленте. Крупно объект (H1) и смена от открытия до закрытия, под ними цифры (это итог группы),
+   строки отметок по рабочим и отчёт. d: {obj, date, from, to, marks, report, photos}; label — подпись над объектом, если нужна. */
 function reportCard(d, label){
   const T_ = shiftTotals(d.marks), dur = mins(d.to) - mins(d.from);
   return `<section class="rcard">
@@ -846,30 +840,40 @@ function reportCard(d, label){
     <div class="rmeta">${d.date} · ${d.from}–${d.to} · <b>${t('rc.dur',{h:hm(dur)})}</b></div>
     <div class="rstats"><div><b>${T_.people}</b><span>${t('rc.people')}</span></div><div><b>${hhmmDur(T_.total)}</b><span>${t('rc.hours')}</span></div>
       <div class="${T_.missing.length?'w':''}"><b>${T_.missing.length}</b><span>${t('rc.miss')}</span></div></div>
-    ${summaryTable(d.marks)}
+    ${shiftRows(d.marks, d.date, d.obj, false)}
     <h4 class="rh2">${t('su.rep')}</h4>
     <div class="rtext">${esc(d.report||'')}</div>
     ${d.photos ? `<div class="rnote">${t('su.photos',{n:d.photos})}</div>` : ''}
   </section>`;
 }
-/* Таблица итога: рабочий · начало · конец · часы (конец − начало работы). */
-function summaryTable(marks){
-  const T_ = shiftTotals(marks);
-  return `<table class="sumt"><tr><th>${t('su.who')}</th><th>${t('su.in')}</th><th>${t('su.out')}</th><th>${t('su.h')}</th></tr>
-    ${T_.rows.map(r=>`<tr class="${r.m===null?'miss':''}"><td>${esc(r.n)}</td><td>${r.in}</td><td>${r.out || `<span class="w">${t('nomiss')}</span>`}</td><td>${r.m===null?'—':hhmmDur(r.m)}</td></tr>`).join('')}
-    <tr class="tot"><td>${t('su.tot')}</td><td colspan="2">${t('rc.people.n',{n:T_.people})}</td><td>${hhmmDur(T_.total)}</td></tr></table>`;
+/* ═ одна строка отметки — тот же вид в my-code-457, foreman-457, owner-web-457 (Oleg 25.11) ═
+   Атом отчётности: строка одна у рабочего, бригадира и владельца, меняется только группировка (рабочий — неделя и
+   месяц, бригадир — смена на объекте за день). Первая строка: дата · рабочий · объект · начало–конец · часы «ч:мм»
+   (конец − начало работы, без подписи); рабочему имя не показываем — это он сам (who пустой). Человек ещё на объекте —
+   вместо конца «…», вместо часов «на объекте». Вторая строка — только при отклонении: опоздание (от начала работы
+   в «Настройках»), короткая отметка (меньше SHORT_MIN минут), не отмечен конец работы; «вовремя» не пишем.
+   r: {date, who, obj, in, out, miss} — время строками «чч:мм»; out пустой и miss — конец работы не отмечен,
+   out пустой без miss — ещё на объекте. Помощники свои, а не файла: блок копируется в макеты побайтно. */
+const mkMin = s => +s.slice(0,2)*60 + +s.slice(3,5);
+const mkHM = m => Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
+function markRow(r){
+  const m = r.out ? mkMin(r.out) - mkMin(r.in) : null, here = !r.out && !r.miss;
+  const late = Math.max(0, mkMin(r.in) - mkMin(SET.start));
+  const x = [late ? t('mk.late',{m:late}) : '', m!==null && m<SHORT_MIN ? t('mk.short') : '', !r.out && r.miss ? t('mk.noend') : ''].filter(Boolean);
+  return `<div class="mk"><span class="l">${[`<b>${r.date}</b>`, r.who ? `<b>${esc(r.who)}</b>` : '', `<span class="o">${esc(r.obj)}</span>`,
+      `<span class="t">${r.in}–${r.out || '…'}</span>`].filter(Boolean).join(' · ')}</span>
+    <span class="h ${here?'on':''}">${here ? t('mk.here') : m===null ? '—' : mkHM(m)}</span>
+    ${x.length ? `<span class="x">${x.join(' · ')}</span>` : ''}</div>`;
 }
+const markRows = rows => `<div class="mks">${rows.map(markRow).join('')}</div>`;
+/* ═ конец строки отметки ═ */
+/* Отметки смены — строками отметки; дата и объект — из смены, хоть они и одни на всю группу: вид строки один везде
+   (Oleg 25.11). open — смена ещё идёт: без конца работы человек «на объекте»; закрытая — «не отмечен конец работы». */
+const shiftRows = (marks, date, obj, open) => marks.length
+  ? markRows(marks.map(x=>({date, who:x.n, obj, in:x.in, out:x.out, miss:!x.out && (!!x.miss || !open)})))
+  : `<div class="empty">${t('sh.empty')}</div>`;
 function nums(st){
   return `<div class="nums"><div class="here"><b>${st.here}</b><span>${t('n.here')}</span></div><div><b>${st.came}</b><span>${t('n.came')}</span></div><div><b>${st.left}</b><span>${t('n.left')}</span></div></div>`;
-}
-function peopleList(marks){
-  if (!marks.length) return `<div class="empty">${t('sh.empty')}</div>`;
-  return `<div class="people">${marks.map(x=>{
-    const cls = x.miss ? 'miss' : x.out ? 'out' : 'in';
-    const tm = x.miss ? `${t('p.in')} ${x.in} · <span class="w">${t('nomiss')}</span>` : x.out ? `${t('p.in')} ${x.in} · ${t('p.out')} ${x.out}`
-      : `${t('p.in')} ${x.in} · <em>${t('onsite')}</em>`;
-    return `<div class="p ${cls}"><span class="dot"></span><span class="n">${esc(x.n)}</span><span class="tm">${tm}</span></div>`;
-  }).join('')}</div>`;
 }
 function resultCard(r){
   if (!r) return '';
@@ -959,10 +963,10 @@ function body(m){
   const missLine = (names, key) => names.length ? `<div class="warnl">${ic('alert')}<div>${t(key,{names:'<b>'+names.map(esc).join(', ')+'</b>'})}
       <button class="link" data-act="toshift">${t('cl.toshift')}</button></div></div>` : '';
   switch (m.screen){
-    case 'login':   // экран «Вход» из login-qr-456.html (TG-456): QR или ПИН-код (Oleg 25.11); весь путь — там, здесь кнопки входят сразу
+    case 'login':   // экран «Вход» из login-qr-456.html (TG-456): главная — QR, ПИН-код — неприметной ссылкой (Oleg 25.11); весь путь — там, здесь обе входят сразу
       return `<div class="login"><div class="logo big">LD</div><b>${t('first.t')}</b><span>${t('first.s')}</span>
         <button class="btn" data-act="login">${ic('camera')}${t('first.scan')}</button>
-        <button class="btn line" data-act="login">${ic('key')}${t('first.pin')}</button></div>`;
+        <button class="lnk" data-act="login">${t('first.pin')}</button></div>`;
     case 'noshift':
       // Одна строка и одна кнопка; карточки последней смены нет — все смены в «Прошлых» (Oleg 22.11, четвёртый круг)
       return `<div class="state off">${ic('pin')}<div><b>${t('ns.t')}</b></div></div>
@@ -984,7 +988,7 @@ function body(m){
         <p class="note c">${t('sh.how')}</p>
         ${m.shift.last ? `<div class="lastscan ${m.shift.last.kind}"><i></i><b>${t(m.shift.last.kind==='in'?'r.in':'r.out')} · ${esc(m.shift.last.name)} · ${m.shift.last.time}</b></div>` : ''}
         <div class="h3">${t('sh.mine')}</div>
-        ${peopleList(m.shift.marks)}
+        ${shiftRows(m.shift.marks, TODAY, objName(m.shift.obj), true)}
         <button class="btn line" data-act="toclose">${t('sh.close')}</button>`;
     }
     case 'scan': {
@@ -997,7 +1001,7 @@ function body(m){
         : `<div class="cam"><div class="aim">${t('sc.aim')}</div><div class="frame"><i></i><i></i><i></i><i></i></div></div>`;
       return `${cam}
         <div class="h3">${t('sh.mine')}</div>
-        ${peopleList(m.shift.marks)}
+        ${shiftRows(m.shift.marks, TODAY, objName(m.shift.obj), true)}
         <button class="btn line" data-act="scandone">${t('sc.done')}</button>`;
     }
     case 'close': {
@@ -1139,10 +1143,11 @@ const NOTES = `
 <li><b>Объекты — справочник системы</b>, бригадир выбирает объект из него и сам объекты не заводит. <b>Открыть смену — обязательный чекин бригадира на объекте</b>: без него сканировать нельзя, поэтому до открытия смены кнопки сканера нет вовсе. На объекте одна смена: объект с открытой сменой другого бригадира не выбрать, такие объекты — в конце списка. На экране выбора — одна подсказка «Чтобы открыть смену, выберите объект»; правила, которые 21.11 стояли там текстом, Oleg 22.11 убрал как шум — они здесь.</li>
 <li><b>Одна смена за раз.</b> У бригадира одновременно открыта одна смена; за день можно закрыть её и открыть новую (на другом объекте или на том же снова).</li>
 <li><b>Отчёт за день обязателен</b> — свободный текст; без него кнопка закрытия не работает. Фото — по желанию.</li>
-<li><b>Закрытие — через итог смены</b> (Oleg 22.11, второй круг). «Дальше: итог смены» ведёт на итоговый отчёт: таблица по рабочим (начало, конец, часы), всего людей и часов, кто не отметил конец работы, текст отчёта. Этот экран и есть подтверждение: «Отправить и закрыть смену» или «Поправить отчёт». Не отметившие конец работы закрываются одним нажатием за всех; итог называет их одной строкой — в табель они попадут с «конец работы не отмечен», без часов — и рядом ссылка «Назад к смене». Это обычный конец дня, а не исключение: на пульте — кнопка «Конец дня».</li>
+<li><b>Закрытие — через итог смены</b> (Oleg 22.11, второй круг). «Дальше: итог смены» ведёт на итоговый отчёт: строки отметок по рабочим (решение «Одна строка отметки» ниже), всего людей и часов, кто не отметил конец работы, текст отчёта. Этот экран и есть подтверждение: «Отправить и закрыть смену» или «Поправить отчёт». Не отметившие конец работы закрываются одним нажатием за всех; итог называет их одной строкой — в табель они попадут с «конец работы не отмечен», без часов — и рядом ссылка «Назад к смене». Это обычный конец дня, а не исключение: на пульте — кнопка «Конец дня».</li>
 <li><b>Скан — как регистрация</b> (Oleg 24.11). Раньше камера читала подряд, а код рабочего меняется раз в минуту — за минуту накликивались начало, конец и снова начало работы. Теперь: начало или конец работы выбирает рабочий у себя кнопкой («Начать работу» / «Закончить работу»), код несёт это действие, и код на начало работы у того, кто уже на объекте, ничего не меняет. У бригадира камера читает один код и останавливается; крупно — имя, начало или конец работы, время, объект, смена, и кнопка «Подтвердить» — только она гасит код. Следующего — новым нажатием «Сканировать следующего».</li>
 <li><b>Ранний уход не запрещён, а переспрашивается</b> (Oleg 24.11). Уход раньше порога — «Пробыл 3 мин — меньше 15 мин. Точно уход?» и кнопка «Да, уход». Порог — поле документа «Настройки» компании (тот же документ, где владелец задаёт начало работы и округление часов, TG-458), по умолчанию 15 минут. В кабинете владельца такие отметки подсвечены.</li>
-<li><b>Часы = конец работы − начало работы, без вычетов</b> (Oleg 25.11). Перекуров и обедов в приложении нет: «не нужны, потому что это будет только лишний повод для выяснения отношений» — ушёл покурить, а включить обратно забыл. В итоге смены (и в отправленном отчёте, и в «Прошлых») — рабочий, начало, конец, часы.</li>
+<li><b>Часы = конец работы − начало работы, без вычетов</b> (Oleg 25.11). Перекуров и обедов в приложении нет: «не нужны, потому что это будет только лишний повод для выяснения отношений» — ушёл покурить, а включить обратно забыл. В итоге смены (и в отправленном отчёте, и в «Прошлых») — строки отметок.</li>
+<li><b>Одна строка отметки — у всех одинаково, разная только группировка</b> (Oleg 25.11: «это атомарное наполнение нашей отчётности… у бригадира, у босса… у всех одинаково представлены, просто разная группировка»). Строка: <i>дата · рабочий · объект · начало–конец · часы</i> — часы «ч:мм» без подписи, конец − начало работы. Дата и объект одни на всю смену, но в строке остаются: вид строки один и тот же у рабочего («Мои смены», группы — неделя и месяц), у бригадира (смена на объекте за день) и в кабинете владельца. Вторая строка — только при отклонении: «опоздание N мин» (от начала работы в «Настройках»), «короткая отметка» (меньше порога раннего ухода), «не отмечен конец работы»; «вовремя» не пишется. На открытой смене у того, кто ещё работает, вместо конца — «…», вместо часов — зелёное «на объекте». Итог группы — цифры над строками (люди, часы работы, без конца работы). Компонент один: те же классы <code>.mk</code> и функция <code>markRow</code>, что в <code>my-code-457.html</code>.</li>
 <li><b>Предложение — как не забыть закрыть смену</b> (Oleg 24.11 нашёл смену в 38 ч: открыта 23.11 в 06:33, закрыта 24.11 в 20:46; на экране этого пока нет — ждёт решения). Смену сама система не закрывает: время конца работы выдумывать нельзя, а часы без конца работы и так не считаются. Три шага по нарастающей:
   <ol>
   <li>На открытой смене под заголовком «с 06:33» — длительность «идёт 9 ч 40 мин»; после 12 часов строка жёлтая: «Смена идёт больше 12 ч — не забудьте закрыть».</li>
@@ -1164,6 +1169,7 @@ const NOTES = `
 <tr><td>«Подтвердить»</td><td><span class="tag have">есть</span> <code>POST /api/modules/{process}/documents/{id}/pass/redeem {pass_code}</code> на <b>документе смены</b> — поэтому без открытой смены сканировать нечем. В ответе <code>action</code> и карточка отметки. Время отметки — сервера в момент подтверждения. Описание — <code>engine/docs/tech/contracts-reference/pass-format.md#api</code>.</td></tr>
 <tr><td>Порог раннего ухода</td><td><span class="tag ask">контракт</span> поле документа процесса «Настройки» (<code>settings</code>) контрактов LD Vill — единственный документ в статусе «Действует» (<code>active</code>), рядом с <code>default_start</code> и <code>round_minutes</code> из TG-458; новое поле, например <code>min_stay_minutes</code>, целое, по умолчанию 15, правит владелец. Отдельных настроек модуля в движке больше нет (engine#691): приложение читает этот документ обычным списком документов процесса с фильтром по статусу, поэтому бригадиру нужно право читать «Настройки». Документа нет — приложение берёт 15. Вопрос «точно уход?» задаёт приложение, движок уход не запрещает. <span class="tag ask">уточнить</span> подсветка таких отметок в кабинете владельца: вычисляемое поле «короткая отметка» (длительность меньше порога настройки) — рецепта сравнения с настройкой у движка нет, рядом есть <code>duration</code> и <code>late</code>; решает оркестратор до кода.</td></tr>
 <tr><td>Ошибки скана</td><td><span class="tag have">есть</span> <code>409 pass_expired</code> — «код просрочен»; <code>pass_already_used</code> — «уже использован»; <code>pass_unknown</code> и <code>pass_wrong_process</code> — «это не пропуск LD Vill»; <code>409 PASS_ARRIVAL_PENDING</code> — «начало работы только что отмечено, отсканируйте через пару секунд» (код не тратится); <code>400 INVALID_TRANSITION</code> (смена уже закрыта) и <code>404 REPORT_NOT_FOUND</code> — экран возвращается к «Смена не открыта»; 5xx и обрыв — «сервер не ответил». Без сети гасить нельзя: проверяет сервер.</td></tr>
+<tr><td>Строка отметки: дата · рабочий · объект · начало–конец · часы; отклонение второй строкой</td><td><span class="tag have">есть</span> дата, рабочий, начало и конец — поля документа отметки; объект — из смены. <span class="tag ask">уточнить</span> часы, опоздание и короткая отметка — вычисляемые поля отметки: рецепты <code>duration</code> и <code>late</code> у движка есть (начало работы и порог — из документа «Настройки»), сравнения «короче порога» нет — тот же вопрос, что у порога раннего ухода выше. Пока поля не готовы, строку считает приложение по тем же правилам.</td></tr>
 <tr><td>«Рабочие на смене», счётчики «на объекте · пришли · ушли»</td><td>Счётчики — по людям, а не по отметкам: ушёл и вернулся — две отметки, один человек. <span class="tag ask">уточнить</span> отметки рабочих под этой сменой (документы процесса отметок, связанные со сменой) — список документов есть, но «только отмеченные мной» — фильтр по тому, кто погасил код. Так как на объекте одна смена и её открыл этот бригадир, все отметки под ней — его; отдельный фильтр нужен, только если Oleg поменяет решение 1.</td></tr>
 <tr><td>Отчёт и закрытие смены</td><td><span class="tag ask">уточнить</span> поле отчёта у смены (обязательное на переходе «закрыть» — guard или <code>required</code> на шаге) и фото (поле-файл). Формат пропусков «забыл уйти» не решает: «конец работы не отмечен» — дело перехода закрытия смены в контракте (например, действие, которое закрывает открытые отметки со статусом «без конца работы»).</td></tr>
 <tr><td>Отчёт голосом</td><td><span class="tag cli">клиент</span> распознавание речи — средство телефона (Web Speech API, а на iPhone — диктовка клавиатуры), в движок уходит готовый текст. <span class="tag ask">уточнить</span> «Поправить с AI» — новая AI-задача движка «поправить текст отчёта» (контракт <code>ai_tasks</code>); в аварийном режиме без AI кнопка скрыта, как и другие AI-кнопки платформы.</td></tr>
@@ -1244,7 +1250,7 @@ const ACT = {
   },
   tosummary(){
     if (!(P.report||'').trim()){ logEv('Отчёт пустой — дальше не пройти.'); return; }
-    go('summary'); logEv('Итог смены: таблица по рабочим, всего людей и часов, кто без конца работы, текст отчёта. Это и есть подтверждение закрытия.');
+    go('summary'); logEv('Итог смены: строки отметок по рабочим, всего людей и часов, кто без конца работы, текст отчёта. Это и есть подтверждение закрытия.');
   },
   photo(){ P.photos = Math.min(4, P.photos+1); logEv('Бригадир добавил фото к отчёту (по желанию).'); },
   close(){
@@ -1386,7 +1392,7 @@ const STATES = [
   {id:'pick', screen:'pick', clock:7*3600+44*60},
   {id:'confirm', screen:'pick', sheet:'confirm', chosen:'fer', clock:7*3600+45*60},
   {id:'shift0', screen:'shift', shift:sh([]), clock:7*3600+45*60},
-  {id:'shift', screen:'shift', shift:{...sh(), last:{kind:'out', name:'Иван Петров', time:'13:00'}}, clock:15*3600+20*60},
+  {id:'shift', screen:'shift', shift:{...sh(), last:{kind:'out', name:'Szabó Márk', time:'17:02'}}, clock:17*3600+3*60},
   {id:'scan', screen:'scan', shift:sh(MK.slice(0,1)), clock:7*3600+49*60},
   {id:'scan-read', screen:'scan', shift:sh(MK.slice(0,1)), reg:{kind:'in', name:'Иван Петров', time:'07:49', stay:0}, clock:7*3600+49*60},
   {id:'scan-short', screen:'scan', shift:sh(MK.slice(0,2)), reg:{kind:'out', name:'Kiss Péter', time:'08:15', stay:3}, clock:8*3600+15*60},
