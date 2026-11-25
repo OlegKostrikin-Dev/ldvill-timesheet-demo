@@ -126,17 +126,19 @@
   .tot span{display:block;font-size:12px;color:#C9D5DB}
   .tot b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
   .tot small{font-size:12px;color:#C9D5DB}
-  .sh{background:#fff;border:1px solid var(--c-line);padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:13px;flex:none}
-  .sh .d{font-weight:800;font-size:15px}
-  .sh .h{grid-row:1/3;grid-column:2;text-align:right;font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
-  .sh .h small{display:block;font-size:11px;font-weight:600;color:var(--c-muted)}
-  .sh .o,.sh .m{color:var(--c-muted)}
-  .sh .m{grid-column:1/-1}
-  .chip{display:inline-block;font-size:11px;font-weight:700;padding:1px 6px;margin-left:4px}
-  .chip.late{background:var(--c-warn-bg);color:var(--c-warn-ink)} .chip.ok{background:var(--c-ok-bg);color:var(--c-ok)}
-  .chip.miss{background:var(--c-bad-bg);color:var(--c-bad)}
-  .sh .m .chip:first-child{margin-left:0}
-  .grp{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--c-muted);margin:4px 0 -6px;flex:none}
+  /* ═ одна строка отметки — тот же вид в my-code-457, foreman-457, owner-web-457 (Oleg 25.11) ═
+     Атом отчётности: у рабочего, бригадира и владельца строка одна, меняется только группировка. */
+  .mks{background:#fff;border:1px solid var(--c-line);display:flex;flex-direction:column;flex:none}
+  .mk{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 12px;align-items:baseline;padding:9px 12px;border-top:1px solid var(--c-line);font-size:13.5px;line-height:1.35}
+  .mk:first-child{border-top:0}
+  .mk .l{min-width:0;color:var(--c-muted)}
+  .mk .l b{color:var(--c-ink);font-weight:700}
+  .mk .o{white-space:nowrap}
+  .mk .t{color:var(--c-ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .mk .h{font-size:16px;font-weight:800;color:var(--c-ink);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .mk .h.on{font-size:12.5px;font-weight:700;color:var(--c-ok)}
+  .mk .x{grid-column:1/-1;font-size:12.5px;font-weight:700;color:var(--c-warn-ink)}
+  /* ═ конец строки отметки ═ */
 
   /* Пульт имитации прямо в экране (Oleg 24.11: с телефона не нашёл, как «бригадир отсканировал»): пунктирная лаймовая
      полоса под шапкой, кнопки — по тому, что сейчас на экране. Это не часть приложения. */
@@ -237,12 +239,10 @@
   .login input{font:inherit;font-size:16px;color:var(--c-ink);padding:12px;border:1px solid var(--c-line);background:#fff;border-radius:0}
   .login .btn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:0}
   .login .btn svg{width:20px;height:20px}
-  /* Экран входа с тремя способами — как в login-qr-456.html (TG-456, замечание Oleg 25.11) */
+  /* Вход по ПИН-коду — неприметная ссылка под главной «Сканировать код»: по ПИН-коду входят редко, две равные кнопки
+     отвлекают (Oleg 25.11); как в login-qr-456.html */
   .lnk{border:0;background:none;color:var(--c-muted);font:inherit;font-size:14px;text-decoration:underline;text-underline-offset:3px;padding:6px;align-self:center;cursor:pointer}
-  .lnk svg{width:15px;height:15px;vertical-align:-2px}
-  .lnk.strong{color:var(--c-ink);font-weight:700;font-size:15px}
-  .orline{display:flex;align-items:center;gap:10px;color:var(--c-muted);font-size:13px}
-  .orline::before,.orline::after{content:'';flex:1;border-top:1px solid var(--c-line)}
+  .login .lnk{font-size:13px}
 
   /* живой прототип: телефон и пульт рядом */
   .work{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap}
@@ -346,8 +346,10 @@ const TTL = 60; // ttl_sec из ответа выдачи; экран берёт
 const OBJ = 'Ferihegy, 2-es terminál';   // объект смены бригадира — тот же, что в foreman.html
 /* «Настройки» Дорина (документ процесса «Настройки», owner-web.html): начало работы — от него считается опоздание. */
 const SET = {start:'08:00'};
+/* Порог короткой отметки, минуты — тот же порог раннего ухода из «Настроек», что в foreman-457.html (по умолчанию 15). */
+const SHORT_MIN = 15;
 /* Прошлые смены рабочего (Horváth Ádám) — те же дни и объекты, что «Прошлые» бригадира в foreman.html.
-   in/out — отметки; out:null — конец работы не отмечен, часы не считаются. */
+   in/out — отметки; out:null — конец работы не отмечен, часы не считаются. Строка дня — «одна строка отметки». */
 const MYDAYS = [
   {wk:1, date:'21.11', wd:5, obj:'Ferihegy, 2-es terminál', in:'07:44', out:'17:00'},
   {wk:1, date:'20.11', wd:4, obj:'Budaörs, raktárcsarnok',  in:'08:01', out:'16:35'},
@@ -361,8 +363,7 @@ const MONTH_BEFORE = {n:6, sec:(52*60+40)*60}; // смены 3–12.11 — то�
 const toSec = s => { const [h,m] = s.split(':').map(Number); return h*3600+m*60; };
 /* работа за день = конец − начало работы, без вычетов (Oleg 25.11); без конца работы — не считается (как у бригадира
    и Дорина) */
-const dayWork = d => d.work !== undefined ? d.work : d.out ? toSec(d.out) - toSec(d.in) : 0;
-const dayLate = d => Math.max(0, (toSec(d.in) - toSec(SET.start))/60);
+const dayWork = d => d.out ? toSec(d.out) - toSec(d.in) : 0;
 
 /* Размеры экрана в CSS-пикселях: узкий Android, обычный iPhone, большой iPhone.
    top/bottom — безопасные зоны (полоса статуса, полоска «домой»); qr — сторона QR; compact — сжатая шапка. */
@@ -448,9 +449,9 @@ const T = {
   'login.sub':['Műszaknyilvántartás','Учёт смен','Shift tracking'],
   'login.btn':['Belépés','Войти','Sign in'],
   'first.t':['Belépés','Вход','Sign in'],
-  'first.s':['Olvasd be a QR-kódot a tulajdonos vagy a brigádvezető képernyőjéről, vagy írd be a PIN-kódot, amit a tulajdonostól kaptál.','Отсканируйте код с экрана владельца или бригадира или введите ПИН-код, который выдал владелец.','Scan the code on the owner’s or foreman’s screen, or enter the PIN the owner gave you.'],
+  'first.s':['Olvasd be a QR-kódot a tulajdonos vagy a brigádvezető képernyőjéről.','Отсканируйте код с экрана владельца или бригадира.','Scan the code on the owner’s or foreman’s screen.'],
   'first.scan':['Kód beolvasása','Сканировать код','Scan code'],
-  'first.pin':['PIN-kód megadása','Ввести ПИН-код','Enter PIN'],
+  'first.pin':['Belépés PIN-kóddal','Войти по ПИН-коду','Sign in with PIN'],   // неприметная ссылка (Oleg 25.11)
 
   /* подписи состояний на доске */
   'c.login':['0 · Belépés','0 · Вход','0 · Sign in'],
@@ -501,17 +502,17 @@ const T = {
   'days.week':['Hét 17–21.11','Неделя 17–21.11','Week 17–21 Nov'],
   'days.month':['November','Ноябрь','November'],
   'days.n':['{n} műszak','{n} смен','{n} shifts'],
-  'days.late':['késés {m} perc','опоздание {m} мин','late {m} min'],
-  'days.ontime':['időben','вовремя','on time'],
-  'days.miss':['befejezés nincs','конец работы не отмечен','no end of work'],
   'days.miss.s':['a nap nem számít bele, amíg a brigádvezető nem javítja','часы дня не считаются, пока бригадир не поправит','the day isn’t counted until the foreman fixes it'],
-  'days.today':['Ma','Сегодня','Today'],
-  'days.earlier':['Korábban','Раньше','Earlier'],
-  'days.h':['óra','часов','hours'],
+  /* ═ одна строка отметки — ключи; тот же вид в my-code-457, foreman-457, owner-web-457 (Oleg 25.11) ═ */
+  'mk.late':['késés {m} perc','опоздание {m} мин','late {m} min'],
+  'mk.short':['rövid jelölés','короткая отметка','short mark'],
+  'mk.noend':['nincs rögzítve a munka vége','не отмечен конец работы','end of work not marked'],
+  'mk.here':['a helyszínen','на объекте','on site'],
+  /* ═ конец строки отметки ═ */
   'c.scanned':['5a · Beolvasva, megerősítésre vár','5a · Отсканирован, ждём подтверждения','5a · Scanned, awaiting confirmation'],
   'c.scanned.d':['A brigádvezető kamerája leolvasta a kódot, de még nem nyomta meg a «Megerősítés» gombot.','Камера бригадира прочла код, но он ещё не нажал «Подтвердить».','The foreman’s camera read the code, but “Confirm” isn’t pressed yet.'],
   'c.days':['10 · Műszakjaim','10 · Мои смены','10 · My shifts'],
-  'c.days.d':['Csak annak, akinek Dorin jogot adott («Emberek»). Heti és havi összeg, napok.','Только тем, кому Дорин дал право («Люди»). Итог за неделю и месяц, дни.','Only for those Dorin allowed (“People”). Week and month totals, days.'],
+  'c.days.d':['Csak annak, akinek Dorin jogot adott («Emberek»). Heti és havi összeg, alatta a jelölések sorai — ugyanaz a sor, mint a brigádvezetőnél és a tulajdonosnál.','Только тем, кому Дорин дал право («Люди»). Итог за неделю и месяц, под ним — строки отметок: та же строка, что у бригадира и владельца.','Only for those Dorin allowed (“People”). Week and month totals, then the mark rows — the same row as the foreman’s and the owner’s.'],
 
   'dev.s':['Szűk Android · 360×640','Узкий Android · 360×640','Narrow Android · 360×640'],
   'dev.m':['iPhone 14/15 · 390×844','iPhone 14/15 · 390×844','iPhone 14/15 · 390×844'],
@@ -603,20 +604,37 @@ function timerBlock(st){
   return `<div class="timer"><span class="l">${t('tm.work')}</span><span class="v">${dur(st.work)}</span>
       <span class="s">${t('tm.work.s',{since:st.since})}</span></div>`;
 }
-/* «Мои смены»: итог недели и месяца, затем дни — дата, объект, начало–конец работы, часы, опоздание */
+const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* ═ одна строка отметки — тот же вид в my-code-457, foreman-457, owner-web-457 (Oleg 25.11) ═
+   Атом отчётности: строка одна у рабочего, бригадира и владельца, меняется только группировка (рабочий — неделя и
+   месяц, бригадир — смена на объекте за день). Первая строка: дата · рабочий · объект · начало–конец · часы «ч:мм»
+   (конец − начало работы, без подписи); рабочему имя не показываем — это он сам (who пустой). Человек ещё на объекте —
+   вместо конца «…», вместо часов «на объекте». Вторая строка — только при отклонении: опоздание (от начала работы
+   в «Настройках»), короткая отметка (меньше SHORT_MIN минут), не отмечен конец работы; «вовремя» не пишем.
+   r: {date, who, obj, in, out, miss} — время строками «чч:мм»; out пустой и miss — конец работы не отмечен,
+   out пустой без miss — ещё на объекте. Помощники свои, а не файла: блок копируется в макеты побайтно. */
+const mkMin = s => +s.slice(0,2)*60 + +s.slice(3,5);
+const mkHM = m => Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
+function markRow(r){
+  const m = r.out ? mkMin(r.out) - mkMin(r.in) : null, here = !r.out && !r.miss;
+  const late = Math.max(0, mkMin(r.in) - mkMin(SET.start));
+  const x = [late ? t('mk.late',{m:late}) : '', m!==null && m<SHORT_MIN ? t('mk.short') : '', !r.out && r.miss ? t('mk.noend') : ''].filter(Boolean);
+  return `<div class="mk"><span class="l">${[`<b>${r.date}</b>`, r.who ? `<b>${esc(r.who)}</b>` : '', `<span class="o">${esc(r.obj)}</span>`,
+      `<span class="t">${r.in}–${r.out || '…'}</span>`].filter(Boolean).join(' · ')}</span>
+    <span class="h ${here?'on':''}">${here ? t('mk.here') : m===null ? '—' : mkHM(m)}</span>
+    ${x.length ? `<span class="x">${x.join(' · ')}</span>` : ''}</div>`;
+}
+const markRows = rows => `<div class="mks">${rows.map(markRow).join('')}</div>`;
+/* ═ конец строки отметки ═ */
+/* «Мои смены»: итог недели и месяца (группы), под ним — строки отметок, новые сверху. Имя рабочему не показываем —
+   это он сам; конца работы нет — значит, не отмечен (у рабочего смена в списке всегда прошлая). */
 function daysBody(st){
   const rows = [...(st.today ? [st.today] : []), ...MYDAYS];
   const wk = rows.filter(d=>d.wk);   // прошлая полная неделя 17–21.11
   const sum = a => a.reduce((x,d)=>x+dayWork(d),0);
-  const row = d => { const late = dayLate(d);
-    return `<div class="sh"><span class="d">${d.isToday?t('days.today')+' · ':''}${d.date}</span>
-      <span class="h">${d.out ? hm(dayWork(d)) : '—'}<small>${t('days.h')}</small></span>
-      <span class="o">${d.obj} · ${d.in}–${d.out||'…'}</span>
-      <span class="m">${late>0 ? `<span class="chip late">${t('days.late',{m:late})}</span>` : `<span class="chip ok">${t('days.ontime')}</span>`}
-        ${d.out ? '' : `<span class="chip miss">${t('days.miss')}</span>`}</span></div>`; };
   return `<div class="tot"><div><span>${t('days.week')}</span><b>${hm(sum(wk))}</b><small>${t('days.n',{n:wk.length})}</small></div>
       <div><span>${t('days.month')}</span><b>${hm(sum(rows)+MONTH_BEFORE.sec)}</b><small>${t('days.n',{n:rows.length+MONTH_BEFORE.n})}</small></div></div>
-    ${rows.map(row).join('')}
+    ${markRows(rows.map(d=>({date:d.date, obj:d.obj, in:d.in, out:d.out, miss:!d.out})))}
     <p class="hint">${t('days.miss.s')}</p>`;
 }
 function stateCard(st){
@@ -627,11 +645,11 @@ function stateCard(st){
 function body(st, code){
   const onSite = !!st.since;
   if (st.id==='login'){
-    // Экран «Вход» из login-qr-456.html (TG-456): два способа — QR и ПИН-код (Oleg 25.11).
-    // Весь путь скана и ПИН-кода показан там; здесь любая кнопка входит сразу.
+    // Экран «Вход» из login-qr-456.html (TG-456): главная кнопка — QR, ПИН-код — неприметной ссылкой: по нему входят
+    // редко (Oleg 25.11). Весь путь скана и ПИН-кода показан там; здесь и кнопка, и ссылка входят сразу.
     return `<div class="login"><div class="logo big">LD</div><b>${t('first.t')}</b><span>${t('first.s')}</span>
         <button class="btn" data-act="login">${ic('camera')}${t('first.scan')}</button>
-        <button class="btn line" data-act="login">${ic('key')}${t('first.pin')}</button></div>`;
+        <button class="lnk" data-act="login">${t('first.pin')}</button></div>`;
   }
   if (st.tab==='days') return daysBody(st);
   if (st.id==='done-in' || st.id==='done-out'){
@@ -715,7 +733,7 @@ const NOTES = `
 <tr><td>«Отметка прошла», время, бригадир</td><td><span class="tag have">есть</span> точка «что стало с моим кодом» <code>POST /api/passes/status {pass_code}</code> (общая, без процесса; код в теле): <code>state</code> live / consumed / expired, <code>consumed_at</code> — время отметки (сервера), <code>consumed_by.label</code> — имя бригадира, <code>action</code> open — начало работы, close — конец работы (подпись «Начало работы отмечено» / «Конец работы отмечен» экран берёт по <code>action</code>, ключа подписи в ответе нет). Отвечает только хозяину кода; чужой и несуществующий код — один и тот же <code>404 PASS_NOT_FOUND</code>. Опрос дешёвый, работает и в режиме «только чтение». Описание — <code>engine/docs/tech/contracts-reference/pass-format.md#status</code> (PR движка #601).</td></tr>
 <tr><td>«Вы на объекте с 08:02»</td><td><span class="tag have">есть</span> сразу после начала работы — <code>consumed_at</code> и <code>consumed_by.label</code> той же точки. <span class="tag ask">нет</span> после перезапуска приложения: открытую отметку рабочего движок пока не отдаёт, экран показывает «не отмечены» и главной кнопкой «Начать работу». Ошибиться не страшно: код на начало работы у того, кто на объекте, бригадир увидит как «уже на объекте» — ничего не изменится, рабочий нажмёт «Закончить работу».</td></tr>
 <tr><td>«На работе 2 ч 24 мин»</td><td><span class="tag cli">клиент</span> считает телефон: от времени сервера из отметки начала работы до сейчас, без вычетов. Перекуров и обедов в приложении нет (Oleg 25.11: «лишний повод для выяснения отношений» — ушёл покурить и забыл включить обратно); часы дня = конец работы − начало работы. <span class="tag ask">нет</span> после перезапуска — как и плашка «на объекте», нужна открытая отметка рабочего от движка.</td></tr>
-<tr><td>«Мои смены»</td><td><span class="tag ask">контракт добавит</span> признак у человека «видит свои смены» — ставит Дорин в «Людях»; без него вкладки нет и нижнего меню нет. Список — свои отметки (видимость «свои»): дата, объект, начало–конец работы, часы «ч:мм» (конец − начало работы), опоздание от начала работы из «Настроек»; день без конца работы не считается. Итог за неделю и месяц — сумма тех же часов.</td></tr>
+<tr><td>«Мои смены»</td><td><span class="tag ask">контракт добавит</span> признак у человека «видит свои смены» — ставит Дорин в «Людях»; без него вкладки нет и нижнего меню нет. Список — свои отметки (видимость «свои») <b>одной строкой отметки</b> — тот же вид, что у бригадира и владельца, разная только группировка (Oleg 25.11: «атомарное наполнение нашей отчётности»): дата · объект · начало–конец · часы «ч:мм» (конец − начало работы); имени нет — это сам рабочий. Вторая строка — только при отклонении: «опоздание N мин» (от начала работы из «Настроек»), «короткая отметка» (меньше порога раннего ухода), «не отмечен конец работы»; «вовремя» не пишется. День без конца работы не считается. Итог за неделю и месяц — над списком, сумма тех же часов. Компонент один: классы <code>.mk</code> и функция <code>markRow</code> — те же, что в <code>foreman-457.html</code>.</td></tr>
 </table>
 
 <h2>Как экран переходит из состояния в состояние</h2>
@@ -911,12 +929,12 @@ const ACT = {
 };
 function showDone(d){
   if (d.action==='close'){
-    // Итог дня = конец − начало работы, без вычетов (Oleg 25.11)
+    // Итог дня = конец − начало работы, без вычетов (Oleg 25.11); по минутам отметок — как строка отметки в «Моих сменах»
     const inn = P.onSite?.since || d.from || '08:02';
-    const work = P.onSite ? d.sec - P.onSite.sec : toSec(d.time) - toSec(inn);
+    const work = toSec(d.time) - toSec(inn);
     d.day = {work, from:inn};
     // Сегодняшняя смена — первой строкой «Моих смен»
-    P.today = {isToday:1, work, date:'24.11', obj:OBJ, in:inn, out:d.time};
+    P.today = {date:'24.11', obj:OBJ, in:inn, out:d.time};
   }
   P.phase='done'; P.done=d; P.onSite = d.action==='open' ? {since:d.time, sec:d.sec} : null;
   logEv(`Экран спросил «что стало с моим кодом» (POST /api/passes/status) — consumed: ${d.action==='open'?'начало работы':'конец работы'} ${d.time}, ${FOREMAN}.`
@@ -930,7 +948,7 @@ function showDone(d){
 function simBar(){
   const b = (act, label, go, arg) => `<button data-act="${act}" ${arg?`data-arg="${arg}"`:''} class="${go?'go':''}">${label}</button>`;
   let h = '';
-  if (P.screen==='login') h = '<span style="color:#C9D5DB;font-size:13px">войдите — любой из трёх способов на экране</span>';
+  if (P.screen==='login') h = '<span style="color:#C9D5DB;font-size:13px">войдите — «Сканировать код» или ссылка «Войти по ПИН-коду»</span>';
   else if (P.tab==='days') h = '';
   else if (P.phase==='live' && !P.scanned) h = b('scan','📷 Бригадир отсканировал',true) + b('rewind','⏩ к концу минуты');
   else if (P.phase==='live' && P.scanned) h = b('confirm','✅ Бригадир подтвердил',true);
