@@ -239,8 +239,8 @@
   .login input{font:inherit;font-size:16px;color:var(--c-ink);padding:12px;border:1px solid var(--c-line);background:#fff;border-radius:0}
   .login .btn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:0}
   .login .btn svg{width:20px;height:20px}
-  /* Вход по ПИН-коду — неприметная ссылка под главной «Сканировать код»: по ПИН-коду входят редко, две равные кнопки
-     отвлекают (Oleg 25.11); как в login-qr-456.html */
+  /* Вход (решение Oleg 25.11): две кнопки — «Сканировать код» (главная) и «Ввести ПИН-код» (контуром); ниже мелкой
+     приглушённой ссылкой «Войти по логину и паролю» — для владельца и редких случаев; как в login-qr-456.html */
   .lnk{border:0;background:none;color:var(--c-muted);font:inherit;font-size:14px;text-decoration:underline;text-underline-offset:3px;padding:6px;align-self:center;cursor:pointer}
   .login .lnk{font-size:13px}
 
@@ -344,10 +344,18 @@ const WORKER = {name:'Horváth Ádám'};
 const FOREMAN = 'Kovács Péter';
 const TTL = 60; // ttl_sec из ответа выдачи; экран берёт его из ответа, а не держит у себя
 const OBJ = 'Ferihegy, 2-es terminál';   // объект смены бригадира — тот же, что в foreman.html
-/* «Настройки» Дорина (документ процесса «Настройки», owner-web.html): начало работы — от него считается опоздание. */
-const SET = {start:'08:00'};
-/* Порог короткой отметки, минуты — тот же порог раннего ухода из «Настроек», что в foreman-457.html (по умолчанию 15). */
-const SHORT_MIN = 15;
+/* «Настройки» Дорина — названия и значения из кабинета владельца (owner-web-457.html, вкладка «Настройки»; в контракте —
+   документ «Настройки»: default_start, round_minutes, min_stay_minutes): «Начало работы по умолчанию» 07:45,
+   «Округление часов» — не округлять (0; бывает «до 15 мин» и «до 30 мин»), «Ранний уход: переспросить, если меньше» 15 мин
+   (порог вопроса «точно уход?» у бригадира и «короткой отметки»). Те же значения — в my-code-457.html и foreman-457.html. */
+const SET = {start:'07:45', round:0, stay:15};
+/* Объекты — своё время начала работы, как в owner-web-457.html: Ferihegy 08:00, Kelenföld 08:15; у Budaörs своего нет —
+   действует «Начало работы по умолчанию». Опоздание считается от него. */
+const OBJECTS = [
+  {name:'Ferihegy, 2-es terminál', start:'08:00'},
+  {name:'Budaörs, raktárcsarnok'},
+  {name:'Kelenföld, irodaház',     start:'08:15'},
+];
 /* Прошлые смены рабочего (Horváth Ádám) — те же дни и объекты, что «Прошлые» бригадира в foreman.html.
    in/out — отметки; out:null — конец работы не отмечен, часы не считаются. Строка дня — «одна строка отметки». */
 const MYDAYS = [
@@ -363,7 +371,7 @@ const MONTH_BEFORE = {n:6, sec:(52*60+40)*60}; // смены 3–12.11 — то�
 const toSec = s => { const [h,m] = s.split(':').map(Number); return h*3600+m*60; };
 /* работа за день = конец − начало работы, без вычетов (Oleg 25.11); без конца работы — не считается (как у бригадира
    и Дорина) */
-const dayWork = d => d.out ? toSec(d.out) - toSec(d.in) : 0;
+const dayWork = d => (mkDur(d) || 0) * 60;   // секунды; часы — как в строке отметки: с «Округлением часов»
 
 /* Размеры экрана в CSS-пикселях: узкий Android, обычный iPhone, большой iPhone.
    top/bottom — безопасные зоны (полоса статуса, полоска «домой»); qr — сторона QR; compact — сжатая шапка. */
@@ -451,11 +459,16 @@ const T = {
   'first.t':['Belépés','Вход','Sign in'],
   'first.s':['Olvasd be a QR-kódot a tulajdonos vagy a brigádvezető képernyőjéről.','Отсканируйте код с экрана владельца или бригадира.','Scan the code on the owner’s or foreman’s screen.'],
   'first.scan':['Kód beolvasása','Сканировать код','Scan code'],
-  'first.pin':['Belépés PIN-kóddal','Войти по ПИН-коду','Sign in with PIN'],   // неприметная ссылка (Oleg 25.11)
+  'first.pin':['PIN-kód megadása','Ввести ПИН-код','Enter PIN'],   // вторая кнопка, контуром (Oleg 25.11)
+  /* логин и пароль — мелкой ссылкой: для владельца и редких случаев; людям, которых заводит владелец, не выдаются */
+  'first.pwd':['Belépés felhasználónévvel és jelszóval','Войти по логину и паролю','Sign in with username and password'],
+  'login.user':['Felhasználónév','Логин','Username'], 'login.pass':['Jelszó','Пароль','Password'],
+  'pwd.s':['A tulajdonosnak és ritka esetekre. Akit a tulajdonos vesz fel, nem kap jelszót: QR-kóddal vagy PIN-kóddal lép be.','Для владельца и редких случаев. Тем, кого заводит владелец, логин и пароль не выдают: они входят по коду или ПИН-коду.','For the owner and rare cases. People the owner adds get no password: they sign in with the code or a PIN.'],
+  'pwd.back':['Vissza','Назад','Back'],
 
   /* подписи состояний на доске */
   'c.login':['0 · Belépés','0 · Вход','0 · Sign in'],
-  'c.login.d':['Első indításkor; utána az alkalmazás emlékszik a belépésre.','При первом запуске; дальше приложение помнит вход.','On first launch; afterwards the app remembers the sign-in.'],
+  'c.login.d':['Első indításkor; utána az alkalmazás emlékszik a belépésre. Két gomb — QR-kód és PIN-kód; alatta apró link a felhasználónévhez és jelszóhoz (a tulajdonosnak és ritka esetekre).','При первом запуске; дальше приложение помнит вход. Две кнопки — QR и ПИН-код; ниже мелкая ссылка «Войти по логину и паролю» (для владельца и редких случаев).','On first launch; afterwards the app remembers the sign-in. Two buttons — QR and PIN; below, a small username-and-password link (for the owner and rare cases).'],
   'c.choose':['1a · Két gomb','1a · Две кнопки','1a · Two buttons'],
   'c.choose.d':['Kód még nincs: a dolgozó választja, mit rögzít. Fő gomb — munkakezdés.','Кода ещё нет: рабочий сам выбирает, что отметить. Главная — «Начать работу».','No code yet: the worker picks what to record. Main button: Start work.'],
   'c.code':['1 · Kód: munkakezdés','1 · Код: начало работы','1 · Code: start of work'],
@@ -608,23 +621,34 @@ const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&
 /* ═ одна строка отметки — тот же вид в my-code-457, foreman-457, owner-web-457 (Oleg 25.11) ═
    Атом отчётности: строка одна у рабочего, бригадира и владельца, меняется только группировка (рабочий — неделя и
    месяц, бригадир — смена на объекте за день). Первая строка: дата · рабочий · объект · начало–конец · часы «ч:мм»
-   (конец − начало работы, без подписи); рабочему имя не показываем — это он сам (who пустой). Человек ещё на объекте —
-   вместо конца «…», вместо часов «на объекте». Вторая строка — только при отклонении: опоздание (от начала работы
-   в «Настройках»), короткая отметка (меньше SHORT_MIN минут), не отмечен конец работы; «вовремя» не пишем.
+   (без подписи); рабочему имя не показываем — это он сам (who пустой). Человек ещё на объекте — вместо конца «…»,
+   вместо часов «на объекте». Вторая строка — только при отклонении; «вовремя» не пишем.
+   Правила — как в кабинете владельца (owner-web-457.html: round, startOf, lateOf), числа — из «Настроек» (SET):
+   · часы — конец − начало работы, без вычетов, округлённые по «Округлению часов» (SET.round, минут; 0 — не округлять)
+     до ближайшего кратного: 8:01–16:35 = 514 мин, до 15 мин — 510 = 8:30; итоги складывают те же часы (mkDur);
+   · опоздание — только у первой отметки человека за день, от начала работы НА ОБЪЕКТЕ (своё время объекта в OBJECTS,
+     нет своего — «Начало работы по умолчанию», SET.start); вторая и следующие отметки дня (вернулся, переехал) — нет;
+   · короткая отметка — пробыл меньше порога «Ранний уход: переспросить, если меньше» (SET.stay), по минутам без округления;
+   · не отмечен конец работы.
    r: {date, who, obj, in, out, miss} — время строками «чч:мм»; out пустой и miss — конец работы не отмечен,
-   out пустой без miss — ещё на объекте. Помощники свои, а не файла: блок копируется в макеты побайтно. */
+   out пустой без miss — ещё на объекте. Первая ли отметка дня, markRows решает по строкам, которые ему дали (та же дата,
+   тот же человек). Помощники свои, а не файла: блок копируется в макеты побайтно. */
 const mkMin = s => +s.slice(0,2)*60 + +s.slice(3,5);
 const mkHM = m => Math.floor(m/60)+':'+String(m%60).padStart(2,'0');
-function markRow(r){
-  const m = r.out ? mkMin(r.out) - mkMin(r.in) : null, here = !r.out && !r.miss;
-  const late = Math.max(0, mkMin(r.in) - mkMin(SET.start));
-  const x = [late ? t('mk.late',{m:late}) : '', m!==null && m<SHORT_MIN ? t('mk.short') : '', !r.out && r.miss ? t('mk.noend') : ''].filter(Boolean);
+const mkRound = m => SET.round ? Math.round(m/SET.round)*SET.round : m;
+const mkDur = r => r.out ? mkRound(mkMin(r.out) - mkMin(r.in)) : null;
+const mkStart = obj => (OBJECTS.find(o=>o.name===obj) || {}).start || SET.start;
+function markRow(r, first=true){
+  const m = mkDur(r), raw = r.out ? mkMin(r.out) - mkMin(r.in) : null, here = !r.out && !r.miss;
+  const late = first ? Math.max(0, mkMin(r.in) - mkMin(mkStart(r.obj))) : 0;
+  const x = [late ? t('mk.late',{m:late}) : '', raw!==null && raw<SET.stay ? t('mk.short') : '', !r.out && r.miss ? t('mk.noend') : ''].filter(Boolean);
   return `<div class="mk"><span class="l">${[`<b>${r.date}</b>`, r.who ? `<b>${esc(r.who)}</b>` : '', `<span class="o">${esc(r.obj)}</span>`,
       `<span class="t">${r.in}–${r.out || '…'}</span>`].filter(Boolean).join(' · ')}</span>
     <span class="h ${here?'on':''}">${here ? t('mk.here') : m===null ? '—' : mkHM(m)}</span>
     ${x.length ? `<span class="x">${x.join(' · ')}</span>` : ''}</div>`;
 }
-const markRows = rows => `<div class="mks">${rows.map(markRow).join('')}</div>`;
+const mkFirst = (r, rows) => !rows.some(o=>o!==r && o.date===r.date && (o.who||'')===(r.who||'') && mkMin(o.in) < mkMin(r.in));
+const markRows = rows => `<div class="mks">${rows.map(r=>markRow(r, mkFirst(r, rows))).join('')}</div>`;
 /* ═ конец строки отметки ═ */
 /* «Мои смены»: итог недели и месяца (группы), под ним — строки отметок, новые сверху. Имя рабочему не показываем —
    это он сам; конца работы нет — значит, не отмечен (у рабочего смена в списке всегда прошлая). */
@@ -645,11 +669,18 @@ function stateCard(st){
 function body(st, code){
   const onSite = !!st.since;
   if (st.id==='login'){
-    // Экран «Вход» из login-qr-456.html (TG-456): главная кнопка — QR, ПИН-код — неприметной ссылкой: по нему входят
-    // редко (Oleg 25.11). Весь путь скана и ПИН-кода показан там; здесь и кнопка, и ссылка входят сразу.
+    // Экран «Вход» из login-qr-456.html (TG-456, решение Oleg 25.11): две кнопки — QR и ПИН-код, ниже мелкой ссылкой
+    // логин и пароль (для владельца и редких случаев). Весь путь скана и ПИН-кода показан там; здесь обе кнопки входят
+    // сразу, ссылка открывает тот же экран логина и пароля, что у владельца.
+    if (st.pwd) return `<div class="login"><div class="logo big">LD</div><b>LD Vill</b><span>${t('pwd.s')}</span>
+        <label>${t('login.user')}<input readonly></label>
+        <label>${t('login.pass')}<input type="password" readonly></label>
+        <button class="btn" data-act="login">${t('login.btn')}</button>
+        <button class="lnk" data-act="pwd">${t('pwd.back')}</button></div>`;
     return `<div class="login"><div class="logo big">LD</div><b>${t('first.t')}</b><span>${t('first.s')}</span>
         <button class="btn" data-act="login">${ic('camera')}${t('first.scan')}</button>
-        <button class="lnk" data-act="login">${t('first.pin')}</button></div>`;
+        <button class="btn line" data-act="login">${ic('key')}${t('first.pin')}</button>
+        <button class="lnk" data-act="pwd" data-arg="1">${t('first.pwd')}</button></div>`;
   }
   if (st.tab==='days') return daysBody(st);
   if (st.id==='done-in' || st.id==='done-out'){
@@ -726,6 +757,7 @@ const NOTES = `
 <h2>Данные экрана</h2>
 <table>
 <tr><th>Что на экране</th><th>Откуда</th></tr>
+<tr><td>Вход: «Сканировать код», «Ввести ПИН-код», ссылка «Войти по логину и паролю»</td><td><span class="tag ask">TG-456</span> экран «Вход» из <code>login-qr-456.html</code> (решение Oleg 25.11: две кнопки — QR и ПИН-код, логин и пароль — мелкой ссылкой); вход по коду и по ПИН-коду — новые точки движка, описаны там. <span class="tag have">есть</span> логин и пароль — обычный вход Keycloak, как у владельца Дорина сейчас; людям, которых заводит Дорин, их не выдают — ссылка для Дорина и редких случаев.</td></tr>
 <tr><td>«Начать работу» / «Закончить работу»</td><td><span class="tag ask">новое в движке</span> код несёт намерение (Oleg 24.11): <code>POST /api/modules/{process}/passes {action: "open" | "close"}</code>, движок хранит действие в коде и при гашении не выбирает сам, а сверяет: код на начало работы, а рабочий уже на объекте, или код на конец работы без начала работы — ничего не меняет, код не тратится, бригадир получает отказ «уже на объекте с 08:02» / «начала работы нет». Сейчас движок выбирает начало или конец работы сам — поэтому камера, читающая подряд, за минуту давала начало-конец-начало работы. Кнопки — только у рабочего; код без действия (старый клиент) движок гасит по-старому.</td></tr>
 <tr><td>QR-код</td><td><span class="tag have">есть</span> <code>code</code> из <code>POST /api/modules/{process}/passes</code>. В QR — сам код, без адреса: код ходит только в теле запроса (К-18); движок про QR не знает, рисует клиент. Над кодом — «Код: начало работы» или «Код: конец работы».</td></tr>
 <tr><td>Секунды и полоса срока</td><td><span class="tag have">есть</span> <code>expires_at − now</code>, доля — от <code>ttl_sec</code>. Срок задаёт контракт процесса, 60 с — не константа клиента.</td></tr>
@@ -733,7 +765,7 @@ const NOTES = `
 <tr><td>«Отметка прошла», время, бригадир</td><td><span class="tag have">есть</span> точка «что стало с моим кодом» <code>POST /api/passes/status {pass_code}</code> (общая, без процесса; код в теле): <code>state</code> live / consumed / expired, <code>consumed_at</code> — время отметки (сервера), <code>consumed_by.label</code> — имя бригадира, <code>action</code> open — начало работы, close — конец работы (подпись «Начало работы отмечено» / «Конец работы отмечен» экран берёт по <code>action</code>, ключа подписи в ответе нет). Отвечает только хозяину кода; чужой и несуществующий код — один и тот же <code>404 PASS_NOT_FOUND</code>. Опрос дешёвый, работает и в режиме «только чтение». Описание — <code>engine/docs/tech/contracts-reference/pass-format.md#status</code> (PR движка #601).</td></tr>
 <tr><td>«Вы на объекте с 08:02»</td><td><span class="tag have">есть</span> сразу после начала работы — <code>consumed_at</code> и <code>consumed_by.label</code> той же точки. <span class="tag ask">нет</span> после перезапуска приложения: открытую отметку рабочего движок пока не отдаёт, экран показывает «не отмечены» и главной кнопкой «Начать работу». Ошибиться не страшно: код на начало работы у того, кто на объекте, бригадир увидит как «уже на объекте» — ничего не изменится, рабочий нажмёт «Закончить работу».</td></tr>
 <tr><td>«На работе 2 ч 24 мин»</td><td><span class="tag cli">клиент</span> считает телефон: от времени сервера из отметки начала работы до сейчас, без вычетов. Перекуров и обедов в приложении нет (Oleg 25.11: «лишний повод для выяснения отношений» — ушёл покурить и забыл включить обратно); часы дня = конец работы − начало работы. <span class="tag ask">нет</span> после перезапуска — как и плашка «на объекте», нужна открытая отметка рабочего от движка.</td></tr>
-<tr><td>«Мои смены»</td><td><span class="tag ask">контракт добавит</span> признак у человека «видит свои смены» — ставит Дорин в «Людях»; без него вкладки нет и нижнего меню нет. Список — свои отметки (видимость «свои») <b>одной строкой отметки</b> — тот же вид, что у бригадира и владельца, разная только группировка (Oleg 25.11: «атомарное наполнение нашей отчётности»): дата · объект · начало–конец · часы «ч:мм» (конец − начало работы); имени нет — это сам рабочий. Вторая строка — только при отклонении: «опоздание N мин» (от начала работы из «Настроек»), «короткая отметка» (меньше порога раннего ухода), «не отмечен конец работы»; «вовремя» не пишется. День без конца работы не считается. Итог за неделю и месяц — над списком, сумма тех же часов. Компонент один: классы <code>.mk</code> и функция <code>markRow</code> — те же, что в <code>foreman-457.html</code>.</td></tr>
+<tr><td>«Мои смены»</td><td><span class="tag ask">контракт добавит</span> признак у человека «видит свои смены» — ставит Дорин в «Людях»; без него вкладки нет и нижнего меню нет. Список — свои отметки (видимость «свои») <b>одной строкой отметки</b> — тот же вид, что у бригадира и владельца, разная только группировка (Oleg 25.11: «атомарное наполнение нашей отчётности»): дата · объект · начало–конец · часы «ч:мм» (конец − начало работы); имени нет — это сам рабочий. Вторая строка — только при отклонении: «опоздание N мин» (только по первой отметке дня, от начала работы на объекте), «короткая отметка» (меньше порога «Ранний уход»), «не отмечен конец работы»; «вовремя» не пишется. День без конца работы не считается. Итог за неделю и месяц — над списком, сумма тех же часов. <b>Правила — как в кабинете владельца</b> (owner-web-457, вкладка «Настройки»): опоздание — от начала работы на объекте («Начало работы по умолчанию» 07:45, своё у объекта: Ferihegy 08:00, Kelenföld 08:15) и только по первой отметке человека за день — вернулся или переехал, вторая отметка опозданием не бывает; часы — с «Округлением часов» (сейчас «не округлять», бывает до 15 и до 30 мин), итоги складывают те же часы; короткая отметка — меньше «Ранний уход: переспросить, если меньше» (15 мин). Компонент один: классы <code>.mk</code> и функция <code>markRow</code> — те же, что в <code>foreman-457.html</code>.</td></tr>
 </table>
 
 <h2>Как экран переходит из состояния в состояние</h2>
@@ -831,7 +863,7 @@ function resetProto(){
   // shifts — то, что решает Дорин (право «Мои смены» в «Людях»).
   Object.assign(P, {screen:'login', phase:'none', online:true, code:'', left:0, consumed:false, intent:null, scanned:false,
     onSite:null, serverOn:null, done:null, pending:null, failNext:false, hint:false, clock:8*3600+60+55, log:[], drawer:P.drawer||false,
-    tab:'code', today:null,
+    tab:'code', today:null, pwd:false,
     shifts: P.shifts ?? true});
   logEv('Рабочий открыл приложение — экран входа.');
 }
@@ -866,6 +898,7 @@ const toButtons = () => { P.phase='choose'; P.code=''; P.intent=null; P.scanned=
 /* Шторка «как установить» — только в браузере на iPhone-размере; в установленном приложении её нет. */
 const needHint = () => !INSTALLED && S.size!=='s';
 const ACT = {
+  pwd(arg){ P.pwd = !!arg; if (arg) logEv('Ссылка «Войти по логину и паролю» — тот же экран, что у владельца Дорина. Людям, которых заводит Дорин, логин и пароль не выдаются: ссылка для Дорина и редких случаев. В прототипе «Войти» входит сразу.'); },
   login(){ P.screen='app'; P.hint = needHint(); toButtons(); logEv('Вход выполнен. На экране две кнопки — кода нет, пока рабочий не выберет, что отметить.'+(P.hint?' Открыто в Safari на iPhone — шторка «как установить».':INSTALLED?' Приложение открыто с экрана «Домой» — шторки установки нет.':'')); },
   later(){ P.hint=false; logEv('Рабочий нажал «Позже» — шторка спрятана до следующего открытия.'); },
   retry(){ logEv('Рабочий нажал «Попробовать снова».'); fetchCode(); },
@@ -948,7 +981,7 @@ function showDone(d){
 function simBar(){
   const b = (act, label, go, arg) => `<button data-act="${act}" ${arg?`data-arg="${arg}"`:''} class="${go?'go':''}">${label}</button>`;
   let h = '';
-  if (P.screen==='login') h = '<span style="color:#C9D5DB;font-size:13px">войдите — «Сканировать код» или ссылка «Войти по ПИН-коду»</span>';
+  if (P.screen==='login') h = '<span style="color:#C9D5DB;font-size:13px">войдите — «Сканировать код», «Ввести ПИН-код» или ссылка «Войти по логину и паролю»</span>';
   else if (P.tab==='days') h = '';
   else if (P.phase==='live' && !P.scanned) h = b('scan','📷 Бригадир отсканировал',true) + b('rewind','⏩ к концу минуты');
   else if (P.phase==='live' && P.scanned) h = b('confirm','✅ Бригадир подтвердил',true);
@@ -961,7 +994,7 @@ function protoState(){
   autoClose();   // минута с отметки прошла — карточки начала работы нет ни на одном кадре, сразу «на объекте»
   const base = {clock:hhmm(P.clock), net:P.online?undefined:false, since:P.onSite?.since, install:P.hint, intent:P.intent||'in',
     shifts:P.shifts, sim:simBar(), work:P.onSite ? workNow() : undefined};
-  if (P.screen==='login') return {...base, id:'login', install:false, work:undefined};
+  if (P.screen==='login') return {...base, id:'login', install:false, work:undefined, pwd:P.pwd};
   if (P.tab==='days') return {...base, id:'days', tab:'days', today:P.today, install:false};
   switch (P.phase){
     case 'choose':     return {...base, id: P.onSite ? 'onsite' : 'choose'};
