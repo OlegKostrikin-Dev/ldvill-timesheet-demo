@@ -554,7 +554,7 @@ const T = {
   'first.s':['Kérd meg a tulajdonost vagy a brigádvezetőt, hogy adjon hozzáférést: a képernyőjén megmutatja a kódot.','Попросите владельца или бригадира выдать вам доступ — они покажут код на своём экране.','Ask the owner or your foreman to grant you access — they show a code on their screen.'],
   'first.scan':['Kód beolvasása','Сканировать код','Scan code'], 'first.dig':['6 számjegy beírása','Ввести 6 цифр','Type 6 digits'],
   'first.or':['vagy','или','or'],
-  'first.pw':['Belépés felhasználónévvel és jelszóval','Войти по логину и паролю','Sign in with username and password'],
+  'first.pin':['Belépés PIN-kóddal','Войти по ПИН-коду','Sign in with PIN'],
 
   't.noshift':['Műszak','Смена','Shift'],
   'ns.t':['Nincs nyitott műszak','Смена не открыта','No open shift'],
@@ -675,7 +675,7 @@ const T = {
   'when.today':['ma {t}','сегодня {t}','today {t}'], 'when.yday':['tegnap {t}','вчера {t}','yesterday {t}'],
   'team.hint':['Embert felvenni csak a tulajdonos tud. A brigádod tagjainak te is kiadhatod a hozzáférést: koppints a nevére.','Заводит людей только владелец. Выдать доступ людям своей бригады можете и вы: нажмите на человека.','Only the owner adds people. You can grant access to your crew too: tap a name.'],
   'card.access':['Hozzáférés kiadása','Выдать доступ','Grant access'],
-  'card.access.s':['Két lépés: QR az alkalmazás telepítéséhez, majd QR és 6 számjegy a belépéshez. Jelszó nem kell.','Два шага: QR, чтобы установить приложение, потом QR и 6 цифр для входа. Пароль не нужен.','Two steps: a QR to install the app, then a QR and 6 digits to sign in. No password.'],
+  'card.access.s':['Két lépés: QR az alkalmazás telepítéséhez, majd QR és 6 számjegy a belépéshez.','Два шага: QR, чтобы установить приложение, потом QR и 6 цифр для входа.','Two steps: a QR to install the app, then a QR and 6 digits to sign in.'],
   'card.access.again.s':['A hozzáférés már ki van adva egy telefonra. Ha újra kiadod, a régi telefon nem fog működni.','Доступ уже выдан на телефон. Если выдать снова, старый телефон перестанет работать.','Access is already granted to a phone. If you grant it again, the old phone will stop working.'],
   'step.of':['{n}. lépés / 2','Шаг {n} из 2','Step {n} of 2'],
   'step.1':['Alkalmazás telepítése','Установить приложение','Install the app'],
@@ -1016,12 +1016,12 @@ function body(m){
   const missLine = (names, key) => names.length ? `<div class="warnl">${ic('alert')}<div>${t(key,{names:'<b>'+names.map(esc).join(', ')+'</b>'})}
       <button class="link" data-act="toshift">${t('cl.toshift')}</button></div></div>` : '';
   switch (m.screen){
-    case 'login':   // экран «Вход» из login-qr-456.html (TG-456): QR, 6 цифр, логин и пароль; весь путь — там, здесь кнопки входят сразу
+    case 'login':   // экран «Вход» из login-qr-456.html (TG-456): QR, 6 цифр, ПИН-код (Oleg 25.11); весь путь — там, здесь кнопки входят сразу
       return `<div class="login"><div class="logo big">LD</div><b>${t('first.t')}</b><span>${t('first.s')}</span>
         <button class="btn" data-act="login">${ic('camera')}${t('first.scan')}</button>
         <button class="btn line" data-act="login">${t('first.dig')}</button>
         <div class="orline">${t('first.or')}</div>
-        <button class="lnk strong" data-act="login">${ic('key')} ${t('first.pw')}</button></div>`;
+        <button class="lnk strong" data-act="login">${ic('key')} ${t('first.pin')}</button></div>`;
     case 'noshift':
       // Одна строка и одна кнопка; карточки последней смены нет — все смены в «Прошлых» (Oleg 22.11, четвёртый круг)
       return `<div class="state off">${ic('pin')}<div><b>${t('ns.t')}</b></div></div>
