@@ -186,8 +186,7 @@
   .done .what{font-size:16px;font-weight:700;color:var(--c-ok)}
   .done .time{font-size:56px;font-weight:800;letter-spacing:-.02em;line-height:1}
   .done .by{font-size:15px;margin-top:6px}
-  .done .back{font-size:13px;color:var(--c-muted);margin-top:18px}
-  .done .btn.ok{width:auto;align-self:stretch;margin:18px 16px 0}   /* «Готово» после конца работы (Oleg 25.11) */
+  .done .btn.ok{width:auto;align-self:stretch;margin:18px 16px 0}   /* «Готово» на экранах начала и конца работы (Oleg 25.11) */
 
   .err{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:0 10px}
   .err .big{width:72px;height:72px;border-radius:50%;background:var(--c-bad-bg);color:var(--c-bad);display:grid;place-items:center}
@@ -442,7 +441,6 @@ const T = {
   'done.in':['Munkakezdés rögzítve','Начало работы отмечено','Start of work recorded'],
   'done.out':['Munkabefejezés rögzítve','Конец работы отмечен','End of work recorded'],
   'done.by':['rögzítette: {foreman} brigádvezető','отметил бригадир {foreman}','by foreman {foreman}'],
-  'done.back':['Néhány másodperc múlva visszatér a gombokhoz','Через несколько секунд экран вернётся к кнопкам','Back to the buttons in a few seconds'],
   'done.ok':['Kész','Готово','Done'],
   'err.t':['Nem sikerült kódot kérni','Не удалось получить код','Couldn’t get a code'],
   'err.s':['A szerver hibát adott. Nem a te hibád — próbáld újra.','Сервер ответил ошибкой. Вы ничего не сломали — попробуйте ещё раз.','The server returned an error. It’s not your fault — try again.'],
@@ -477,11 +475,11 @@ const T = {
   'c.offline-expired':['4 · Nincs hálózat, a kód lejárt','4 · Нет связи, код истёк','4 · Offline, code expired'],
   'c.offline-expired.d':['Kód nincs; a képernyő vár a hálózatra és magától frissül.','Кода нет; экран ждёт сеть и обновится сам.','No code; the screen waits for the network and refreshes itself.'],
   'c.done-in':['5 · Munkakezdés rögzítve','5 · Начало работы отмечено','5 · Start of work recorded'],
-  'c.done-in.d':['A brigádvezető beolvasta. Idő — a szerveré, név — a beolvasóé.','Бригадир отсканировал. Время — сервера, имя — того, кто гасил.','The foreman scanned. Time is the server’s, the name is the scanner’s.'],
+  'c.done-in.d':['A brigádvezető beolvasta. Idő — a szerveré, név — a beolvasóé. Magától nem tűnik el — «Kész» visz vissza a gombokhoz.','Бригадир отсканировал. Время — сервера, имя — того, кто гасил. Сам не уходит — «Готово» возвращает к кнопкам.','The foreman scanned. Time is the server’s, the name is the scanner’s. It does not go away by itself — “Done” returns to the buttons.'],
   'c.onsite':['6 · A munkaterületen, két gomb','6 · На объекте, две кнопки','6 · On site, two buttons'],
   'c.onsite.d':['A munkakezdés után a képernyő a gombokhoz tér vissza, nem új kódhoz. Fő gomb — munkabefejezés.','После начала работы экран возвращается к кнопкам, а не к новому коду. Главная — «Закончить работу».','After start of work the screen returns to the buttons, not to a new code. Main button: Finish work.'],
   'c.done-out':['7 · Munkabefejezés rögzítve','7 · Конец работы отмечен','7 · End of work recorded'],
-  'c.done-out.d':['Mint az 5., napi összesítővel. Magától nem tűnik el — «Kész» visz vissza a gombokhoz.','Как 5, но с итогом дня. Сам не уходит — «Готово» возвращает к кнопкам.','Like 5, with the day total. It does not go away by itself — “Done” returns to the buttons.'],
+  'c.done-out.d':['Mint az 5., napi összesítővel; «Kész» visz vissza a gombokhoz.','Как 5, но с итогом дня; «Готово» возвращает к кнопкам.','Like 5, with the day total; “Done” returns to the buttons.'],
   'c.error':['8 · Hiba','8 · Ошибка','8 · Error'],
   'c.error.d':['A szerver nem adott kódot. Gomb — újra kér.','Сервер не выдал код. Кнопка — запросить снова.','The server gave no code. The button asks again.'],
   'c.install':['9 · Első belépés iPhone-on: telepítés','9 · Первый вход на iPhone: установка','9 · First visit on iPhone: install'],
@@ -686,7 +684,7 @@ function body(st, code){
       <div class="time">${st.mark}</div>
       <div class="obj">${OBJ}</div>
       <div class="by">${t('done.by',{foreman:'<b>'+FOREMAN+'</b>'})}</div>${day}
-      ${st.id==='done-out' ? `<button class="btn ok" data-act="doneok">${t('done.ok')}</button>` : `<div class="back">${t('done.back')}</div>`}</div>`;
+      <button class="btn ok" data-act="doneok">${t('done.ok')}</button></div>`;
   }
   if (st.id==='error'){
     return `${stateCard(st)}
@@ -767,7 +765,7 @@ const NOTES = `
 </table>
 
 <h2>Как экран переходит из состояния в состояние</h2>
-<p>Экран открыт — две кнопки, кода нет (1a). Рабочий нажал «Начать работу» или «Закончить работу» — экран берёт код на это действие (1 или 6a); «Отмена» возвращает к кнопкам. Пока код на экране, раз в 2–3 секунды спрашивает, что с ним стало (<code>state</code>: live — ждём, consumed — отметка прошла, expired — срок вышел). Бригадир погасил код — экран показывает отметку и возвращается <b>к кнопкам, а не к новому коду</b> (Oleg 24.11): начало работы (5) — через несколько секунд само, с плашкой «на объекте» и главной кнопкой «Закончить работу» (6); конец работы (7) с итогом дня сам не уходит — рабочий жмёт «Готово» (Oleg 25.11) и видит «не отмечены» и главную «Начать работу» (1a). Срок вышел, а отметки нет — сам берёт новый код на то же действие (2), без кнопки.</p>
+<p>Экран открыт — две кнопки, кода нет (1a). Рабочий нажал «Начать работу» или «Закончить работу» — экран берёт код на это действие (1 или 6a); «Отмена» возвращает к кнопкам. Пока код на экране, раз в 2–3 секунды спрашивает, что с ним стало (<code>state</code>: live — ждём, consumed — отметка прошла, expired — срок вышел). Бригадир погасил код — экран показывает отметку (5 — начало работы, 7 — конец работы с итогом дня). Сам он не уходит: рабочий жмёт «Готово» (Oleg 25.11) и возвращается <b>к кнопкам, а не к новому коду</b> (Oleg 24.11): после начала работы — с плашкой «на объекте» и главной кнопкой «Закончить работу» (6), после конца — «не отмечены» и главная «Начать работу» (1a). Срок вышел, а отметки нет — сам берёт новый код на то же действие (2), без кнопки.</p>
 <p>Связь пропала — код остаётся на экране, пока не вышел срок (3): срок и одноразовость проверяет движок в момент гашения по сети бригадира, так что код годен. Срок вышел без связи — кода нет, экран ждёт сеть (4) и обновится сам.</p>
 <p>Ошибка выдачи (8): 5xx и обрыв по таймауту — «попробовать снова»; <code>403 PASS_ISSUER_FORBIDDEN</code> — человеку не положен код: тот же экран без кнопки, тексты <code>err.403.t</code> и <code>err.403.s</code> в таблице переводов; <code>404 PASS_NOT_CONFIGURED</code> — ошибка настройки стенда, текст тот же, что у 5xx.</p>
 
@@ -981,8 +979,7 @@ function showDone(d){
   logEv(`Экран спросил «что стало с моим кодом» (POST /api/passes/status) — consumed: ${d.action==='open'?'начало работы':'конец работы'} ${d.time}, ${FOREMAN}.`
     + (d.day ? ` Итог дня: ${hm(d.day.work)} работы, паузы ${Math.round((d.day.smokeSec+d.day.lunchSec)/60)} мин.` : ''));
   // После отметки — назад к кнопкам, а не к новому коду: следующий код только по нажатию (Oleg 24.11)
-  // Конец работы с итогом дня сам не уходит — рабочий читает и жмёт «Готово» (Oleg 25.11)
-  if (d.action==='open') later(4000, ()=>{ if (P.phase==='done') toButtons(); });
+  // Экраны подтверждения — и начала, и конца работы — сами не уходят: рабочий жмёт «Готово» (Oleg 25.11)
 }
 /* Пульт имитации прямо в экране телефона: только то, что имеет смысл сейчас (Oleg 24.11). */
 function simBar(){
