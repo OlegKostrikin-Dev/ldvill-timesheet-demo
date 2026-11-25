@@ -548,7 +548,7 @@ const T = {
   'add.title':['Új ember','Новый человек','New person'],
   'add.sur':['Vezetéknév','Фамилия','Surname'], 'add.name':['Keresztnév','Имя','First name'], 'add.role':['Szerep','Роль','Role'],
   'add.save':['Hozzáadás','Добавить','Add'],
-  'add.note':['Jelszó nincs. Utána kiadod neki a hozzáférést: alkalmazás telepítése és belépés.','Пароля нет. Дальше вы выдадите ему доступ: установка приложения и вход.','No password. Next you grant access: install the app and sign in.'],
+  'add.note':['Utána kiadod neki a hozzáférést: alkalmazás telepítése és belépés.','Дальше вы выдадите ему доступ: установка приложения и вход.','Next you grant access: install the app and sign in.'],
   'inv.title':['Hozzáférés kiadása','Выдать доступ','Grant access'],
   'inv.t':['{name} nyissa meg a telefon kameráját, és irányítsa erre a kódra','Пусть {name} откроет камеру телефона и наведёт на этот код','Have {name} open their phone camera and point it at this code'],
   'inv.s':['Megnyílik a Safari, és megmutatja, hogyan tegye ki az ikont a főképernyőre. Belépni még nem kell.','Откроется Safari и подскажет, как поставить значок на экран «Домой». Входить пока не нужно.','Safari opens and shows how to add the icon to the Home Screen. No sign-in yet.'],
@@ -556,7 +556,7 @@ const T = {
   'card.role':['Szerep','Роль','Role'], 'card.phone':['Telefon','Телефон','Phone'],
   'card.since':['csatolva {d}','привязан {d}','linked {d}'], 'card.last':['Utoljára','Последний раз','Last used'],
   'card.access':['Hozzáférés kiadása','Выдать доступ','Grant access'],
-  'card.access.s':['Két lépés: QR az alkalmazás telepítéséhez, majd QR és 6 számjegy a belépéshez. Jelszó nem kell.','Два шага: QR, чтобы установить приложение, потом QR и 6 цифр для входа. Пароль не нужен.','Two steps: a QR to install the app, then a QR and 6 digits to sign in. No password.'],
+  'card.access.s':['Két lépés: QR az alkalmazás telepítéséhez, majd QR és 6 számjegy a belépéshez.','Два шага: QR, чтобы установить приложение, потом QR и 6 цифр для входа.','Two steps: a QR to install the app, then a QR and 6 digits to sign in.'],
   'card.access.again.s':['A hozzáférés már ki van adva egy telefonra. Ha újra kiadod, a régi telefon nem fog működni.','Доступ уже выдан на телефон. Если выдать снова, старый телефон перестанет работать.','Access is already granted to a phone. If you grant it again, the old phone will stop working.'],
   'step.of':['{n}. lépés / 2','Шаг {n} из 2','Step {n} of 2'],
   'step.1':['Alkalmazás telepítése','Установить приложение','Install the app'],
@@ -1317,7 +1317,7 @@ const ACT = {
     P.people.unshift({id, sur:d.sur.trim(), name:d.name.trim(), role:d.role, phone:'none'});
     P.newId = id; P.inviteTok = tok(10);
     go(()=>{ P.stack = ['person:'+id, 'invite:'+id]; });
-    logEv(`Дорин добавил ${full(person(id))} (${d.role==='worker'?'рабочий':'бригадир'}) — без пароля. Сразу «Выдать доступ», шаг 1 из 2 — QR установки приложения.`);
+    logEv(`Дорин добавил ${full(person(id))} (${d.role==='worker'?'рабочий':'бригадир'}). Сразу «Выдать доступ», шаг 1 из 2 — QR установки приложения.`);
   },
   toInvite(el){
     const id = +el.dataset.id;
