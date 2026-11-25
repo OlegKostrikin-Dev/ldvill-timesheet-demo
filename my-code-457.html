@@ -450,14 +450,12 @@ const T = {
   'err.403.s':['Kérdezd a brigádvezetőt — ő tudja beállítatni.','Обратитесь к бригадиру — он попросит это настроить.','Ask your foreman — they can get it set up.'],
 
   'login.sub':['Műszaknyilvántartás','Учёт смен','Shift tracking'],
-  'login.user':['Felhasználónév','Логин','Username'],
-  'login.pass':['Jelszó','Пароль','Password'],
   'login.btn':['Belépés','Войти','Sign in'],
   'first.t':['Belépés','Вход','Sign in'],
   'first.s':['Kérd meg a tulajdonost vagy a brigádvezetőt, hogy adjon hozzáférést: a képernyőjén megmutatja a kódot.','Попросите владельца или бригадира выдать вам доступ — они покажут код на своём экране.','Ask the owner or your foreman to grant you access — they show a code on their screen.'],
   'first.scan':['Kód beolvasása','Сканировать код','Scan code'], 'first.dig':['6 számjegy beírása','Ввести 6 цифр','Type 6 digits'],
   'first.or':['vagy','или','or'],
-  'first.pw':['Belépés felhasználónévvel és jelszóval','Войти по логину и паролю','Sign in with username and password'],
+  'first.pin':['Belépés PIN-kóddal','Войти по ПИН-коду','Sign in with PIN'],
 
   /* подписи состояний на доске */
   'c.login':['0 · Belépés','0 · Вход','0 · Sign in'],
@@ -667,13 +665,13 @@ function stateCard(st){
 function body(st, code){
   const onSite = !!st.since;
   if (st.id==='login'){
-    // Экран «Вход» из login-qr-456.html (TG-456): три способа — QR, 6 цифр, логин и пароль.
-    // Весь путь скана, цифр и пароля показан там; здесь любая кнопка входит сразу.
+    // Экран «Вход» из login-qr-456.html (TG-456): три способа — QR, 6 цифр, ПИН-код (Oleg 25.11).
+    // Весь путь скана, цифр и ПИН-кода показан там; здесь любая кнопка входит сразу.
     return `<div class="login"><div class="logo big">LD</div><b>${t('first.t')}</b><span>${t('first.s')}</span>
         <button class="btn" data-act="login">${ic('camera')}${t('first.scan')}</button>
         <button class="btn line" data-act="login">${t('first.dig')}</button>
         <div class="orline">${t('first.or')}</div>
-        <button class="lnk strong" data-act="login">${ic('key')} ${t('first.pw')}</button></div>`;
+        <button class="lnk strong" data-act="login">${ic('key')} ${t('first.pin')}</button></div>`;
   }
   if (st.tab==='days') return daysBody(st);
   if (st.id==='done-in' || st.id==='done-out'){
@@ -725,7 +723,6 @@ function installSheet(){
         <li><span class="n">3</span><span>${t('ins.3')}</span></li></ol>
     <button class="ghost" data-act="later">${t('ins.ok')}</button><div class="arrow"></div></div>`;
 }
-const loginOf = n => n.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(' ','.');
 function phone(st, code, size, native){
   const d = DEV[size], ins = st.id==='install' || !!st.install, login = st.id==='login';
   // native — установленное приложение: размеры и безопасные зоны даёт сам телефон (CSS body.standalone), здесь только QR
