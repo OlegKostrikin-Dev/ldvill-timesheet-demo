@@ -121,7 +121,6 @@
   .brk{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .brk .btn{margin:0;padding:12px;font-size:15px;background:#fff;color:var(--c-ink);border:1px solid #C9D2D6;display:flex;align-items:center;justify-content:center;gap:8px}
   .brk .btn svg{width:20px;height:20px}
-  .btn.back{background:var(--c-warn);color:#1F1600}
   .done .obj{font-size:15px;font-weight:700}
   .done .day{margin-top:14px;background:#fff;border:1px solid #BFE5CF;padding:10px 14px;font-size:14px;line-height:1.45}
   .done .day b{font-size:22px;display:block}
@@ -188,6 +187,7 @@
   .done .time{font-size:56px;font-weight:800;letter-spacing:-.02em;line-height:1}
   .done .by{font-size:15px;margin-top:6px}
   .done .back{font-size:13px;color:var(--c-muted);margin-top:18px}
+  .done .btn.ok{width:auto;align-self:stretch;margin:18px 16px 0}   /* «Готово» после конца работы (Oleg 25.11) */
 
   .err{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:0 10px}
   .err .big{width:72px;height:72px;border-radius:50%;background:var(--c-bad-bg);color:var(--c-bad);display:grid;place-items:center}
@@ -223,7 +223,7 @@
   .sheet .arrow{position:absolute;left:50%;bottom:-10px;margin-left:-10px;width:20px;height:20px;background:#fff;transform:rotate(45deg)}
 
   .btn{border:0;background:var(--c-lime);color:var(--c-dark);font-weight:800;font-size:16px;padding:14px 22px;width:100%;margin-top:10px;border-radius:var(--radius)}
-  /* две кнопки «Отметить приход / уход» (Oleg 24.11): крупные, во всю ширину; главная — лайм, вторая — контур */
+  /* две кнопки «Начать работу» / «Закончить работу» (Oleg 24.11): крупные, во всю ширину; главная — лайм, вторая — контур */
   .acts2{display:flex;flex-direction:column;gap:10px;margin-top:auto}
   .acts2 .btn{margin:0;padding:22px;font-size:19px;display:flex;align-items:center;justify-content:center;gap:12px}
   .acts2 .btn svg{width:24px;height:24px}
@@ -353,7 +353,7 @@ const OBJ = 'Ferihegy, 2-es terminál';   // объект смены брига�
 /* «Настройки» Дорина (документ процесса «Настройки», owner-web.html): начало работы, паузы. Пульт их меняет. */
 const SET = {start:'08:00', breaks:true, smokeMin:10, lunchMin:30};
 /* Прошлые смены рабочего (Horváth Ádám) — те же дни и объекты, что «Прошлые» бригадира в foreman.html.
-   in/out — отметки; smoke/lunch — сколько пауз и минут; out:null — уход не отмечен, часы не считаются. */
+   in/out — отметки; smoke/lunch — сколько пауз и минут; out:null — конец работы не отмечен, часы не считаются. */
 const MYDAYS = [
   {wk:1, date:'21.11', wd:5, obj:'Ferihegy, 2-es terminál', in:'07:44', out:'17:00', smoke:[2,18], lunch:[1,30]},
   {wk:1, date:'20.11', wd:4, obj:'Budaörs, raktárcsarnok',  in:'08:01', out:'16:35', smoke:[1,10], lunch:[1,25]},
@@ -365,7 +365,7 @@ const MYDAYS = [
 ];
 const MONTH_BEFORE = {n:6, sec:(48*60+40)*60}; // смены 3–12.11 — только в итог месяца, в списке их не листаем
 const toSec = s => { const [h,m] = s.split(':').map(Number); return h*3600+m*60; };
-/* работа за день = уход − приход − паузы; без ухода — не считается (как у бригадира и Дорина) */
+/* работа за день = конец − начало работы − паузы; без конца работы — не считается (как у бригадира и Дорина) */
 const dayWork = d => d.work !== undefined ? d.work : d.out ? toSec(d.out) - toSec(d.in) - (d.smoke[1]+d.lunch[1])*60 : 0;
 const dayLate = d => Math.max(0, (toSec(d.in) - toSec(SET.start))/60);
 
@@ -378,9 +378,9 @@ const DEV = {
 };
 
 /* Состояния экрана. at — что показать на «доске» (застывший миг); live — для режима «один экран». */
-/* Код несёт намерение (замечание Oleg 24.11): рабочий сам нажимает «Отметить приход» или «Отметить уход», и только
+/* Код несёт намерение (замечание Oleg 24.11): рабочий сам нажимает «Начать работу» или «Закончить работу», и только
    тогда экран берёт код — на это действие. После отметки экран возвращается к кнопкам, а не к новому коду: камера
-   бригадира больше не может «накликать» приход-уход-приход за минуту. intent — in / out; названия кнопок — решение
+   бригадира больше не может «накликать» начало-конец-начало работы за минуту. intent — in / out; названия кнопок — решение
    Oleg 24.11. */
 const STATES = [
   {id:'login',           clock:'07:57'},
@@ -392,7 +392,7 @@ const STATES = [
   /* scanned — бригадир отсканировал, но ещё не нажал «Подтвердить»: код на экране закрыт «ждём бригадира» */
   {id:'scanned',         clock:'08:02', left:37, intent:'in', scanned:true},
   {id:'done-in',         clock:'08:02', mark:'08:02'},
-  /* since — рабочий на объекте: плашка «на объекте с …», таймер работы, паузы; главная кнопка — уход.
+  /* since — рабочий на объекте: плашка «на объекте с …», таймер работы, паузы; главная кнопка — «Закончить работу».
      work — секунды работы без пауз; pause — идущая пауза (kind, sec) */
   {id:'onsite',          clock:'10:26', since:'08:02', work:2*3600+14*60},
   {id:'pause',           clock:'10:33', since:'08:02', work:2*3600+14*60, pause:{kind:'smoke', sec:7*60+12}},
@@ -417,12 +417,12 @@ const T = {
   'tab.code':['Kódom','Мой код','My code'], 'tab.days':['Műszakjaim','Мои смены','My shifts'],
   'net.off':['Nincs hálózat','Нет сети','No network'],
 
-  'st.notin.t':['Most nem vagy bejelentkezve','Вы сейчас не отмечены','You are not checked in'],
-  'st.notin.s':['Koppints az «Érkezés rögzítése» gombra, és mutasd a kódot a brigádvezetőnek','Нажмите «Отметить приход» и покажите код бригадиру','Tap “Check in” and show the code to the foreman'],
-  'act.in':['Érkezés rögzítése','Отметить приход','Check in'],
-  'act.out':['Távozás rögzítése','Отметить уход','Check out'],
-  'qr.for.in':['Kód az érkezéshez','Код на приход','Code for check-in'],
-  'qr.for.out':['Kód a távozáshoz','Код на уход','Code for check-out'],
+  'st.notin.t':['Most nem vagy bejelentkezve','Вы сейчас не отмечены','You are not marked on site'],
+  'st.notin.s':['Koppints az «Munka kezdése» gombra, és mutasd a kódot a brigádvezetőnek','Нажмите «Начать работу» и покажите код бригадиру','Tap “Start work” and show the code to the foreman'],
+  'act.in':['Munka kezdése','Начать работу','Start work'],
+  'act.out':['Munka befejezése','Закончить работу','Finish work'],
+  'qr.for.in':['Kód: munkakezdés','Код: начало работы','Code: start of work'],
+  'qr.for.out':['Kód: munkabefejezés','Код: конец работы','Code: end of work'],
   'qr.cancel':['Mégse','Отмена','Cancel'],
   'st.on.t':['A munkaterületen vagy {since} óta','Вы на объекте с {since}','On site since {since}'],
   'st.on.s':['{obj} · rögzítette: {foreman}','{obj} · отметил бригадир {foreman}','{obj} · by foreman {foreman}'],
@@ -433,16 +433,17 @@ const T = {
   'qr.cantget':['Nem tudunk új kódot kérni','Новый код не получить','Can’t get a new code'],
   'qr.cantget.s':['A képernyő magától frissül, amint lesz hálózat','Экран обновится сам, как только появится сеть','The screen refreshes itself once the network is back'],
   'hint.in':['A kód személyes: csak a saját telefonodról mutatható meg.','Код личный: показать его можно только с вашего телефона.','The code is personal: it only shows on your phone.'],
-  'hint.out':['Távozáskor — «Távozás rögzítése», a brigádvezetőnél.','Уходите — «Отметить уход», у бригадира.','Leaving — “Check out”, at the foreman.'],
+  'hint.out':['Munka végén — «Munka befejezése», a brigádvezetőnél.','Заканчиваете — «Закончить работу», у бригадира.','Leaving — “Finish work”, at the foreman.'],
 
   'off.t':['Nincs hálózat','Нет связи','No connection'],
   'off.s':['A kód még {s} mp-ig érvényes — a brigádvezető így is be tudja olvasni.','Код ещё действует {s} с — бригадир всё равно может его отсканировать.','The code is valid for {s} more s — the foreman can still scan it.'],
   'off2.s':['A kód lejárt, újat csak hálózattal kapsz. Menj oda, ahol van térerő.','Код истёк, новый — только при связи. Подойдите туда, где ловит сеть.','The code expired; a new one needs a connection. Move to where there is signal.'],
 
-  'done.in':['Érkezés rögzítve','Приход отмечен','Checked in'],
-  'done.out':['Távozás rögzítve','Уход отмечен','Checked out'],
+  'done.in':['Munkakezdés rögzítve','Начало работы отмечено','Start of work recorded'],
+  'done.out':['Munkabefejezés rögzítve','Конец работы отмечен','End of work recorded'],
   'done.by':['rögzítette: {foreman} brigádvezető','отметил бригадир {foreman}','by foreman {foreman}'],
   'done.back':['Néhány másodperc múlva visszatér a gombokhoz','Через несколько секунд экран вернётся к кнопкам','Back to the buttons in a few seconds'],
+  'done.ok':['Kész','Готово','Done'],
   'err.t':['Nem sikerült kódot kérni','Не удалось получить код','Couldn’t get a code'],
   'err.s':['A szerver hibát adott. Nem a te hibád — próbáld újra.','Сервер ответил ошибкой. Вы ничего не сломали — попробуйте ещё раз.','The server returned an error. It’s not your fault — try again.'],
   'err.btn':['Újra','Попробовать снова','Try again'],
@@ -464,10 +465,10 @@ const T = {
   'c.login':['0 · Belépés','0 · Вход','0 · Sign in'],
   'c.login.d':['Első indításkor; utána az alkalmazás emlékszik a belépésre.','При первом запуске; дальше приложение помнит вход.','On first launch; afterwards the app remembers the sign-in.'],
   'c.choose':['1a · Két gomb','1a · Две кнопки','1a · Two buttons'],
-  'c.choose.d':['Kód még nincs: a dolgozó választja, mit rögzít. Fő gomb — érkezés.','Кода ещё нет: рабочий сам выбирает, что отметить. Главная — приход.','No code yet: the worker picks what to record. Main button: check-in.'],
-  'c.code':['1 · Kód az érkezéshez','1 · Код на приход','1 · Code for check-in'],
-  'c.code.d':['A kód hordozza a szándékot. A sáv és a másodpercek a lejáratig fogynak; a lejárt helyett új jön ugyanarra.','Код несёт намерение. Полоса и секунды тают до конца срока; вместо истёкшего приходит новый на то же действие.','The code carries the intent. The bar and seconds run down; an expired code is replaced by a new one for the same action.'],
-  'c.code-out':['6a · Kód a távozáshoz','6a · Код на уход','6a · Code for check-out'],
+  'c.choose.d':['Kód még nincs: a dolgozó választja, mit rögzít. Fő gomb — munkakezdés.','Кода ещё нет: рабочий сам выбирает, что отметить. Главная — «Начать работу».','No code yet: the worker picks what to record. Main button: Start work.'],
+  'c.code':['1 · Kód: munkakezdés','1 · Код: начало работы','1 · Code: start of work'],
+  'c.code.d':['A kód hordozza a szándékot. A sáv és a másodpercek a lejáratig fogynak; a lejárt helyett új jön ugyanarra.','Код несёт намерение. Полоса и секунды тают до конца срока; вместо истёкшего появляется новый на то же действие.','The code carries the intent. The bar and seconds run down; an expired code is replaced by a new one for the same action.'],
+  'c.code-out':['6a · Kód: munkabefejezés','6a · Код: конец работы','6a · Code: end of work'],
   'c.code-out.d':['Ugyanaz a képernyő, más felirat a kód felett.','Тот же экран, другая подпись над кодом.','Same screen, different label above the code.'],
   'c.refresh':['2 · Lejárt, frissül','2 · Код истёк и обновляется','2 · Expired, refreshing'],
   'c.refresh.d':['Nullánál a képernyő magától kér új kódot; a régit nem mutatja érvényesnek.','На нуле экран сам берёт новый код; старый не выглядит годным.','At zero the screen fetches a new code; the old one never looks valid.'],
@@ -475,12 +476,12 @@ const T = {
   'c.offline.d':['A lejáratot a szerver ellenőrzi beolvasáskor, a brigádvezető hálózatán át — ezért a kód a lejáratig használható.','Срок проверяет сервер, когда бригадир сканирует, — по сети бригадира; поэтому код годен до конца срока и без сети у рабочего.','The server checks expiry when the foreman scans, over the foreman’s network — so the code stays usable until it expires.'],
   'c.offline-expired':['4 · Nincs hálózat, a kód lejárt','4 · Нет связи, код истёк','4 · Offline, code expired'],
   'c.offline-expired.d':['Kód nincs; a képernyő vár a hálózatra és magától frissül.','Кода нет; экран ждёт сеть и обновится сам.','No code; the screen waits for the network and refreshes itself.'],
-  'c.done-in':['5 · Érkezés rögzítve','5 · Отметка прихода прошла','5 · Check-in recorded'],
+  'c.done-in':['5 · Munkakezdés rögzítve','5 · Начало работы отмечено','5 · Start of work recorded'],
   'c.done-in.d':['A brigádvezető beolvasta. Idő — a szerveré, név — a beolvasóé.','Бригадир отсканировал. Время — сервера, имя — того, кто гасил.','The foreman scanned. Time is the server’s, the name is the scanner’s.'],
   'c.onsite':['6 · A munkaterületen, két gomb','6 · На объекте, две кнопки','6 · On site, two buttons'],
-  'c.onsite.d':['Az érkezés után a képernyő a gombokhoz tér vissza, nem új kódhoz. Fő gomb — távozás.','После прихода экран возвращается к кнопкам, а не к новому коду. Главная — уход.','After check-in the screen returns to the buttons, not to a new code. Main button: check-out.'],
-  'c.done-out':['7 · Távozás rögzítve','7 · Отметка ухода прошла','7 · Check-out recorded'],
-  'c.done-out.d':['Mint az 5., csak távozás.','Как 5, только уход.','Like 5, but check-out.'],
+  'c.onsite.d':['A munkakezdés után a képernyő a gombokhoz tér vissza, nem új kódhoz. Fő gomb — munkabefejezés.','После начала работы экран возвращается к кнопкам, а не к новому коду. Главная — «Закончить работу».','After start of work the screen returns to the buttons, not to a new code. Main button: Finish work.'],
+  'c.done-out':['7 · Munkabefejezés rögzítve','7 · Конец работы отмечен','7 · End of work recorded'],
+  'c.done-out.d':['Mint az 5., napi összesítővel. Magától nem tűnik el — «Kész» visz vissza a gombokhoz.','Как 5, но с итогом дня. Сам не уходит — «Готово» возвращает к кнопкам.','Like 5, with the day total. It does not go away by itself — “Done” returns to the buttons.'],
   'c.error':['8 · Hiba','8 · Ошибка','8 · Error'],
   'c.error.d':['A szerver nem adott kódot. Gomb — újra kér.','Сервер не выдал код. Кнопка — запросить снова.','The server gave no code. The button asks again.'],
   'c.install':['9 · Első belépés iPhone-on: telepítés','9 · Первый вход на iPhone: установка','9 · First visit on iPhone: install'],
@@ -503,13 +504,13 @@ const T = {
   'done.nobrk':['szünet nélkül','без пауз','no breaks'],
   /* таймер и паузы */
   'tm.work':['Munkában','На работе','At work'],
-  'tm.work.s':['érkezés {since} · szünetek: {p}','приход {since} · паузы: {p}','in at {since} · breaks: {p}'],
+  'tm.work.s':['kezdés {since} · szünetek: {p}','начало {since} · паузы: {p}','started {since} · breaks: {p}'],
   'tm.paused':['a munkaidő áll: {w}','работа на паузе: {w}','work paused at {w}'],
   'tm.of':['/ {m} perc','из {m} мин','of {m} min'],
   'tm.over':['+{m} perc túl','+{m} мин сверх','+{m} min over'],
   'brk.smoke':['Cigiszünet','Перекур','Smoke break'],
   'brk.lunch':['Ebéd','Обед','Lunch'],
-  'brk.back':['Visszajöttem','Вернулся','I’m back'],
+  'brk.back':['Vissza a munkához','Вернуться к работе','Back to work'],
   'brk.hint':['Nem kötelező: aki akarja, jelöli.','Необязательно: кто хочет — отмечает.','Optional: mark it if you like.'],
   'u.h':['ó','ч','h'], 'u.m':['perc','мин','min'],
   /* «Мои смены» */
@@ -519,7 +520,7 @@ const T = {
   'days.n':['{n} műszak','{n} смен','{n} shifts'],
   'days.late':['késés {m} perc','опоздание {m} мин','late {m} min'],
   'days.ontime':['időben','вовремя','on time'],
-  'days.miss':['távozás nincs','уход не отмечен','no check-out'],
+  'days.miss':['befejezés nincs','конец работы не отмечен','no end of work'],
   'days.miss.s':['a nap nem számít bele, amíg a brigádvezető nem javítja','часы дня не считаются, пока бригадир не поправит','the day isn’t counted until the foreman fixes it'],
   'days.smoke':['cigi {n}×, {m} p','перекур {n}×, {m} мин','smoke {n}×, {m} min'],
   'days.lunch':['ebéd {m} p','обед {m} мин','lunch {m} min'],
@@ -530,7 +531,7 @@ const T = {
   'c.scanned':['5a · Beolvasva, megerősítésre vár','5a · Отсканирован, ждём подтверждения','5a · Scanned, awaiting confirmation'],
   'c.scanned.d':['A brigádvezető kamerája leolvasta a kódot, de még nem nyomta meg a «Megerősítés» gombot.','Камера бригадира прочла код, но он ещё не нажал «Подтвердить».','The foreman’s camera read the code, but “Confirm” isn’t pressed yet.'],
   'c.pause':['6b · Cigiszünet','6b · Перекур','6b · Smoke break'],
-  'c.pause.d':['A munkaidő áll, megy a szünet órája. «Visszajöttem» — folytatja.','Таймер работы стоит, идёт таймер паузы. «Вернулся» — продолжает.','Work timer stops, the break timer runs. “I’m back” resumes.'],
+  'c.pause.d':['A munkaidő áll, megy a szünet órája. «Vissza a munkához» — folytatja.','Таймер работы стоит, идёт таймер паузы. «Вернуться к работе» — продолжает.','Work timer stops, the break timer runs. “Back to work” resumes.'],
   'c.days':['10 · Műszakjaim','10 · Мои смены','10 · My shifts'],
   'c.days.d':['Csak annak, akinek Dorin jogot adott («Emberek»). Heti és havi összeg, napok.','Только тем, кому Дорин дал право («Люди»). Итог за неделю и месяц, дни.','Only for those Dorin allowed (“People”). Week and month totals, days.'],
 
@@ -636,15 +637,14 @@ function timerBlock(st){
     const lim = (st.pause.kind==='smoke' ? (st.smokeMin||SET.smokeMin) : SET.lunchMin)*60, over = st.pause.sec - lim;
     return `<div class="timer pause"><span class="l">${t('brk.'+st.pause.kind)}</span>
       <span class="v">${mmss(st.pause.sec)}</span>
-      <span class="s">${over>0 ? `<span class="over">${t('tm.over',{m:Math.ceil(over/60)})}</span>` : t('tm.of',{m:lim/60})} · ${t('tm.paused',{w:dur(st.work)})}</span></div>
-      <button class="btn back" data-act="brkback">${ic('play')}${t('brk.back')}</button>`;
+      <span class="s">${over>0 ? `<span class="over">${t('tm.over',{m:Math.ceil(over/60)})}</span>` : t('tm.of',{m:lim/60})} · ${t('tm.paused',{w:dur(st.work)})}</span></div>`;
   }
   return `<div class="timer"><span class="l">${t('tm.work')}</span><span class="v">${dur(st.work)}</span>
       <span class="s">${t('tm.work.s',{since:st.since, p:pausesText(st.day)})}</span></div>
     ${brk ? `<div class="brk"><button class="btn" data-act="brk" data-arg="smoke">${ic('coffee')}${t('brk.smoke')}</button>
       <button class="btn" data-act="brk" data-arg="lunch">${ic('utensils')}${t('brk.lunch')}</button></div>` : ''}`;
 }
-/* «Мои смены»: итог недели и месяца, затем дни — дата, объект, приход–уход, часы, паузы, опоздание */
+/* «Мои смены»: итог недели и месяца, затем дни — дата, объект, начало–конец работы, часы, паузы, опоздание */
 function daysBody(st){
   const rows = [...(st.today ? [st.today] : []), ...MYDAYS];
   const wk = rows.filter(d=>d.wk);   // прошлая полная неделя 17–21.11
@@ -686,7 +686,7 @@ function body(st, code){
       <div class="time">${st.mark}</div>
       <div class="obj">${OBJ}</div>
       <div class="by">${t('done.by',{foreman:'<b>'+FOREMAN+'</b>'})}</div>${day}
-      <div class="back">${t('done.back')}</div></div>`;
+      ${st.id==='done-out' ? `<button class="btn ok" data-act="doneok">${t('done.ok')}</button>` : `<div class="back">${t('done.back')}</div>`}</div>`;
   }
   if (st.id==='error'){
     return `${stateCard(st)}
@@ -694,11 +694,13 @@ function body(st, code){
       <button class="btn" data-act="retry">${t('err.btn')}</button><small>HTTP 503</small></div>`;
   }
   // Две кнопки (Oleg 24.11): кода нет, пока рабочий не выбрал действие. Главная — то, что ждём по плашке:
-  // не отмечен — приход, на объекте — уход; вторая — тихая, на случай если телефон не знает (перезапуск).
-  // На объекте (Oleg 24.11): тикает «На работе», под ним необязательные «Перекур» и «Обед»; на паузе — «Вернулся».
+  // не отмечен — «Начать работу», на объекте — «Закончить работу»; вторая — тихая, на случай если телефон не знает (перезапуск).
+  // На объекте (Oleg 24.11): тикает «На работе», под ним необязательные «Перекур» и «Обед».
+  // На паузе главная кнопка одна — «Вернуться к работе» (Oleg 25.11), «Закончить работу» под ней контуром.
   if (st.id==='onsite' || st.id==='pause'){
+    const back = st.pause ? `<button class="btn" data-act="brkback">${ic('play')}${t('brk.back')}</button>` : '';
     return `${stateCard(st)}${timerBlock(st)}
-      <div class="acts2"><button class="btn ${st.pause?'line':''}" data-act="intent" data-arg="out">${ic('logout')}${t('act.out')}</button></div>
+      <div class="acts2">${back}<button class="btn ${st.pause?'line':''}" data-act="intent" data-arg="out">${ic('logout')}${t('act.out')}</button></div>
       ${st.pause ? '' : `<p class="hint">${t('brk.hint')}</p>`}`;
   }
   if (st.id==='choose'){
@@ -753,19 +755,19 @@ const NOTES = `
 <h2>Данные экрана</h2>
 <table>
 <tr><th>Что на экране</th><th>Откуда</th></tr>
-<tr><td>«Отметить приход» / «Отметить уход»</td><td><span class="tag ask">новое в движке</span> код несёт намерение (Oleg 24.11): <code>POST /api/modules/{process}/passes {action: "open" | "close"}</code>, движок хранит действие в коде и при гашении не выбирает сам, а сверяет: код на приход, а рабочий уже на объекте, или код на уход без прихода — ничего не меняет, код не тратится, бригадир получает отказ «уже на объекте с 08:02» / «прихода нет». Сейчас движок выбирает приход или уход сам — поэтому камера, читающая подряд, за минуту давала приход-уход-приход. Кнопки — только у рабочего; код без действия (старый клиент) движок гасит по-старому.</td></tr>
-<tr><td>QR-код</td><td><span class="tag have">есть</span> <code>code</code> из <code>POST /api/modules/{process}/passes</code>. В QR — сам код, без адреса: код ходит только в теле запроса (К-18); движок про QR не знает, рисует клиент. Над кодом — «Код на приход» или «Код на уход».</td></tr>
+<tr><td>«Начать работу» / «Закончить работу»</td><td><span class="tag ask">новое в движке</span> код несёт намерение (Oleg 24.11): <code>POST /api/modules/{process}/passes {action: "open" | "close"}</code>, движок хранит действие в коде и при гашении не выбирает сам, а сверяет: код на начало работы, а рабочий уже на объекте, или код на конец работы без начала работы — ничего не меняет, код не тратится, бригадир получает отказ «уже на объекте с 08:02» / «начала работы нет». Сейчас движок выбирает начало или конец работы сам — поэтому камера, читающая подряд, за минуту давала начало-конец-начало работы. Кнопки — только у рабочего; код без действия (старый клиент) движок гасит по-старому.</td></tr>
+<tr><td>QR-код</td><td><span class="tag have">есть</span> <code>code</code> из <code>POST /api/modules/{process}/passes</code>. В QR — сам код, без адреса: код ходит только в теле запроса (К-18); движок про QR не знает, рисует клиент. Над кодом — «Код: начало работы» или «Код: конец работы».</td></tr>
 <tr><td>Секунды и полоса срока</td><td><span class="tag have">есть</span> <code>expires_at − now</code>, доля — от <code>ttl_sec</code>. Срок задаёт контракт процесса, 60 с — не константа клиента.</td></tr>
 <tr><td>Имя и роль в шапке</td><td><span class="tag cli">клиент</span> вошедший человек (Keycloak). Код всегда свой: выдача не отдаёт, чей он, — он того, кто спросил.</td></tr>
-<tr><td>«Отметка прошла», время, бригадир</td><td><span class="tag have">есть</span> точка «что стало с моим кодом» <code>POST /api/passes/status {pass_code}</code> (общая, без процесса; код в теле): <code>state</code> live / consumed / expired, <code>consumed_at</code> — время отметки (сервера), <code>consumed_by.label</code> — имя бригадира, <code>action</code> open — приход, close — уход (подпись «Приход отмечен» / «Уход отмечен» экран берёт по <code>action</code>, ключа подписи в ответе нет). Отвечает только хозяину кода; чужой и несуществующий код — один и тот же <code>404 PASS_NOT_FOUND</code>. Опрос дешёвый, работает и в режиме «только чтение». Описание — <code>engine/docs/tech/contracts-reference/pass-format.md#status</code> (PR движка #601).</td></tr>
-<tr><td>«Вы на объекте с 08:02»</td><td><span class="tag have">есть</span> сразу после прихода — <code>consumed_at</code> и <code>consumed_by.label</code> той же точки. <span class="tag ask">нет</span> после перезапуска приложения: открытую отметку рабочего движок пока не отдаёт, экран показывает «не отмечены» и главной кнопкой приход. Ошибиться не страшно: код на приход у того, кто на объекте, бригадир увидит как «уже на объекте» — ничего не изменится, рабочий нажмёт «Отметить уход».</td></tr>
-<tr><td>«На работе 2 ч 14 мин»</td><td><span class="tag cli">клиент</span> считает телефон: время сервера из отметки прихода минус паузы. <span class="tag ask">нет</span> после перезапуска — как и плашка «на объекте», нужна открытая отметка рабочего от движка.</td></tr>
-<tr><td>«Перекур» / «Обед» / «Вернулся»</td><td><span class="tag ask">контракт добавит</span> пауза — отметка рабочего без бригадира (начало и конец по времени сервера) в процессе смены; часы дня = уход − приход − паузы. Кнопки необязательные; видны, только если Дорин включил паузы в «Настройках», там же перекур по умолчанию 5 / 10 / 15 мин (обед — 30). Сверх срока таймер паузы краснеет, но сам паузу не закрывает. Бригадир на экране смены видит, кто сейчас на паузе и сколько; в итоге смены и у Дорина — паузы по людям (следующий шаг макетов foreman.html и owner-web.html).</td></tr>
-<tr><td>«Мои смены»</td><td><span class="tag ask">контракт добавит</span> признак у человека «видит свои смены» — ставит Дорин в «Людях»; без него вкладки нет и нижнего меню нет. Список — свои отметки (видимость «свои»): дата, объект, приход–уход, часы «ч:мм», паузы, опоздание от начала работы из «Настроек»; день без ухода не считается. Итог за неделю и месяц — сумма тех же часов.</td></tr>
+<tr><td>«Отметка прошла», время, бригадир</td><td><span class="tag have">есть</span> точка «что стало с моим кодом» <code>POST /api/passes/status {pass_code}</code> (общая, без процесса; код в теле): <code>state</code> live / consumed / expired, <code>consumed_at</code> — время отметки (сервера), <code>consumed_by.label</code> — имя бригадира, <code>action</code> open — начало работы, close — конец работы (подпись «Начало работы отмечено» / «Конец работы отмечен» экран берёт по <code>action</code>, ключа подписи в ответе нет). Отвечает только хозяину кода; чужой и несуществующий код — один и тот же <code>404 PASS_NOT_FOUND</code>. Опрос дешёвый, работает и в режиме «только чтение». Описание — <code>engine/docs/tech/contracts-reference/pass-format.md#status</code> (PR движка #601).</td></tr>
+<tr><td>«Вы на объекте с 08:02»</td><td><span class="tag have">есть</span> сразу после начала работы — <code>consumed_at</code> и <code>consumed_by.label</code> той же точки. <span class="tag ask">нет</span> после перезапуска приложения: открытую отметку рабочего движок пока не отдаёт, экран показывает «не отмечены» и главной кнопкой «Начать работу». Ошибиться не страшно: код на начало работы у того, кто на объекте, бригадир увидит как «уже на объекте» — ничего не изменится, рабочий нажмёт «Закончить работу».</td></tr>
+<tr><td>«На работе 2 ч 14 мин»</td><td><span class="tag cli">клиент</span> считает телефон: время сервера из отметки начала работы минус паузы. <span class="tag ask">нет</span> после перезапуска — как и плашка «на объекте», нужна открытая отметка рабочего от движка.</td></tr>
+<tr><td>«Перекур» / «Обед» / «Вернуться к работе»</td><td><span class="tag ask">контракт добавит</span> пауза — отметка рабочего без бригадира (начало и конец по времени сервера) в процессе смены; часы дня = конец − начало работы − паузы. Кнопки необязательные; видны, только если Дорин включил паузы в «Настройках», там же перекур по умолчанию 5 / 10 / 15 мин (обед — 30). Сверх срока таймер паузы краснеет, но сам паузу не закрывает. Бригадир на экране смены видит, кто сейчас на паузе и сколько; в итоге смены и у Дорина — паузы по людям (следующий шаг макетов foreman.html и owner-web.html).</td></tr>
+<tr><td>«Мои смены»</td><td><span class="tag ask">контракт добавит</span> признак у человека «видит свои смены» — ставит Дорин в «Людях»; без него вкладки нет и нижнего меню нет. Список — свои отметки (видимость «свои»): дата, объект, начало–конец работы, часы «ч:мм», паузы, опоздание от начала работы из «Настроек»; день без конца работы не считается. Итог за неделю и месяц — сумма тех же часов.</td></tr>
 </table>
 
 <h2>Как экран переходит из состояния в состояние</h2>
-<p>Экран открыт — две кнопки, кода нет (1a). Рабочий нажал «Отметить приход» или «Отметить уход» — экран берёт код на это действие (1 или 6a); «Отмена» возвращает к кнопкам. Пока код на экране, раз в 2–3 секунды спрашивает, что с ним стало (<code>state</code>: live — ждём, consumed — отметка прошла, expired — срок вышел). Бригадир погасил код — экран показывает отметку (5 или 7) несколько секунд и возвращается <b>к кнопкам, а не к новому коду</b> (Oleg 24.11): после прихода — с плашкой «на объекте» и главной кнопкой «Отметить уход» (6), после ухода — «не отмечены» и главной «Отметить приход» (1a). Срок вышел, а отметки нет — сам берёт новый код на то же действие (2), без кнопки.</p>
+<p>Экран открыт — две кнопки, кода нет (1a). Рабочий нажал «Начать работу» или «Закончить работу» — экран берёт код на это действие (1 или 6a); «Отмена» возвращает к кнопкам. Пока код на экране, раз в 2–3 секунды спрашивает, что с ним стало (<code>state</code>: live — ждём, consumed — отметка прошла, expired — срок вышел). Бригадир погасил код — экран показывает отметку и возвращается <b>к кнопкам, а не к новому коду</b> (Oleg 24.11): начало работы (5) — через несколько секунд само, с плашкой «на объекте» и главной кнопкой «Закончить работу» (6); конец работы (7) с итогом дня сам не уходит — рабочий жмёт «Готово» (Oleg 25.11) и видит «не отмечены» и главную «Начать работу» (1a). Срок вышел, а отметки нет — сам берёт новый код на то же действие (2), без кнопки.</p>
 <p>Связь пропала — код остаётся на экране, пока не вышел срок (3): срок и одноразовость проверяет движок в момент гашения по сети бригадира, так что код годен. Срок вышел без связи — кода нет, экран ждёт сеть (4) и обновится сам.</p>
 <p>Ошибка выдачи (8): 5xx и обрыв по таймауту — «попробовать снова»; <code>403 PASS_ISSUER_FORBIDDEN</code> — человеку не положен код: тот же экран без кнопки, тексты <code>err.403.t</code> и <code>err.403.s</code> в таблице переводов; <code>404 PASS_NOT_CONFIGURED</code> — ошибка настройки стенда, текст тот же, что у 5xx.</p>
 
@@ -867,7 +869,7 @@ const hhmm = s => String(Math.floor(s/3600)%24).padStart(2,'0')+':'+String(Math.
 function logEv(text){ P.log.unshift({at:hhmm(P.clock)+':'+String(P.clock%60).padStart(2,'0'), text}); if (P.log.length>30) P.log.pop(); renderPult(); }
 const later = (ms, fn) => setTimeout(()=>{ fn(); if (S.view==='proto') renderScreens(); }, ms);
 
-/* Время работы = сейчас − приход − паузы. Считает телефон по времени сервера из отметки; в настоящем приложении
+/* Время работы = сейчас − начало работы − паузы. Считает телефон по времени сервера из отметки; в настоящем приложении
    паузы — отметки движка, а не память телефона (записка под макетом). */
 const pauseSec = p => (p.to ?? P.clock) - p.from;
 function dayOf(){
@@ -884,7 +886,7 @@ function fetchCode(){
     if (!P.online){ P.phase='nocode'; logEv('Сеть пропала, пока ждали код.'); return; }
     if (P.failNext){ P.failNext=false; P.phase='error'; logEv('Движок ответил 503 на выдачу кода — экран ошибки.'); return; }
     P.code=newCode(); P.left=TTL; P.consumed=false; P.scanned=false; P.phase='live';
-    logEv(`Движок выдал код на ${P.intent==='out'?'уход':'приход'} на ${TTL} с (POST …/passes {action: "${P.intent==='out'?'close':'open'}"}).`);
+    logEv(`Движок выдал код на ${P.intent==='out'?'конец работы':'начало работы'} на ${TTL} с (POST …/passes {action: "${P.intent==='out'?'close':'open'}"}).`);
   });
 }
 /* Кнопки на экране: кода нет, пока рабочий не выбрал действие (Oleg 24.11). */
@@ -896,27 +898,27 @@ const ACT = {
   login(){ P.screen='app'; P.hint = needHint(); toButtons(); logEv('Вход выполнен. На экране две кнопки — кода нет, пока рабочий не выберет, что отметить.'+(P.hint?' Открыто в Safari на iPhone — шторка «как установить».':INSTALLED?' Приложение открыто с экрана «Домой» — шторки установки нет.':'')); },
   later(){ P.hint=false; logEv('Рабочий нажал «Позже» — шторка спрятана до следующего открытия.'); },
   retry(){ logEv('Рабочий нажал «Попробовать снова».'); fetchCode(); },
-  intent(kind){ P.intent = kind==='out' ? 'out' : 'in'; P.tab='code'; logEv(`Рабочий нажал «${P.intent==='out'?'Отметить уход':'Отметить приход'}».`); fetchCode(); },
+  intent(kind){ P.intent = kind==='out' ? 'out' : 'in'; P.tab='code'; logEv(`Рабочий нажал «${P.intent==='out'?'Закончить работу':'Начать работу'}».`); fetchCode(); },
   cancel(){ toButtons(); logEv('Рабочий нажал «Отмена» — код убран, на экране снова кнопки.'); },
   tab(arg){ if (arg==='days' && !P.shifts) return; P.tab = arg==='days' ? 'days' : 'code'; logEv(P.tab==='days' ? 'Рабочий открыл «Мои смены».' : 'Рабочий вернулся на «Мой код».'); },
   /* Бригадир в два шага, как в foreman.html: камера прочла код (карточка регистрации) → «Подтвердить». */
   scan(){
-    if (P.screen!=='app' || P.phase!=='live'){ logEv('Бригадир навёл камеру — на экране рабочего сейчас нет кода. Рабочему нужно нажать «Отметить приход» или «Отметить уход».'); return; }
+    if (P.screen!=='app' || P.phase!=='live'){ logEv('Бригадир навёл камеру — на экране рабочего сейчас нет кода. Рабочему нужно нажать «Начать работу» или «Закончить работу».'); return; }
     if (P.consumed){ logEv('Бригадир сканирует — движок: «код уже использован».'); return; }
     if (P.scanned){ logEv('Код уже прочитан, бригадир ещё не подтвердил.'); return; }
     const action = P.intent==='out' ? 'close' : 'open';
     // Код несёт намерение: движок не выбирает сам, а сверяет его с тем, что есть. Не сходится — ничего не меняет.
-    if (action==='open' && P.serverOn){ logEv(`Бригадир отсканировал код на приход, а рабочий уже на объекте с ${P.serverOn.since}. Движок ничего не меняет, код не тратится; бригадир видит «уже на объекте».`); return; }
-    if (action==='close' && !P.serverOn){ logEv('Бригадир отсканировал код на уход, а прихода нет. Движок ничего не меняет, код не тратится; бригадир видит «прихода нет».'); return; }
+    if (action==='open' && P.serverOn){ logEv(`Бригадир отсканировал код на начало работы, а рабочий уже на объекте с ${P.serverOn.since}. Движок ничего не меняет, код не тратится; бригадир видит «уже на объекте».`); return; }
+    if (action==='close' && !P.serverOn){ logEv('Бригадир отсканировал код на конец работы, а начала работы нет. Движок ничего не меняет, код не тратится; бригадир видит «начала работы нет».'); return; }
     P.scanned = true;
-    logEv(`Камера бригадира ${FOREMAN} прочла код: на его экране карточка «${WORKER.name} · ${action==='open'?'приход':'уход'} · ${hhmm(P.clock)}» и кнопка «Подтвердить». У рабочего код закрыт «ждём подтверждения».`);
+    logEv(`Камера бригадира ${FOREMAN} прочла код: на его экране карточка «${WORKER.name} · ${action==='open'?'начало работы':'конец работы'} · ${hhmm(P.clock)}» и кнопка «Подтвердить». У рабочего код закрыт «ждём подтверждения».`);
   },
   confirm(){
     if (!P.scanned){ if (P.phase==='live') { ACT.scan(); if (!P.scanned) return; } else { logEv('Подтверждать нечего: бригадир ещё ничего не отсканировал.'); return; } }
     const action = P.intent==='out' ? 'close' : 'open', time = hhmm(P.clock);
     P.consumed = true; P.scanned = false;
     P.serverOn = action==='open' ? {since:time} : null;
-    logEv(`Бригадир ${FOREMAN} нажал «Подтвердить»: ${action==='open'?'ПРИХОД':'УХОД'}, время сервера ${time}, объект ${OBJ}.`);
+    logEv(`Бригадир ${FOREMAN} нажал «Подтвердить»: ${action==='open'?'НАЧАЛО РАБОТЫ':'КОНЕЦ РАБОТЫ'}, время сервера ${time}, объект ${OBJ}.`);
     if (P.online) later(1500, ()=>showDone({action, time}));
     else { P.pending = {action, time}; logEv('У телефона рабочего нет сети — он узнает об отметке, когда связь вернётся.'); }
   },
@@ -928,7 +930,7 @@ const ACT = {
   brkback(){
     if (!P.pause) return;
     P.pause.to = P.clock; P.pauses.push(P.pause);
-    logEv(`Рабочий нажал «Вернулся»: ${BRK[P.pause.kind]} ${mmss(pauseSec(P.pause))}. Таймер работы продолжает.`); P.pause = null;
+    logEv(`Рабочий нажал «Вернуться к работе»: ${BRK[P.pause.kind]} ${mmss(pauseSec(P.pause))}. Таймер работы продолжает.`); P.pause = null;
   },
   skip(sec){
     const s = Number(sec)||7200; P.clock += s;
@@ -958,10 +960,11 @@ const ACT = {
     if (P.screen!=='app'){ logEv('Приложение и так на экране входа.'); return; }
     P.onSite = null; P.done = null; P.pending = null; P.pause = null; P.hint = needHint();
     logEv(P.serverOn
-      ? 'Приложение перезапущено. Открытую отметку рабочего движок пока не отдаёт — экран покажет «не отмечены» и главной кнопкой приход, хотя рабочий на объекте. Нажмёт «Отметить приход» — бригадир увидит «уже на объекте», ничего не изменится; нужна кнопка «Отметить уход».'
+      ? 'Приложение перезапущено. Открытую отметку рабочего движок пока не отдаёт — экран покажет «не отмечены» и главной кнопкой «Начать работу», хотя рабочий на объекте. Нажмёт «Начать работу» — бригадир увидит «уже на объекте», ничего не изменится; нужна кнопка «Закончить работу».'
       : 'Приложение перезапущено.');
     toButtons();
   },
+  doneok(){ if (P.phase!=='done') return; logEv('Рабочий нажал «Готово» — экран вернулся к кнопкам.'); toButtons(); },
   reset(){ resetProto(); },
   drawer(){ P.drawer = !P.drawer; renderPult(); },
 };
@@ -975,11 +978,11 @@ function showDone(d){
     P.pauses = [];
   }
   P.phase='done'; P.done=d; P.onSite = d.action==='open' ? {since:d.time, sec:P.clock} : null;
-  logEv(`Экран спросил «что стало с моим кодом» (POST /api/passes/status) — consumed: ${d.action==='open'?'приход':'уход'} ${d.time}, ${FOREMAN}.`
+  logEv(`Экран спросил «что стало с моим кодом» (POST /api/passes/status) — consumed: ${d.action==='open'?'начало работы':'конец работы'} ${d.time}, ${FOREMAN}.`
     + (d.day ? ` Итог дня: ${hm(d.day.work)} работы, паузы ${Math.round((d.day.smokeSec+d.day.lunchSec)/60)} мин.` : ''));
   // После отметки — назад к кнопкам, а не к новому коду: следующий код только по нажатию (Oleg 24.11)
-  if (d.action==='close') later(8000, ()=>{ if (P.phase==='done') toButtons(); });  // итог дня читают дольше
-  else later(4000, ()=>{ if (P.phase==='done') toButtons(); });
+  // Конец работы с итогом дня сам не уходит — рабочий читает и жмёт «Готово» (Oleg 25.11)
+  if (d.action==='open') later(4000, ()=>{ if (P.phase==='done') toButtons(); });
 }
 /* Пульт имитации прямо в экране телефона: только то, что имеет смысл сейчас (Oleg 24.11). */
 function simBar(){
@@ -990,7 +993,7 @@ function simBar(){
   else if (P.phase==='live' && !P.scanned) h = b('scan','📷 Бригадир отсканировал',true) + b('rewind','⏩ к концу минуты');
   else if (P.phase==='live' && P.scanned) h = b('confirm','✅ Бригадир подтвердил',true);
   else if (P.phase==='choose' && P.onSite) h = b('skip','⏩ Прошло 2 часа',true,'7200') + b('skip','+10 мин',false,'600');
-  else if (P.phase==='choose') h = '<span style="color:#C9D5DB;font-size:13px">нажмите «Отметить приход»</span>';
+  else if (P.phase==='choose') h = '<span style="color:#C9D5DB;font-size:13px">нажмите «Начать работу»</span>';
   return `<div class="sim"><i>ИМИТАЦИЯ</i>${h}${b('drawer','⚙︎ ещё')}</div>`;
 }
 function protoState(){
@@ -1040,7 +1043,7 @@ function renderPult(){
   el.innerHTML = `<button class="handle" data-act="drawer">Пульт — остальной мир ${P.drawer?'▼':'▲'}</button>
     <div class="pin">
       <b class="ptitle">Пульт — остальной мир</b>
-      <p class="how">Войдите, нажмите «Отметить приход» и покажите код. Бригадир — в два шага: «отсканировал» (камера прочла код) и «подтвердил». Дальше тикает «На работе»; «Прошло 2 часа» двигает время. Полоса «ИМИТАЦИЯ» в самом экране показывает нужную кнопку сейчас.</p>
+      <p class="how">Войдите, нажмите «Начать работу» и покажите код. Бригадир — в два шага: «отсканировал» (камера прочла код) и «подтвердил». Дальше тикает «На работе»; «Прошло 2 часа» двигает время. Полоса «ИМИТАЦИЯ» в самом экране показывает нужную кнопку сейчас.</p>
       <div class="acts">${BTN.map(([a,l,arg])=>`<button data-act="${a}" ${arg?`data-arg="${arg}"`:''} class="${a==='scan'||a==='confirm'?'main':''}">${a==='net' ? (P.online?'📵 Связь пропала':'📶 Связь вернулась') : l}</button>`).join('')}</div>
       <p class="how" style="margin:14px 0 6px"><b>Что решает Дорин</b></p>
       <div class="acts">
