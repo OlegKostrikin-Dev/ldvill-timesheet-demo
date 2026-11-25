@@ -241,6 +241,14 @@
   .login > b{font-size:26px;font-weight:800} .login > span{color:var(--c-muted);margin-bottom:18px}
   .login label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--c-muted)}
   .login input{font:inherit;font-size:16px;color:var(--c-ink);padding:12px;border:1px solid var(--c-line);background:#fff;border-radius:0}
+  .login .btn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:0}
+  .login .btn svg{width:20px;height:20px}
+  /* Экран входа с тремя способами — как в login-qr-456.html (TG-456, замечание Oleg 25.11) */
+  .lnk{border:0;background:none;color:var(--c-muted);font:inherit;font-size:14px;text-decoration:underline;text-underline-offset:3px;padding:6px;align-self:center;cursor:pointer}
+  .lnk svg{width:15px;height:15px;vertical-align:-2px}
+  .lnk.strong{color:var(--c-ink);font-weight:700;font-size:15px}
+  .orline{display:flex;align-items:center;gap:10px;color:var(--c-muted);font-size:13px}
+  .orline::before,.orline::after{content:'';flex:1;border-top:1px solid var(--c-line)}
 
   /* живой прототип: телефон и пульт рядом */
   .work{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap}
@@ -446,6 +454,11 @@ const T = {
   'login.user':['Felhasználónév','Логин','Username'],
   'login.pass':['Jelszó','Пароль','Password'],
   'login.btn':['Belépés','Войти','Sign in'],
+  'first.t':['Belépés','Вход','Sign in'],
+  'first.s':['Kérd meg a tulajdonost vagy a brigádvezetőt, hogy adjon hozzáférést: a képernyőjén megmutatja a kódot.','Попросите владельца или бригадира выдать вам доступ — они покажут код на своём экране.','Ask the owner or your foreman to grant you access — they show a code on their screen.'],
+  'first.scan':['Kód beolvasása','Сканировать код','Scan code'], 'first.dig':['6 számjegy beírása','Ввести 6 цифр','Type 6 digits'],
+  'first.or':['vagy','или','or'],
+  'first.pw':['Belépés felhasználónévvel és jelszóval','Войти по логину и паролю','Sign in with username and password'],
 
   /* подписи состояний на доске */
   'c.login':['0 · Belépés','0 · Вход','0 · Sign in'],
@@ -565,6 +578,8 @@ function newCode(){ const a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23
 
 /* ══ ИКОНКИ (lucide, ISC) ══ */
 const IC = {
+  camera:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+  key:'<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
   qr:'<rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>',
   list:'<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>',
   clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
@@ -654,10 +669,13 @@ function stateCard(st){
 function body(st, code){
   const onSite = !!st.since;
   if (st.id==='login'){
-    return `<div class="login"><div class="logo big">LD</div><b>LD Vill</b><span>${t('login.sub')}</span>
-      <label>${t('login.user')}<input value="${loginOf(WORKER.name)}" readonly></label>
-      <label>${t('login.pass')}<input type="password" value="12345678" readonly></label>
-      <button class="btn" data-act="login">${t('login.btn')}</button></div>`;
+    // Экран «Вход» из login-qr-456.html (TG-456): три способа — QR, 6 цифр, логин и пароль.
+    // Весь путь скана, цифр и пароля показан там; здесь любая кнопка входит сразу.
+    return `<div class="login"><div class="logo big">LD</div><b>${t('first.t')}</b><span>${t('first.s')}</span>
+        <button class="btn" data-act="login">${ic('camera')}${t('first.scan')}</button>
+        <button class="btn line" data-act="login">${t('first.dig')}</button>
+        <div class="orline">${t('first.or')}</div>
+        <button class="lnk strong" data-act="login">${ic('key')} ${t('first.pw')}</button></div>`;
   }
   if (st.tab==='days') return daysBody(st);
   if (st.id==='done-in' || st.id==='done-out'){
@@ -967,7 +985,7 @@ function showDone(d){
 function simBar(){
   const b = (act, label, go, arg) => `<button data-act="${act}" ${arg?`data-arg="${arg}"`:''} class="${go?'go':''}">${label}</button>`;
   let h = '';
-  if (P.screen==='login') h = '<span style="color:#C9D5DB;font-size:13px">войдите — кнопка «Войти» на экране</span>';
+  if (P.screen==='login') h = '<span style="color:#C9D5DB;font-size:13px">войдите — любой из трёх способов на экране</span>';
   else if (P.tab==='days') h = '';
   else if (P.phase==='live' && !P.scanned) h = b('scan','📷 Бригадир отсканировал',true) + b('rewind','⏩ к концу минуты');
   else if (P.phase==='live' && P.scanned) h = b('confirm','✅ Бригадир подтвердил',true);
