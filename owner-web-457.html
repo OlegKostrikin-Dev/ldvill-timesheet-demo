@@ -167,7 +167,6 @@
   .badge.new{background:var(--b-soft);color:var(--b-ink)}
   .badge.mute{background:#F1F5F9;color:#64748B}
   .badge.bad{background:var(--c-bad-bg);color:var(--c-bad)}
-  .badge.pz{white-space:normal;border-radius:10px;line-height:1.35}   /* идущая пауза (TG-457) переносится в узкой колонке */
   .badge.role{background:#F1F5F9;color:#334155}
   .badge.role.f{background:var(--b-dark);color:#fff}
 
@@ -371,16 +370,13 @@ const keyOf = ms => { const d = new Date(ms); return `${d.getUTCFullYear()}-${pa
 const msOf = key => Date.UTC(+key.slice(0,4), +key.slice(5,7)-1, +key.slice(8,10));
 const wdOf = key => new Date(msOf(key)).getUTCDay();
 
-/* Смены 19 и 20 ноября — из foreman.html (PAST0) слово в слово, с паузами (четвёртый элемент: [вид, начало, конец]). */
+/* Смены 19 и 20 ноября — из foreman.html (PAST0) слово в слово. */
 const FIXED = {
   '2026-11-20': {fer:{f:1, open:'07:40', close:'17:05', photos:2, report:'Zsaluzás a 3. szinten kész. Holnap betonozás 7:00-tól, a mixer 7:30-ra jön.',
-                      marks:[[4,'07:44','17:00'],[5,'07:46','16:58',[['smoke','10:12','10:21'],['lunch','12:30','13:02']]],[6,'07:52',null]]}},
+                      marks:[[4,'07:44','17:00'],[5,'07:46','16:58'],[6,'07:52',null]]}},
   '2026-11-19': {kel:{f:1, open:'07:55', close:'16:40', photos:0, report:'Gipszkarton a 2. emeleten, 60% kész. Anyag elég péntekig.',
-                      marks:[[4,'08:01','16:35'],[7,'08:03','16:36',[['lunch','12:00','12:34']]]]}, foremen:{fer:3}},
+                      marks:[[4,'08:01','16:35'],[7,'08:03','16:36']]}, foremen:{fer:3}},
 };
-/* Паузы (TG-457, макеты «Мой код» и бригадира): «Перекур» и «Обед» рабочий отмечает сам, по желанию; в часы не входят.
-   У отметки m.p — [вид, начало, конец] в минутах от полуночи; конец null — пауза идёт. */
-const pzOf = list => (list||[]).map(([k, a, b]) => [k, mn(a), b==null ? null : mn(b)]);
 function genHistory(){
   const days = [];
   let sid = 1;
@@ -397,7 +393,7 @@ function genHistory(){
       if (F){
         const s = {id:sid++, obj:o.id, f:F.f, open:mn(F.open), close:mn(F.close), report:F.report, photos:F.photos};
         day.shifts.push(s);
-        F.marks.forEach(([w,a,b,pz]) => day.marks.push({w, obj:o.id, sid:s.id, in:mn(a), out:b?mn(b):null, noOut:!b, p:pzOf(pz)}));
+        F.marks.forEach(([w,a,b]) => day.marks.push({w, obj:o.id, sid:s.id, in:mn(a), out:b?mn(b):null, noOut:!b}));
         return;
       }
       const f = (fx.foremen && fx.foremen[o.id]) || FOREMAN_OF[o.id];
@@ -425,19 +421,6 @@ function genHistory(){
   return days;
 }
 const HIST = genHistory();
-/* Паузы в истории — своим «случаем», чтобы прежняя история (смены, начала и концы работы) не сдвинулась. Обед — у большинства
-   и только если человек был на объекте в полдень, перекур — у половины, 1–2 раза. Дни из foreman.html — как там. */
-(() => {
-  const r2 = (seed => () => { seed = seed + 0x6D2B79F5 | 0; let x = Math.imul(seed ^ seed >>> 15, 1 | seed);
-    x = x + Math.imul(x ^ x >>> 7, 61 | x) ^ x; return ((x ^ x >>> 14) >>> 0) / 4294967296; })(457);
-  HIST.filter(d => !FIXED[d.key]).forEach(d => d.marks.forEach(m => {
-    m.p = [];
-    if (m.out == null) return;
-    if (r2() < .5){ const n = 1 + (r2() < .4 ? 1 : 0); for (let i=0; i<n; i++){ const a = (i ? 14*60 : 10*60) + Math.floor(r2()*40); if (a > m.in && a + 15 < m.out) m.p.push(['smoke', a, a + 5 + Math.floor(r2()*11)]); } }
-    if (r2() < .8){ const a = 12*60 + 5*Math.floor(r2()*7); if (a > m.in && a + 45 < m.out) m.p.push(['lunch', a, a + 25 + Math.floor(r2()*16)]); }
-    m.p.sort((x, y) => x[1] - y[1]);
-  }));
-})();
 
 /* ══ ТЕКСТЫ hu / ru / en — единственное место переводов кабинета (пульт и записка — по-русски) ══
    Строки «Люди» и «Выдать доступ» — из login-qr.html (TG-443), строки итога смены — из foreman.html (TG-444), слово в
@@ -585,28 +568,13 @@ const T = {
   /* право «видеть свои смены» (TG-457): вкладка «Мои смены» в приложении рабочего (my-code.html) */
   'c.own':['Saját műszakok','Свои смены','Own shifts'],
   'own.t':['Saját műszakok az alkalmazásban','Свои смены в приложении','Own shifts in the app'],
-  'own.s':['Látja a «Műszakjaim» lapot: napok, órák, szünetek, késés — csak a sajátját.','Видит вкладку «Мои смены»: дни, часы, паузы, опоздания — только свои.','Sees the “My shifts” tab: days, hours, breaks, lateness — only their own.'],
+  'own.s':['Látja a «Műszakjaim» lapot: napok, órák, késés — csak a sajátját.','Видит вкладку «Мои смены»: дни, часы, опоздания — только свои.','Sees the “My shifts” tab: days, hours, lateness — only their own.'],
   'own.off.s':['Az alkalmazásban csak a «Kódom» van.','В приложении только «Мой код».','The app shows only “My code”.'],
   'own.on':['látja','видит','sees'], 'own.off':['nem látja','не видит','doesn’t see'],
   'own.give':['Megmutatni','Показывать','Show'], 'own.take':['Elrejteni','Скрыть','Hide'],
 
-  /* Паузы (TG-457): слова — как у рабочего (my-code.html) и бригадира (foreman.html) */
-  'brk.smoke':['Cigiszünet','Перекур','Smoke break'], 'brk.lunch':['Ebéd','Обед','Lunch'],
-  'days.smoke':['cigi {n}×, {m} p','перекур {n}×, {m} мин','smoke {n}×, {m} min'],
-  'days.lunch':['ebéd {m} p','обед {m} мин','lunch {m} min'],
-  'pz.live':['{k} {from} óta · {m} perc','{k} с {from} · {m} мин','{k} since {from} · {m} min'],
-  'pz.over':['+{m} perc túl','+{m} мин сверх','+{m} min over'],
-  'su.p':['Szün.','Паузы','Breaks'],
-  'su.pnote':['A szünetek nem számítanak bele az órákba.','Паузы в часы не входят.','Breaks are not counted in hours.'],
-  'k.pause':['most szüneten','сейчас на паузе','on a break now'],
-  'k.pz':['szünet, ó:p','пауз, ч:мм','breaks, h:mm'],
-  'brk.t':['Szünetek','Паузы','Breaks'],
-  'brk.use':['A dolgozók jelölik','Рабочие отмечают','Workers mark them'],
-  'brk.yes':['igen','да','yes'], 'brk.no':['nem','нет','no'],
-  'brk.min':['{n} perc','{n} мин','{n} min'],
-  'brk.s':['A «Cigiszünet» és az «Ebéd» gomb a dolgozó telefonján van, nem kötelező. A szünet nem számít bele az órákba. A határidő csak jelzés: utána a szünet piros a dolgozónál, a brigádvezetőnél és itt, de magától nem zárul le. Kikapcsolva a gombok eltűnnek.',
-             'Кнопки «Перекур» и «Обед» — в приложении рабочего, по желанию. В часы паузы не входят. Срок — подсказка: сверх него пауза краснеет у рабочего, у бригадира и здесь, но сама не закрывается. Выключите — кнопки пропадут.',
-             '“Smoke break” and “Lunch” are buttons in the worker’s app, optional. Breaks are not counted in hours. The limit is a hint: past it the break turns red for the worker, the foreman and here, but doesn’t end by itself. Switch off — the buttons disappear.'],
+  /* ранний уход — порог вопроса «Точно уход?» у бригадира (foreman.html) */
+  'stay.min':['{n} perc','{n} мин','{n} min'],
   'stay.t':['Korai távozás: kérdés, ha kevesebb mint','Ранний уход: переспросить, если меньше','Early check-out: ask if under'],
   'stay.s':['A brigádvezető telefonja megkérdezi: «Biztosan távozás?» — nem tiltja.','Телефон бригадира спросит «Точно уход?» — уход не запрещён.','The foreman’s phone asks “Really check out?” — it is not forbidden.'],
 
@@ -695,14 +663,13 @@ function resetProto(){
   const today = {key:TODAY_KEY, live:true, shifts:[
       {id:901, obj:'fer', f:1, open:mn('07:45'), close:null},
       {id:902, obj:'bud', f:2, open:mn('07:30'), close:null}],
-    // 10:15: Kiss Péter на перекуре с 10:02 (сверх срока), Molnár Dávid — с 10:09; Horváth Ádám уже сходил
     marks:[
-      {w:4, obj:'fer', sid:901, in:mn('07:48'), out:null, p:pzOf([['smoke','09:40','09:47']])},
-      {w:5, obj:'fer', sid:901, in:mn('07:48'), out:null, p:[]},
-      {w:6, obj:'fer', sid:901, in:mn('08:12'), out:null, p:pzOf([['smoke','10:02',null]])},
-      {w:7, obj:'bud', sid:902, in:mn('07:34'), out:null, p:[]},
-      {w:8, obj:'bud', sid:902, in:mn('07:35'), out:null, p:pzOf([['smoke','10:09',null]])},
-      {w:9, obj:'bud', sid:902, in:mn('07:41'), out:null, p:[]}]};
+      {w:4, obj:'fer', sid:901, in:mn('07:48'), out:null},
+      {w:5, obj:'fer', sid:901, in:mn('07:48'), out:null},
+      {w:6, obj:'fer', sid:901, in:mn('08:12'), out:null},
+      {w:7, obj:'bud', sid:902, in:mn('07:34'), out:null},
+      {w:8, obj:'bud', sid:902, in:mn('07:35'), out:null},
+      {w:9, obj:'bud', sid:902, in:mn('07:41'), out:null}]};
   const lastSeen = {1:{d:0,t:'07:45'}, 2:{d:0,t:'07:30'}, 3:{d:-1,t:'16:50'}, 4:{d:0,t:'07:48'}, 5:{d:0,t:'07:48'}, 6:{d:0,t:'08:12'},
                     7:{d:0,t:'07:34'}, 8:{d:0,t:'07:35'}, 9:{d:0,t:'07:41'}, 10:{d:-1,t:'16:58'}};
   Object.assign(P, {
@@ -710,8 +677,8 @@ function resetProto(){
     today,
     people: PEOPLE0.map(p=>({...p, last: lastSeen[p.id] ? {...lastSeen[p.id]} : undefined})),
     objects: OBJECTS0.map(o=>({...o})),
-    // паузы (TG-457): включатель, сроки перекура и обеда; stay — порог раннего ухода у бригадира (foreman.html)
-    set: {start:START0, round:0, brk:true, smoke:10, lunch:30, stay:15},
+    // stay — порог раннего ухода у бригадира (foreman.html)
+    set: {start:START0, round:0, stay:15},
     tab: TABS.includes(qs.get('tab')) ? qs.get('tab') : 'today',
     stack: [], pp:'all', objF:'active',
     rp: RPAGES.includes(qs.get('rp')) ? qs.get('rp') : 'people',
@@ -736,26 +703,11 @@ const when = w => w==null ? '' : w.d===0 ? t('when.today',{t:w.t}) : t('when.yda
    переключателя правила больше нет — замечание Oleg 22.11); идёт — до «сейчас».
    Одна функция на все экраны: день, смена, отчёты, карточка человека считают одинаково. */
 function round(m){ const r = P.set.round; return r ? Math.round(m/r)*r : m; }
-/* Паузы отметки в минутах: идущая — до «сейчас» (сегодня) или до ухода. Часы = конец − начало работы − паузы (TG-457). */
-const pzOne = (p, m, day) => Math.max(0, (p[2]!=null ? p[2] : m.out!=null ? m.out : day.live ? P.clock : p[1]) - p[1]);
-const pzMin = (m, day) => (m.p||[]).reduce((a,p)=>a+pzOne(p, m, day),0);
-const pzNow = (m, day) => day.live && m.out==null && !m.noOut ? (m.p||[]).find(p=>p[2]==null) : null;
+/* Часы = конец − начало работы, без вычетов (Oleg 25.11). */
 function dur(m, day){
-  if (m.out != null) return round(m.out - m.in - pzMin(m, day));
+  if (m.out != null) return round(m.out - m.in);
   if (m.noOut) return 0;
-  return day.live ? Math.max(0, P.clock - m.in - pzMin(m, day)) : 0;
-}
-/* «перекур 2×, 19 мин · обед 32 мин» — те же слова, что у рабочего («Мои смены») и бригадира (итог смены) */
-function pzText(m, day){
-  const of = k => (m.p||[]).filter(p=>p[0]===k), sum = ps => ps.reduce((a,p)=>a+pzOne(p, m, day),0);
-  const sm = of('smoke'), ln = of('lunch');
-  return [sm.length ? t('days.smoke',{n:sm.length, m:sum(sm)}) : '', ln.length ? t('days.lunch',{m:sum(ln)}) : ''].filter(Boolean).join(' · ');
-}
-/* Идущая пауза сегодня: значок «перекур с 10:02 · 13 мин», сверх срока из «Настроек» — красный. */
-function pzBadge(m, day){
-  const p = pzNow(m, day); if (!p) return '';
-  const n = P.clock - p[1], over = n - P.set[p[0]];
-  return `<span class="badge pz ${over>0?'bad':'warn'}">${t('pz.live',{k:t('brk.'+p[0]).toLowerCase(), from:hhmm(p[1]), m:n})}${over>0 ? ' · '+t('pz.over',{m:over}) : ''}</span>`;
+  return day.live ? Math.max(0, P.clock - m.in) : 0;
 }
 const ruleTxt = () => t('rule.zero');
 /* Время начала работы объекта: своё или по умолчанию. */
@@ -779,8 +731,6 @@ function statOf(days, oid){
     miss: ms.filter(x=>x.m.noOut).length,
     late: ms.filter(x=>lateOf(x.m, x.d)>0).length,
     now: ms.filter(x=>x.d.live && x.m.out==null && !x.m.noOut).length,
-    onBreak: ms.filter(x=>pzNow(x.m, x.d)).length,
-    pz: ms.reduce((a,x)=>a+pzMin(x.m, x.d),0),
     reps: shifts.filter(s=>s.close!=null && s.report).length,
   };
 }
@@ -838,7 +788,6 @@ function dayView(day, isTab){
   if (!day.shifts.length) return h + `<div class="card"><p class="muted">${t('day.none')}</p></div>`;
   const k = kpis([
     day.live ? [st.now, t('k.now')] : null,
-    day.live && P.set.brk ? [st.onBreak, t('k.pause'), st.onBreak?'warn':''] : null,
     [st.people, day.live ? t('k.people') : t('k.people.p')],
     [hhmmDur(st.mins), t('rc.hours')],
     [`${st.reps}/${st.shifts}`, t('k.reps')],
@@ -877,19 +826,15 @@ function shiftView(day, oid){
   const rows = marks.map(m => {
     const p = person(m.w), late = lateOf(m, day);
     const other = day.marks.filter(x=>x.w===m.w && x!==m);
-    const notes = [late ? `<span class="w">${t('own.late',{n:late})}</span>` : '', pzText(m, day),
+    const notes = [late ? `<span class="w">${t('own.late',{n:late})}</span>` : '',
       ...other.map(x => x.in > m.in ? t('own.moveto',{obj:esc(objName(x.obj)), t:hhmm(m.out)}) : t('own.movefrom',{obj:esc(objName(x.obj))}))].filter(Boolean).join(' · ');
-    // сейчас на паузе — значок вместо «на объекте», как у бригадира в списке «Рабочие на смене»
-    const out = m.out!=null ? hhmm(m.out) : m.noOut ? `<span class="w">${t('nomiss')}</span>` : pzBadge(m, day) || `<em>${t('onsite')}</em>`;
+    const out = m.out!=null ? hhmm(m.out) : m.noOut ? `<span class="w">${t('nomiss')}</span>` : `<em>${t('onsite')}</em>`;
     const h = m.noOut ? `${dur(m, day) ? hhmmDur(dur(m, day)) : '—'}<span class="rule">${t('rule.by',{r:ruleTxt()})}</span>` : hhmmDur(dur(m, day));
-    const pz = pzMin(m, day);
-    return `<tr class="${m.noOut?'miss':''}"><td><b>${esc(full(p))}</b>${notes?`<small>${notes}</small>`:''}</td><td>${hhmm(m.in)}</td><td>${out}</td><td class="n">${pz?hhmmDur(pz):'—'}</td><td class="n">${h}</td></tr>`;
+    return `<tr class="${m.noOut?'miss':''}"><td><b>${esc(full(p))}</b>${notes?`<small>${notes}</small>`:''}</td><td>${hhmm(m.in)}</td><td>${out}</td><td class="n">${h}</td></tr>`;
   }).join('');
   const missing = marks.filter(m=>m.noOut).map(m=>esc(full(person(m.w))));
-  // паузы по людям (TG-457) — колонка «Паузы» и под именем «перекур 2×, 19 мин · обед 32 мин»; часы уже без пауз
-  const table = marks.length ? `<table class="tb"><tr><th>${t('su.who')}</th><th>${t('su.in')}</th><th>${t('su.out')}</th><th class="n">${t('su.p')}</th><th class="n">${t('su.h')}</th></tr>${rows}
-    <tr class="tot"><td>${t('su.tot')}</td><td colspan="2">${t('rc.people.n',{n:o.people})}</td><td class="n">${o.pz?hhmmDur(o.pz):'—'}</td><td class="n">${hhmmDur(o.mins)}</td></tr></table>
-    ${o.pz ? `<p class="muted" style="margin:8px 0 0">${t('su.pnote')}</p>` : ''}` : `<p class="empty">${t('own.empty')}</p>`;
+  const table = marks.length ? `<table class="tb"><tr><th>${t('su.who')}</th><th>${t('su.in')}</th><th>${t('su.out')}</th><th class="n">${t('su.h')}</th></tr>${rows}
+    <tr class="tot"><td>${t('su.tot')}</td><td colspan="2">${t('rc.people.n',{n:o.people})}</td><td class="n">${hhmmDur(o.mins)}</td></tr></table>` : `<p class="empty">${t('own.empty')}</p>`;
   const rep = live ? `<p class="muted">${t('own.rep.wait')}</p>`
     : `<div class="reptext">${esc(s.report)}</div><div class="repby">${t('own.rep.by',{f:esc(f), t:hhmm(s.close)})}${s.photos?` · ${t('su.photos',{n:s.photos})}`:''}</div>`;
   return head(`${dLong(day.key)} · ${esc(f)}`, esc(objName(oid)), ro()) + `<div class="rmeta">${meta}</div>` + k
@@ -953,20 +898,14 @@ function startCard(){
       <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px"><span class="lbl">${t('st.round')}</span>${pills([0,15,30].map(v=>[v, v?t('st.round.n',{n:v}):t('st.round.0')]), P.set.round, 'setRound')}</div>
     </div><p class="muted" style="margin:10px 0 0">${t('st.s')}</p></div>`;
 }
-/* Паузы и ранний уход (TG-457) — та же вкладка: поля того же документа «Настройки». Паузы включены — у рабочего кнопки
-   «Перекур» и «Обед»; сроки — подсказка, сверх срока пауза краснеет у всех, но не закрывается. Ранний уход — порог
-   вопроса «Точно уход?» на телефоне бригадира (foreman.html). */
-function brkCard(){
-  const row = (label, body) => `<div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px"><span class="lbl">${label}</span>${body}</div>`;
-  const mins = (vals, cur, act) => pills(vals.map(v=>[v, t('brk.min',{n:v})]), cur, act);
-  return `<div class="card"><h2>${t('brk.t')}</h2><div class="startset">
-      ${row(t('brk.use'), pills([[1, t('brk.yes')], [0, t('brk.no')]], P.set.brk ? 1 : 0, 'setBrk'))}
-      ${P.set.brk ? row(t('brk.smoke'), mins([5,10,15], P.set.smoke, 'setSmoke')) + row(t('brk.lunch'), mins([30,45,60], P.set.lunch, 'setLunch')) : ''}
-    </div><p class="muted" style="margin:10px 0 0">${t('brk.s')}</p></div>
-    <div class="card"><div class="startset">${row(t('stay.t'), mins([5,15,30], P.set.stay, 'setStay'))}</div>
+/* Ранний уход (TG-457) — та же вкладка, поле того же документа «Настройки»: порог вопроса «Точно уход?» на телефоне
+   бригадира (foreman.html). */
+function stayCard(){
+  const mins = vals => pills(vals.map(v=>[v, t('stay.min',{n:v})]), P.set.stay, 'setStay');
+  return `<div class="card"><div class="startset"><div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px"><span class="lbl">${t('stay.t')}</span>${mins([5,15,30])}</div></div>
     <p class="muted" style="margin:10px 0 0">${t('stay.s')}</p></div>`;
 }
-function setView(){ return head('', t('tab.set')) + startCard() + brkCard(); }
+function setView(){ return head('', t('tab.set')) + startCard() + stayCard(); }
 const startPills = (cur, act) => pills([['def', t('st.usedef',{t:hhmm(P.set.start)})], ...STARTS.map(v=>[v, hhmm(v)])], cur==null ? 'def' : cur, act);
 function objView(id){
   const o = P.objects.find(x=>x.id===id);
@@ -1057,15 +996,14 @@ function personView(id){
   if (sel.role==='worker'){
     const ms = personMarks(id);
     const cur = ms.filter(x=>ym(x.d.key)===CUR_YM);
-    const rows = ms.slice(0, 8).map(({d, m}) => { const pt = pzText(m, d), pz = pzMin(m, d);
-      return `<tr class="go ${m.noOut?'miss':''}" ${nav('dayobj:'+d.key+':'+m.obj)}><td><b>${dShort(d.key)}</b></td><td>${esc(objName(m.obj))}${pt?`<small>${pt}</small>`:''}</td>
-      <td>${hhmm(m.in)}–${m.out!=null ? hhmm(m.out) : m.noOut ? `<span class="w">${t('nomiss')}</span>` : pzBadge(m, d) || t('onsite')}</td>
-      <td class="n">${pz?hhmmDur(pz):'—'}</td>
+    const rows = ms.slice(0, 8).map(({d, m}) => {
+      return `<tr class="go ${m.noOut?'miss':''}" ${nav('dayobj:'+d.key+':'+m.obj)}><td><b>${dShort(d.key)}</b></td><td>${esc(objName(m.obj))}</td>
+      <td>${hhmm(m.in)}–${m.out!=null ? hhmm(m.out) : m.noOut ? `<span class="w">${t('nomiss')}</span>` : t('onsite')}</td>
       <td class="n">${m.noOut ? `${dur(m,d)?hhmmDur(dur(m,d)):'—'}<span class="rule">${t('rule.by',{r:ruleTxt()})}</span>` : hhmmDur(dur(m, d))}</td></tr>`; }).join('');
     work = `<div class="card"><div class="kpis"><div class="kpi big"><b>${hhmmDur(cur.reduce((a,x)=>a+dur(x.m,x.d),0))}</b><span>${t('pp.hours',{m:t('mn.'+m)})}</span></div>
         <div class="kpi"><b>${new Set(cur.map(x=>x.d.key)).size}</b><span>${t('k.days')}</span></div>
         <div class="kpi ${cur.some(x=>x.m.noOut)?'warn':''}"><b>${cur.filter(x=>x.m.noOut).length}</b><span>${t('k.miss')}</span></div></div></div>
-      <div class="card tight"><h2>${t('pp.shifts')}</h2>${ms.length ? `<table class="tb"><tr><th>${t('c.date')}</th><th>${t('c.obj')}</th><th>${t('su.in')}–${t('su.out')}</th><th class="n">${t('su.p')}</th><th class="n">${t('c.hours')}</th></tr>${rows}</table>` : `<p class="empty">${t('pp.none')}</p>`}</div>`;
+      <div class="card tight"><h2>${t('pp.shifts')}</h2>${ms.length ? `<table class="tb"><tr><th>${t('c.date')}</th><th>${t('c.obj')}</th><th>${t('su.in')}–${t('su.out')}</th><th class="n">${t('c.hours')}</th></tr>${rows}</table>` : `<p class="empty">${t('pp.none')}</p>`}</div>`;
   } else {
     const ss = foremanShifts(id);
     const rows = ss.slice(0, 8).map(({d, s}) => `<tr class="go" ${nav('dayobj:'+d.key+':'+s.obj)}><td><b>${dShort(d.key)}</b></td><td>${esc(objName(s.obj))}</td>
@@ -1130,8 +1068,8 @@ function agg(days, keyOf_){
   const acc = {};
   days.forEach(d => d.marks.forEach(m => {
     const k = keyOf_(m, d);
-    const a = acc[k] || (acc[k] = {days:new Set(), mins:0, pz:0, late:0, miss:0, people:new Set(), objs:new Set()});
-    a.days.add(d.key); a.mins += dur(m, d); a.pz += pzMin(m, d); a.people.add(m.w); a.objs.add(m.obj);
+    const a = acc[k] || (acc[k] = {days:new Set(), mins:0, late:0, miss:0, people:new Set(), objs:new Set()});
+    a.days.add(d.key); a.mins += dur(m, d); a.people.add(m.w); a.objs.add(m.obj);
     if (m.noOut) a.miss++;
     if (lateOf(m, d)) a.late++;
   }));
@@ -1154,10 +1092,9 @@ function repPeople(days, st){
   const tot = Object.values(acc).reduce((s,a)=>({late:s.late+a.late, miss:s.miss+a.miss}), {late:0, miss:0});
   const rows = P.people.filter(p=>acc[p.id]).sort((a,b)=>full(a).localeCompare(full(b),'hu')).map(p => { const a = acc[p.id];
     return `<tr class="go" ${nav('person:'+p.id)}><td><div class="who"><span class="ava">${esc(initials(p))}</span><b>${esc(full(p))}</b></div></td><td class="n">${a.days.size}</td>
-      <td class="n">${a.objs.size}</td><td class="n">${a.late||'—'}</td><td class="n">${miss(a.miss)}</td><td class="n">${a.pz?hhmmDur(a.pz):'—'}</td><td class="n"><b>${hhmmDur(a.mins)}</b></td></tr>`; }).join('');
-  return sumBlk(st) + blk(t('b.people'), 'n', 'people', `<table class="tb"><tr><th>${t('c.person')}</th><th class="n">${t('c.days')}</th><th class="n">${t('c.objs')}</th><th class="n">${t('c.late')}</th><th class="n">${t('c.miss')}</th><th class="n">${t('su.p')}</th><th class="n">${t('c.hours')}</th></tr>${rows}
-    <tr class="tot"><td>${t('rep.total')}</td><td class="n"></td><td class="n">${st.objs}</td><td class="n">${tot.late}</td><td class="n">${tot.miss}</td><td class="n">${hhmmDur(st.pz)}</td><td class="n">${hhmmDur(st.mins)}</td></tr></table>
-    <p class="muted" style="margin:8px 0 0">${t('su.pnote')}</p>`);
+      <td class="n">${a.objs.size}</td><td class="n">${a.late||'—'}</td><td class="n">${miss(a.miss)}</td><td class="n"><b>${hhmmDur(a.mins)}</b></td></tr>`; }).join('');
+  return sumBlk(st) + blk(t('b.people'), 'n', 'people', `<table class="tb"><tr><th>${t('c.person')}</th><th class="n">${t('c.days')}</th><th class="n">${t('c.objs')}</th><th class="n">${t('c.late')}</th><th class="n">${t('c.miss')}</th><th class="n">${t('c.hours')}</th></tr>${rows}
+    <tr class="tot"><td>${t('rep.total')}</td><td class="n"></td><td class="n">${st.objs}</td><td class="n">${tot.late}</td><td class="n">${tot.miss}</td><td class="n">${hhmmDur(st.mins)}</td></tr></table>`);
 }
 function repObjs(days, st){
   const acc = agg(days, m => m.obj);
@@ -1276,13 +1213,10 @@ const ACT = {
   /* время начала работы и округление — настройка объектов */
   setStart(el){ P.set.start = +el.dataset.v; logEv(`Дорин поставил начало работы по умолчанию ${hhmm(P.set.start)}: опоздания на объектах без своего времени пересчитаны во всём кабинете.`); },
   setRound(el){ P.set.round = +el.dataset.v; logEv(`Округление часов: ${P.set.round ? 'до ' + P.set.round + ' мин' : 'не округлять'} — часы пересчитаны во всём кабинете.`); },
-  /* паузы и ранний уход — те же «Настройки» (TG-457) */
-  setBrk(el){ P.set.brk = el.dataset.v==='1'; logEv(P.set.brk ? 'Дорин включил паузы: у рабочих в приложении кнопки «Перекур» и «Обед».' : 'Дорин выключил паузы: кнопок «Перекур» и «Обед» у рабочих нет, новых пауз не будет; прошлые паузы остались в часах.'); },
-  setSmoke(el){ P.set.smoke = +el.dataset.v; logEv(`Перекур — ${P.set.smoke} мин: сверх этого пауза краснеет у рабочего, бригадира и в кабинете.`); },
-  setLunch(el){ P.set.lunch = +el.dataset.v; logEv(`Обед — ${P.set.lunch} мин.`); },
+  /* ранний уход — те же «Настройки» (TG-457) */
   setStay(el){ P.set.stay = +el.dataset.v; logEv(`Ранний уход: телефон бригадира переспросит «Точно уход?», если человек пробыл меньше ${P.set.stay} мин.`); },
   toggleOwn(){ const p = person(+V(curView()).a); p.own = !p.own;
-    logEv(p.own ? `${full(p)} видит свои смены: в приложении появилась вкладка «Мои смены» (дни, часы, паузы, опоздания — только свои).` : `${full(p)} больше не видит свои смены: в приложении только «Мой код».`); },
+    logEv(p.own ? `${full(p)} видит свои смены: в приложении появилась вкладка «Мои смены» (дни, часы, опоздания — только свои).` : `${full(p)} больше не видит свои смены: в приложении только «Мой код».`); },
   objStart(el){
     const o = P.objects.find(x=>x.id===V(curView()).a), v = el.dataset.v;
     o.start = v==='def' ? undefined : +v;
@@ -1360,21 +1294,6 @@ const ACT = {
     P.today.marks.push({w:5, obj:'bud', sid:bud.id, in:mn('13:35'), out:null});
     logEv('Иван Петров уехал с Ferihegy в 13:00 (скан ухода у Tóth László) и пришёл на Budaörs в 13:35 (скан у Nagy Gábor). Часы делятся сами; в дне объекта — «переезд на…» и «приехал с…».');
   },
-  /* Паузы (TG-457): рабочие жмут у себя «Перекур», «Обед», «Вернулся» — у Дорина видно сразу. */
-  brkBack(){
-    const on = P.today.marks.filter(m=>pzNow(m, P.today));
-    if (!on.length){ logEv('Сейчас никто не на паузе.'); return; }
-    on.forEach(m => { pzNow(m, P.today)[2] = P.clock; });
-    logEv(`${on.map(m=>full(person(m.w))).join(', ')} нажали «Вернулся» — паузы закончились, в часы не вошли.`);
-  },
-  lunch(){
-    if (!P.set.brk){ logEv('Паузы выключены в «Настройках» — кнопок «Обед» у рабочих нет.'); return; }
-    P.clock = Math.max(P.clock, mn('12:05')); P.sec = 0;
-    const ms = P.today.marks.filter(m=>m.obj==='bud' && m.out==null && !m.noOut && !pzNow(m, P.today));
-    if (!ms.length){ logEv('На Budaörs некому идти на обед.'); return; }
-    ms.forEach(m => { (m.p = m.p||[]).push(['lunch', P.clock, null]); });
-    logEv(`На Budaörs ${ms.length} чел. нажали «Обед» в ${hhmm(P.clock)}. На «Сегодня» — «сейчас на паузе», в смене объекта — «обед с ${hhmm(P.clock)}».`);
-  },
   endDay(){
     const open = P.today.shifts.filter(s=>s.close==null);
     if (!open.length){ logEv('Все смены уже закрыты.'); return; }
@@ -1385,7 +1304,6 @@ const ACT = {
       s.close = closeAt[s.obj] || P.clock; s.report = reps[s.obj] || REPORTS[0]; s.photos = s.obj==='fer' ? 2 : 1; s.isNew = true;
       P.today.marks.filter(m=>m.sid===s.id && m.out==null && !m.noOut).forEach(m => {
         if (m.w===9) m.noOut = true; else m.out = s.close - 3 - (m.w % 4);
-        (m.p||[]).forEach(p => { if (p[2]==null) p[2] = m.out!=null ? m.out : s.close; });   // идущая пауза кончается уходом
       });
     });
     logEv(`Конец дня: бригадиры закрыли смены (${open.map(s=>objName(s.obj)).join(', ')}) и отправили отчёты. У Farkas Gergő на Budaörs уход не отсканирован — в табеле «конец работы не отмечен», часы по правилу: ${ruleTxt()}. У Дорина в колокольчике — ${open.length} новых отчёта.`);
@@ -1420,13 +1338,11 @@ const DECISIONS = `<details class="dec" open><summary>Решения — Oleg м
   <li><b>Начало работы по умолчанию и округление — в «Настройках»</b>, у объекта — своё время или «по умолчанию». Опоздание — от начала работы на объекте.</li>
   <li><b>Отчёты — это аналитика движка:</b> период девятью постоянными кнопками, фильтры, страницы. Метки у блоков говорят, что движок умеет, а что нужно новое.</li>
   <li><b>Дорин только смотрит.</b> <i>Открытый вопрос:</i> исправлять «конец работы не отмечен» владельцем?</li>
-  <li><b>Паузы (TG-457):</b> «Перекур» и «Обед» отмечает рабочий сам; часы — без пауз; в «Настройках» — включены ли паузы, срок перекура и обеда, порог раннего ухода; в «Людях» — кто видит свои смены.</li>
+  <li><b>Часы = конец − начало работы, без вычетов</b> (Oleg 25.11: перекуров и обедов нет — «лишний повод для выяснения отношений»). В «Настройках» — порог раннего ухода; в «Людях» — кто видит свои смены (TG-457).</li>
   </ol></details>`;
 const BTN = [
   ['openKel', () => '🏗 Kelenföld: бригадир открыл смену'],
   ['move',    () => '🚐 Иван переехал на Budaörs'],
-  ['lunch',   () => '🍽 Budaörs ушёл на обед'],
-  ['brkBack', () => '↩ Все вернулись с паузы'],
   ['endDay',  () => '🌆 Конец дня: смены закрыты, отчёты пришли'],
   ['signIn',  () => '📱 Человек вошёл по коду'],
   ['expire',  () => `⏩ Прошло ${CODE_TTL/60} минут`],
@@ -1463,9 +1379,9 @@ const NOTES = `
 <h2>Что добавлено следом за макетом «Мой код» 24.11 (TG-457)</h2>
 <table>
 <tr><th>Где</th><th>Как теперь</th></tr>
-<tr><td>Паузы по людям</td><td>«Перекур» и «Обед» рабочий отмечает сам у себя, по желанию; в часы паузы не входят — часы везде «конец − начало работы − паузы». «Сегодня»: число «сейчас на паузе». Смена объекта: у того, кто на паузе, вместо «на объекте» — значок «перекур с 10:02 · 13 мин», сверх срока красный «+3 мин сверх»; колонка «Паузы» и под именем мелко «перекур 2×, 19 мин · обед 32 мин»; под таблицей «Паузы в часы не входят». «Отчёты → По людям» и карточка человека — колонка «Паузы».</td></tr>
-<tr><td>«Настройки»</td><td>Карточка «Паузы»: «Рабочие отмечают — да / нет», «Перекур 5 / 10 / 15 мин», «Обед 30 / 45 / 60 мин». Срок — подсказка, пауза сверх него краснеет у рабочего, бригадира и здесь, но сама не закрывается. Рядом — «Ранний уход: переспросить, если меньше 5 / 15 / 30 мин» (вопрос «Точно уход?» у бригадира).</td></tr>
-<tr><td>«Люди»</td><td>Колонка «Свои смены» (видит / не видит) и в карточке рабочего — «Свои смены в приложении» с кнопкой «Показывать» / «Скрыть». Видит — в приложении вкладка «Мои смены»: дни, часы, паузы, опоздания, только свои; не видит — только «Мой код».</td></tr>
+<tr><td>Часы</td><td>Часы везде — конец работы − начало работы, без вычетов: перекуров и обедов нет (Oleg 25.11: «не нужны, потому что это будет только лишний повод для выяснения отношений»).</td></tr>
+<tr><td>«Настройки»</td><td>«Ранний уход: переспросить, если меньше 5 / 15 / 30 мин» (вопрос «Точно уход?» у бригадира).</td></tr>
+<tr><td>«Люди»</td><td>Колонка «Свои смены» (видит / не видит) и в карточке рабочего — «Свои смены в приложении» с кнопкой «Показывать» / «Скрыть». Видит — в приложении вкладка «Мои смены»: дни, часы, опоздания, только свои; не видит — только «Мой код».</td></tr>
 </table>
 
 <h2>Решения — Oleg может поменять</h2>
@@ -1499,8 +1415,7 @@ const NOTES = `
 <tr><td>Разбивка и фильтр по человеку</td><td><span class="tag ask">нет</span> Рабочий — личные данные: группировать и фильтровать по ним аналитика запрещает (анонимность), блок «по сотрудникам» считает только авторов и участников документов. Нужен разрешённый для владельца разрез по исполнителю отметки.</td></tr>
 <tr><td>Таблица «по дням» (день → объекты, люди, часы)</td><td><span class="tag ask">нет</span> Ряд по дням даёт одно число на день; таблицы из нескольких чисел по дню нет.</td></tr>
 <tr><td>«Настройки» (начало по умолчанию, округление), своё время у объекта, «Завести» и «Закрыть» объект</td><td><span class="tag ask">нет</span> Объекты владелец сейчас не правит: справочник значений меняется только через IDE и Copilot. Либо объект — документ своего процесса, либо числа в контракте (решение 3).</td></tr>
-<tr><td>Паузы: «сейчас на паузе», колонка «Паузы», часы без пауз</td><td><span class="tag cli">контракт</span> пауза — отметка рабочего (вид, начало, конец по времени сервера), связанная с его отметкой начала работы (записка макета «Мой код»). <span class="tag ask">нет</span> часы без пауз — то же «нужно новое», что и часы: разница времени минус сумма пауз.</td></tr>
-<tr><td>«Настройки»: паузы, сроки, ранний уход</td><td><span class="tag cli">контракт</span> поля документа «Настройки» рядом с началом работы и округлением: включатель пауз, <code>smoke_minutes</code>, <code>lunch_minutes</code>, <code>min_stay_minutes</code>; приложения рабочего и бригадира их читают.</td></tr>
+<tr><td>«Настройки»: ранний уход</td><td><span class="tag cli">контракт</span> поле документа «Настройки» рядом с началом работы и округлением: <code>min_stay_minutes</code>; приложение бригадира его читает.</td></tr>
 <tr><td>«Люди»: «Свои смены»</td><td><span class="tag cli">контракт</span> признак у человека «видит свои смены» (меняет владелец); приложение рабочего показывает вкладку «Мои смены» только с ним, список — свои отметки (видимость «свои»).</td></tr>
 <tr><td>«Люди», «Выдать доступ», блокировка</td><td><span class="tag ask">нет</span> TG-456 (вход по QR и экран «Люди»).</td></tr>
 <tr><td>Колокольчик «новые отчёты»</td><td><span class="tag have">есть</span> Уведомления в веб-интерфейсе движка; событие — закрытие смены с отчётом.</td></tr>
