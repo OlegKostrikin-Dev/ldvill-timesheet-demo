@@ -20,9 +20,9 @@
   Что здесь:
     · живой прототип (вид по умолчанию): слева телефон владельца (или бригадира), справа — нового человека.
       Владелец заводит человека и показывает QR-приглашение; человек наводит камеру iPhone, в Safari ставит
-      значок и уже в значке входит по одноразовому коду (QR или 6 цифр) с экрана владельца или бригадира.
+      значок и уже в значке входит по одноразовому QR с экрана владельца или бригадира.
       Потерял или сменил телефон — обычный повторный вход, старый телефон отключается сам; уволенного владелец
-      блокирует (поправка Oleg 21.11). Третий способ — постоянный ПИН-код, ссылкой под «Ввести 6 цифр» и кнопкой пульта; его
+      блокирует (поправка Oleg 21.11). Второй способ — постоянный ПИН-код, кнопкой «Ввести ПИН-код» и кнопкой пульта; его
       задаёт и меняет владелец в карточке человека (Oleg 25.11, вместо логина и пароля; TG-456). Пульт играет остальной мир (прошло 5 минут, нет связи, новый телефон,
       перезапуск значка); журнал пульта говорит, что произошло и что делал бы движок;
     · решения оркестратора 21.11, которые можно поменять, — в пульте и в записке под макетом;
@@ -111,8 +111,6 @@
   .lnk svg{width:15px;height:15px;vertical-align:-2px}
   /* на экране «Вход» вход по ПИН-коду виден сразу: черта «или» и заметная ссылка (замечание Oleg 25.11) */
   .lnk.strong{color:var(--c-ink);font-weight:700;font-size:15px}
-  .orline{display:flex;align-items:center;gap:10px;color:var(--c-muted);font-size:13px}
-  .orline::before,.orline::after{content:'';flex:1;border-top:1px solid var(--c-line)}
   /* ПИН-код (Oleg 25.11): 7 ячеек вместо 6; поле ПИН в окне владельца */
   .cells.n7{grid-template-columns:repeat(7,1fr)}
   .dialog label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--c-muted)}
@@ -150,8 +148,6 @@
   .qr .veil svg{width:40px;height:40px}
   .qr .veil.ok{color:var(--c-ok)} .qr .veil.bad{color:var(--c-bad)}
   .qr .veil small{font-weight:500;color:var(--c-muted);font-size:13px}
-  .digits{font-size:38px;font-weight:800;letter-spacing:.12em;font-variant-numeric:tabular-nums;line-height:1}
-  .digits.dead{color:var(--c-line);text-decoration:line-through}
   .ttl{width:100%;height:6px;background:var(--c-line)}
   .ttl i{display:block;height:100%;background:var(--c-lime-ink);transition:width .9s linear}
   .ttl.low i{background:var(--c-warn)}
@@ -254,7 +250,7 @@
   .compact .logo{width:28px;height:28px;font-size:12px}
   .compact .body{padding:10px 16px;gap:10px}
   .compact .prow{padding:8px 10px} .compact .ava{width:32px;height:32px}
-  .compact .qrbox{padding:10px 10px 8px;gap:6px} .compact .digits{font-size:30px}
+  .compact .qrbox{padding:10px 10px 8px;gap:6px}
   .compact .tabs span{padding:7px 0 5px}
   .compact .cells i{height:42px;font-size:22px} .compact .pad button{padding:6px 0;font-size:19px}
   .compact .cam .vf{width:180px;height:180px}
@@ -349,8 +345,8 @@
 <script>
 /* ══ ДАННЫЕ (выдуманы) ══ */
 const FOREMAN_ID = 1;   // владелец — Дорин, как в timesheet-pwa.html (имя — в таблице переводов, owner.name)
-const CODE_TTL = 300;   // код для входа живёт 5 минут: хватает продиктовать 6 цифр по телефону (Oleg 22.11)
-const TRIES = 5;        // неверных вводов 6 цифр до паузы
+const CODE_TTL = 300;   // одноразовый код внутри QR живёт 5 минут, срабатывает один раз; руками его не вводят (Oleg 25.11)
+const TRIES = 5;        // неверных вводов ПИН-кода до паузы
 const INVITE_HOST = 'ldvill.theguild.hu';
 const PEOPLE0 = [
   {id:1, sur:'Kovács',  name:'Péter', role:'foreman', phone:'on',   since:'03.11', last:{d:0,  t:'07:40'}, pin:'4471203'},
@@ -409,9 +405,9 @@ const T = {
 
   'card.role':['Szerep','Роль','Role'], 'card.phone':['Telefon','Телефон','Phone'],
   'card.since':['csatolva {d}','привязан {d}','linked {d}'], 'card.last':['Utoljára','Последний раз','Last used'],
-  /* Одна кнопка «Выдать доступ» (Oleg 22.11): шаг 1 — QR установки приложения, шаг 2 — QR и 6 цифр для входа */
+  /* Одна кнопка «Выдать доступ» (Oleg 22.11): шаг 1 — QR установки приложения, шаг 2 — QR для входа (Oleg 25.11) */
   'card.access':['Hozzáférés kiadása','Выдать доступ','Grant access'],
-  'card.access.s':['Két lépés: QR az alkalmazás telepítéséhez, majd QR és 6 számjegy a belépéshez.','Два шага: QR, чтобы установить приложение, потом QR и 6 цифр для входа.','Two steps: a QR to install the app, then a QR and 6 digits to sign in.'],
+  'card.access.s':['Két lépés: QR az alkalmazás telepítéséhez, majd QR a belépéshez.','Два шага: QR, чтобы установить приложение, потом QR для входа.','Two steps: a QR to install the app, then a QR to sign in.'],
   'card.access.again.s':['A hozzáférés már ki van adva egy telefonra. Ha újra kiadod, a régi telefon nem fog működni.','Доступ уже выдан на телефон. Если выдать снова, старый телефон перестанет работать.','Access is already granted to a phone. If you grant it again, the old phone will stop working.'],
   'step.of':['{n}. lépés / 2','Шаг {n} из 2','Step {n} of 2'],
   'step.1':['Alkalmazás telepítése','Установить приложение','Install the app'],
@@ -432,10 +428,11 @@ const T = {
   'conf.yes':['Hozzáférés letiltása','Заблокировать доступ','Block access'], 'conf.no':['Mégse','Отмена','Cancel'],
 
   'code.title':['Hozzáférés kiadása','Выдать доступ','Grant access'],
-  /* Шаг 2 — два способа (Oleg 22.11): рядом — QR, издалека — продиктовать 6 цифр по телефону, человек не едет в офис */
-  'code.how':['{name} megnyitja az LD Vill ikont, és kétféleképpen léphet be:','{name} откроет значок LD Vill и войдёт одним из двух способов:','{name} opens the LD Vill icon and signs in one of two ways:'],
+  /* Шаг 2 — только QR (Oleg 25.11): одноразовый код внутри QR, человек его не видит; издалека — ПИН-код */
+  'code.how':['{name} megnyitja az LD Vill ikont, és beolvassa ezt a QR-kódot:','{name} откроет значок LD Vill и отсканирует этот QR:','{name} opens the LD Vill icon and scans this QR:'],
   'code.near':['Melletted van — beolvassa ezt a QR-kódot («Kód beolvasása»)','Рядом с вами — сканирует этот QR («Сканировать код»)','Next to you — scans this QR (“Scan code”)'],
-  'code.or':['Messze van — diktáld be telefonon ezt a 6 számjegyet («6 számjegy beírása»)','Далеко — продиктуйте по телефону эти 6 цифр («Ввести 6 цифр»)','Far away — read these 6 digits out over the phone (“Type 6 digits”)'],
+  'code.or':['Messze van — diktáld be telefonon a PIN-kódját («PIN-kód megadása»)','Далеко — продиктуйте по телефону его ПИН-код («Ввести ПИН-код»)','Far away — read out their PIN over the phone (“Enter PIN”)'],
+  'code.or.f':['Messze van? Belép a PIN-kódjával («PIN-kód megadása») — a PIN-kódot a tulajdonos adja','Далеко? Войдёт по своему ПИН-коду («Ввести ПИН-код») — ПИН-код выдаёт владелец','Far away? They sign in with their PIN (“Enter PIN”) — the owner issues PINs'],
   'code.ok':['{name} bent van az alkalmazásban','{name} в приложении','{name} is in the app'],
   'code.left':['Érvényes még <b>{t}</b> · egyszer használható','Действует ещё <b>{t}</b> · срабатывает один раз','Valid for <b>{t}</b> · works once'],
   'code.expired':['A kód lejárt','Код истёк','Code expired'], 'code.new':['Új kód','Новый код','New code'],
@@ -461,11 +458,10 @@ const T = {
   'ins.do':['Hozzáadás (a prototípusban)','Добавить (в прототипе)','Add (in the prototype)'],
 
   'first.t':['Belépés','Вход','Sign in'],
-  'first.s':['Kérd meg a tulajdonost vagy a brigádvezetőt, hogy adjon hozzáférést: a képernyőjén megmutatja a kódot.','Попросите владельца или бригадира выдать вам доступ — они покажут код на своём экране.','Ask the owner or your foreman to grant you access — they show a code on their screen.'],
-  'first.scan':['Kód beolvasása','Сканировать код','Scan code'], 'first.dig':['6 számjegy beírása','Ввести 6 цифр','Type 6 digits'],
-  /* Третий способ — ПИН-код под «Ввести 6 цифр» (Oleg 25.11, вместо логина и пароля); главное — QR и 6 цифр */
-  'first.or':['vagy','или','or'],
-  'first.pin':['Belépés PIN-kóddal','Войти по ПИН-коду','Sign in with PIN'],
+  'first.s':['Olvasd be a QR-kódot a tulajdonos vagy a brigádvezető képernyőjéről, vagy írd be a PIN-kódot, amit a tulajdonostól kaptál.','Отсканируйте код с экрана владельца или бригадира или введите ПИН-код, который выдал владелец.','Scan the code on the owner’s or foreman’s screen, or enter the PIN the owner gave you.'],
+  'first.scan':['Kód beolvasása','Сканировать код','Scan code'],
+  /* Два способа входа (Oleg 25.11): QR и постоянный ПИН-код от владельца; логина, пароля и ручного ввода одноразового кода нет */
+  'first.pin':['PIN-kód megadása','Ввести ПИН-код','Enter PIN'],
   'pin.t':['PIN-kód','ПИН-код','PIN'],
   'pin.s':['A PIN-kódot a tulajdonos adja. Állandó — jegyezd meg.','ПИН-код выдаёт владелец. Он постоянный — запомните его.','The owner gives you the PIN. It is permanent — remember it.'],
   'pin.wrong':['Hibás PIN-kód. Még {n} próbálkozás.','Неверный ПИН-код. Осталось попыток: {n}.','Wrong PIN. Attempts left: {n}.'],
@@ -475,9 +471,7 @@ const T = {
   'cam.t':['Irányítsd a kamerát a kódra','Наведите камеру на код','Point the camera at the code'],
   'cam.s':['a tulajdonos vagy a brigádvezető képernyőjén','на экране владельца или бригадира','on the owner’s or foreman’s screen'],
   'cam.tap':['(prototípus) koppints ide — a bal oldali kód beolvasása','(прототип) нажмите сюда — скан кода слева','(prototype) tap here to scan the code on the left'],
-  'cam.cancel':['Inkább beírom a számokat','Лучше введу цифры','I’ll type the digits'],
-  'dig.t':['Írd be a 6 számjegyet','Введите 6 цифр','Enter the 6 digits'],
-  'dig.s':['a tulajdonos vagy a brigádvezető képernyőjéről','с экрана владельца или бригадира','from the owner’s or foreman’s screen'],
+  'cam.cancel':['Vissza','Назад','Back'],
   'dig.go':['Belépés','Войти','Sign in'],
   'wel.t':['Kész, {name}!','Готово, {name}!','Done, {name}!'],
   'wel.s':['A telefon hozzád van csatolva. Legközelebb az ikon azonnal megnyílik.','Телефон привязан к вам. В следующий раз значок откроется сразу.','This phone is linked to you. Next time the app opens straight away.'],
@@ -488,9 +482,6 @@ const T = {
   'err.expired.s':['Kérj új kódot a tulajdonostól vagy a brigádvezetőtől.','Попросите новый код у владельца или бригадира.','Ask the owner or foreman for a new code.'],
   'err.used.t':['Ezzel a kóddal már beléptek','Этим кодом уже вошли','This code was already used'],
   'err.used.s':['A kód egyszer használható. Kérj újat.','Код срабатывает один раз. Попросите новый.','A code works once. Ask for a new one.'],
-  'err.wrong':['Hibás kód. Még {n} próbálkozás.','Неверный код. Осталось попыток: {n}.','Wrong code. Attempts left: {n}.'],
-  'err.locked.t':['Túl sok próbálkozás','Слишком много попыток','Too many attempts'],
-  'err.locked.s':['Várj 5 percet, és kérj új kódot.','Подождите 5 минут и попросите новый код.','Wait 5 minutes and ask for a new code.'],
   'err.offline.t':['Nincs kapcsolat','Нет связи','No connection'],
   'err.offline.s':['A belépéshez hálózat kell. Menj oda, ahol van térerő.','Для входа нужна сеть. Подойдите туда, где ловит.','Signing in needs a network. Move to where there is signal.'],
   'err.again':['Újra','Ещё раз','Try again'],
@@ -595,11 +586,10 @@ function codeBlock(W, p){
   else if (c.left<=0) veil = `<div class="veil bad">${ic('clock')}${t('code.expired')}</div>`;
   else count = t('code.left',{t:mmss(c.left)});
   const live = !c.used && c.left>0;
-  // Два способа на одном экране (Oleg 22.11): рядом — QR, далеко — 6 цифр по телефону
+  // Только QR (Oleg 25.11): одноразовый код внутри QR; издалека — ПИН-код (владелец диктует, бригадир отправляет к владельцу)
   return `<div class="qrbox">${live ? `<div class="way">${ic('qr')}${t('code.near')}</div>` : ''}
     <div class="qr">${live ? qrSvg('LDV1:'+c.digits+':'+c.tok) : '<div class="fallback" style="opacity:.2"></div>'}${veil}</div>
-    ${live ? `<div class="way tel">${ic('phone')}${t('code.or')}</div>` : ''}
-    <div class="digits ${live?'':'dead'}">${c.digits.slice(0,3)} ${c.digits.slice(3)}</div>
+    ${live ? `<div class="way tel">${ic('phone')}${t(P.L.who==='owner'?'code.or':'code.or.f')}</div>` : ''}
     <div class="ttl ${c.left<=20?'low':''}"><i style="width:${live ? c.left/CODE_TTL*100 : 0}%"></i></div>
     <div class="count">${count||'&nbsp;'}</div></div>`;
 }
@@ -706,23 +696,21 @@ function rightPhone(R, W, size, native){
     case 'first':
       return frame({...base, bar:null, body:`<div class="login"><div class="logo big">LD</div><b>${t('first.t')}</b><span>${t('first.s')}</span>
         <button class="btn" data-act="toCam">${ic('camera')}${t('first.scan')}</button>
-        <button class="btn line" data-act="toDig">${t('first.dig')}</button>
-        <div class="orline">${t('first.or')}</div>
-        <button class="lnk strong" data-act="toPin">${ic('key','inl')} ${t('first.pin')}</button></div>`});
+        <button class="btn line" data-act="toPin">${ic('key')}${t('first.pin')}</button></div>`});
     case 'camera':
       return frame({...base, bar:null, flush:true, body:`<div class="cam"><b>${t('cam.t')}</b><span>${t('cam.s')}</span>
         <button class="vf" data-act="scan" style="font:inherit;color:inherit;cursor:pointer">${t('cam.tap')}</button>
-        <button class="btn line sm" data-act="toDig">${t('cam.cancel')}</button></div>`});
-    case 'digits': case 'pin': {
-      // ПИН-код (Oleg 25.11) — тот же вид, что 6 цифр: 7 ячеек, цифры скрыты точками, та же клавиатура
-      const pin = R.scr==='pin', N = pin ? 7 : 6;
-      const cells = Array.from({length:N}, (_,i)=>`<i class="${i===R.input.length?'cur':''}">${R.input[i] ? (pin ? '•' : R.input[i]) : ''}</i>`).join('');
+        <button class="btn line sm" data-act="toFirst">${t('cam.cancel')}</button></div>`});
+    case 'pin': {
+      // ПИН-код (Oleg 25.11): 7 ячеек, цифры скрыты точками
+      const N = 7;
+      const cells = Array.from({length:N}, (_,i)=>`<i class="${i===R.input.length?'cur':''}">${R.input[i] ? '•' : ''}</i>`).join('');
       const keys = ['1','2','3','4','5','6','7','8','9','⌫','0','go'];
-      return frame({...base, bar:null, body:`<div style="display:flex;flex-direction:column;gap:6px"><b style="font-size:22px">${t(pin?'pin.t':'dig.t')}</b><span class="note">${t(pin?'pin.s':'dig.s')}</span></div>
-        <div class="cells ${pin?'n7':''} ${R.err==='wrong'?'bad':''}">${cells}</div>
-        <div class="errline">${R.err==='wrong' ? t(pin?'pin.wrong':'err.wrong',{n:TRIES-R.tries}) : '&nbsp;'}</div>
-        ${pin ? `<button class="lnk" data-act="toFirst">${t('pin.back')}</button>` : ''}
-        <div class="pad">${keys.map(k=> k==='go' ? `<button class="go" data-act="${pin?'pinGo':'digGo'}" ${R.input.length<N?'disabled':''}>${t('dig.go')}</button>`
+      return frame({...base, bar:null, body:`<div style="display:flex;flex-direction:column;gap:6px"><b style="font-size:22px">${t('pin.t')}</b><span class="note">${t('pin.s')}</span></div>
+        <div class="cells n7 ${R.err==='wrong'?'bad':''}">${cells}</div>
+        <div class="errline">${R.err==='wrong' ? t('pin.wrong',{n:TRIES-R.tries}) : '&nbsp;'}</div>
+        <button class="lnk" data-act="toFirst">${t('pin.back')}</button>
+        <div class="pad">${keys.map(k=> k==='go' ? `<button class="go" data-act="pinGo" ${R.input.length<N?'disabled':''}>${t('dig.go')}</button>`
           : `<button data-act="key" data-k="${k}">${k}</button>`).join('')}</div>`});
     }
     case 'welcome':
@@ -735,12 +723,12 @@ function rightPhone(R, W, size, native){
             body:`<div class="stub">${ic('qr')}${t('app.mycode.s')}</div>`});
     }
     case 'err': {
-      const k = R.err, warn = k==='offline' || k==='locked' || k==='pinlocked';
-      const icon = {expired:'clock', used:'key', locked:'lock', pinlocked:'lock', offline:'wifioff'}[k];
+      const k = R.err, warn = k==='offline' || k==='pinlocked';
+      const icon = {expired:'clock', used:'key', pinlocked:'lock', offline:'wifioff'}[k];
       return frame({...base, bar:null, body:`<div class="err"><div class="big ${warn?'warn':''}">${ic(icon)}</div>
         <b>${t('err.'+k+'.t')}</b><p>${t('err.'+k+'.s')}</p>
-        ${k==='locked' || k==='pinlocked' ? '' : `<button class="btn" data-act="toFirst">${t('err.again')}</button>`}
-        <small>${{expired:'410 LOGIN_CODE_EXPIRED', used:'409 LOGIN_CODE_USED', locked:'429 TOO_MANY_ATTEMPTS', pinlocked:'429 TOO_MANY_ATTEMPTS', offline:'нет сети'}[k]}</small></div>`});
+        ${k==='pinlocked' ? '' : `<button class="btn" data-act="toFirst">${t('err.again')}</button>`}
+        <small>${{expired:'410 LOGIN_CODE_EXPIRED', used:'409 LOGIN_CODE_USED', pinlocked:'429 TOO_MANY_ATTEMPTS', offline:'нет сети'}[k]}</small></div>`});
     }
     case 'revoked':
       return frame({...base, bar:null, body:`<div class="err"><div class="big">${ic(R.why==='blocked'?'lock':'phoneoff')}</div>
@@ -776,24 +764,18 @@ const today = () => '21.11';
 function newCode(id){
   P.code = {forId:id, digits:six(), tok:tok(16), left:CODE_TTL, used:false};
   P.R.tries = 0;
-  logEv(`${P.L.who==='owner'?'Владелец':'Бригадир'} показал код для входа для ${full(person(id))}: ${P.code.digits}, живёт ${CODE_TTL/60} мин, срабатывает один раз (движок: выдать код входа — новая точка).`);
+  logEv(`${P.L.who==='owner'?'Владелец':'Бригадир'} показал QR для входа для ${full(person(id))}: живёт ${CODE_TTL/60} мин, срабатывает один раз (движок: выдать код входа — новая точка).`);
 }
-/* Вход в значке: и скан, и 6 цифр попадают сюда. Проверяет «движок»: есть ли такой код, жив ли он, не погашен ли. */
-function tryLogin(digits, how){
+/* Вход в значке сканом QR. Проверяет «движок»: есть ли такой код, жив ли он, не погашен ли. */
+function tryLogin(){
   const R = P.R;
   if (!R.online){ R.scr='err'; R.err='offline'; logEv('Нет сети у телефона человека — войти нельзя, экран «Нет связи».'); return; }
   const c = P.code;
-  if (!c || c.digits!==digits){
-    if (how==='scan'){ logEv('Камера в значке: на экране слева сейчас нет кода для входа — скан ничего не дал.'); return; }
-    R.tries++; R.input=''; R.err='wrong';
-    if (R.tries>=TRIES){ R.scr='err'; R.err='locked'; if (c) c.left=0;
-      logEv(`Неверные цифры ${TRIES}-й раз — пауза 5 минут, код слева сгорел (движок гасит код после ${TRIES} промахов).`); return; }
-    logEv(`Неверные цифры — осталось попыток: ${TRIES-R.tries}.`); return;
-  }
+  if (!c){ logEv('Камера в значке: на экране слева сейчас нет кода для входа — скан ничего не дал.'); return; }
   if (c.used){ R.scr='err'; R.err='used'; logEv('Этим кодом уже вошли — движок: 409, код одноразовый.'); return; }
   if (c.left<=0){ R.scr='err'; R.err='expired'; logEv('Код уже истёк — движок: 410. Нужен новый код.'); return; }
   c.used = true;
-  linkPhone(person(c.forId), how==='scan' ? 'сканом QR' : 'вводом 6 цифр');
+  linkPhone(person(c.forId), 'сканом QR');
 }
 /* Вход выполнен — кодом или ПИН-кодом: телефон привязывается, прежний отключается (один телефон на человека). */
 function linkPhone(p, how){
@@ -874,7 +856,7 @@ const ACT = {
       R.revoked=false; R.personId=null; R.scr='first'; logEv('Значок открыт: человека разблокировали, но прежний вход закрыт — экран «Вход», нужен новый код.'); return; }
     if (R.revoked){ R.scr='revoked'; logEv('Значок открыт — движок ответил 401, экран «Доступ отключён».'); return; }
     if (R.personId){ R.scr='app'; logEv('Значок открыт повторно — вход помнится, сразу внутри, без кода.'); return; }
-    R.scr='first'; logEv('Первый запуск значка — экран «Вход»: «Сканировать код» или «Ввести 6 цифр»; ниже, за чертой «или», ссылка «Войти по ПИН-коду» (Oleg 25.11).');
+    R.scr='first'; logEv('Первый запуск значка — экран «Вход»: «Сканировать код» или «Ввести ПИН-код» (Oleg 25.11).');
   },
   toPin(){ const R=P.R; R.scr='pin'; R.input=''; R.err=null;
     logEv('Вход по ПИН-коду: постоянный ПИН, который владелец задал в карточке человека (Oleg 25.11). В прототипе ПИН у Kovács Péter — 4471203.'); },
@@ -884,7 +866,7 @@ const ACT = {
     if (!R.online){ R.scr='err'; R.err='offline'; logEv('Нет сети у телефона человека — войти нельзя, экран «Нет связи».'); return; }
     const p = P.people.find(x=>x.pin && x.pin===R.input);
     if (!p){ R.tries++; R.input=''; R.err='wrong';
-      if (R.tries>=TRIES){ R.scr='err'; R.err='pinlocked'; logEv(`Неверный ПИН-код ${TRIES}-й раз — пауза 5 минут (движок: защита от подбора, как у 6 цифр).`); return; }
+      if (R.tries>=TRIES){ R.scr='err'; R.err='pinlocked'; logEv(`Неверный ПИН-код ${TRIES}-й раз — пауза 5 минут (движок: защита от подбора).`); return; }
       logEv(`Неверный ПИН-код — осталось попыток: ${TRIES-R.tries}.`); return; }
     if (p.blocked){ R.scr='revoked'; R.why='blocked'; R.revoked=true; logEv(`${full(p)} заблокирован — ПИН-код не пускает.`); return; }
     if (R.revoked){ R.revoked=false; }
@@ -902,14 +884,12 @@ const ACT = {
     logEv(`Владелец ${had?'сменил':'задал'} ПИН-код ${full(p)}: ${PIN_NEW} (движок: новая точка «задать ПИН-код»).${had?' Прежний ПИН сразу перестал работать.':''}`); },
   toFirst(){ const R=P.R; R.scr='first'; R.err=null; R.input=''; if (R.revoked){ R.revoked=false; R.personId=null; } },
   toCam(){ P.R.scr='camera'; P.R.err=null; },
-  toDig(){ P.R.scr='digits'; P.R.input=''; P.R.err=null; },
   scan(){
     if (P.L.scr!=='code' || !P.code){ logEv('Камера в значке: на экране слева сейчас нет кода для входа. Владелец или бригадир: карточка человека — «Выдать доступ».'); return; }
-    tryLogin(P.code.digits, 'scan');
+    tryLogin();
   },
   key(el){ const R=P.R, k=el.dataset.k; if (R.err==='wrong') R.err=null;
-    if (k==='⌫') R.input = R.input.slice(0,-1); else if (R.input.length < (R.scr==='pin' ? 7 : 6)) R.input += k; },
-  digGo(){ if (P.R.input.length===6) tryLogin(P.R.input, 'digits'); },
+    if (k==='⌫') R.input = R.input.slice(0,-1); else if (R.input.length < 7) R.input += k; },
 
   /* пульт: остальной мир */
   who(){ P.L.who = P.L.who==='owner' ? 'foreman' : 'owner'; P.L.dlg=null;
@@ -961,7 +941,7 @@ function boardStates(){
       ['o-add',     'Владелец: новый человек', 'Фамилия, имя, роль — и всё. ПИН-код для входа владелец задаёт в карточке (Oleg 25.11).', L({scr:'add'}), w()],
       ['o-card-new','Карточка: доступа ещё нет', 'Одна кнопка «Выдать доступ» с подписью, что дальше два шага (Oleg 22.11). Ниже — «Заблокировать доступ».', L({scr:'card'}), w()],
       ['o-invite',  '«Выдать доступ», шаг 1 из 2', 'QR установки приложения: камера iPhone откроет ссылку в Safari, ссылка ставит значок, доступа не даёт. Значок уже есть — «Приложение уже есть — дальше».', L({scr:'invite'}), w()],
-      ['o-code',    '«Выдать доступ», шаг 2 из 2', 'Два способа: рядом — сканирует QR из значка, далеко — Дорин диктует 6 цифр по телефону (Oleg 22.11). Код живёт 5 минут, срабатывает один раз.', L({scr:'code'}), w({code:code()})],
+      ['o-code',    '«Выдать доступ», шаг 2 из 2', 'Только QR (Oleg 25.11): человек сканирует его из значка, код внутри QR живёт 5 минут и срабатывает один раз. Издалека — Дорин диктует ПИН-код человека.', L({scr:'code'}), w({code:code()})],
       ['o-code-ok', 'Код сработал', 'Человек вошёл — код погашен, телефон привязан.', L({scr:'code'}), w({code:code({used:true})})],
       ['o-code-exp','Код истёк', 'Через 5 минут — «Новый код».', L({scr:'code'}), w({code:code({left:0})})],
       ['o-card',    'Карточка: доступ уже выдан', 'Та же кнопка «Выдать доступ», подпись — «если выдать снова, старый телефон перестанет работать» (решение 2). Ниже — «Заблокировать доступ».', L({scr:'card'}), w({people:ppOn})],
@@ -975,19 +955,16 @@ function boardStates(){
       ['p-home',    'Телефон человека: «Домой»', 'Камера iPhone — штатная. Наводится на QR-приглашение.', R({scr:'home', installed:false, personId:null}), w()],
       ['p-safari',  'Safari: приглашение', 'Здоровается по имени и просит поставить значок. Входа здесь нет: Safari и значок вход не делят (решение 1).', R({scr:'safari', installed:false, personId:null}), w()],
       ['p-home-ld', '«Домой» со значком', 'Значок LD Vill поставлен.', R({scr:'home', personId:null}), w()],
-      ['p-first',   'Значок: первый запуск', '«Сканировать код» или «Ввести 6 цифр»; ниже, за чертой «или», заметная ссылка «Войти по ПИН-коду» (Oleg 25.11).', R({scr:'first', personId:null}), w()],
-      ['p-pin',     'Значок: ПИН-код', 'Постоянный ПИН от владельца (Oleg 25.11). Тот же вид, что 6 цифр; цифры скрыты точками.', R({scr:'pin', personId:null, input:'4471'}), w()],
+      ['p-first',   'Значок: первый запуск', 'Два способа: «Сканировать код» и «Ввести ПИН-код» (Oleg 25.11).', R({scr:'first', personId:null}), w()],
+      ['p-pin',     'Значок: ПИН-код', 'Постоянный ПИН от владельца (Oleg 25.11); цифры скрыты точками.', R({scr:'pin', personId:null, input:'4471'}), w()],
       ['p-pin-bad', 'Неверный ПИН-код', 'После 5 промахов — пауза 5 минут.', R({scr:'pin', personId:null, input:'', err:'wrong', tries:2}), w()],
       ['p-pin-locked', 'ПИН-код: слишком много попыток', '', R({scr:'err', err:'pinlocked', personId:null}), w()],
       ['p-camera',  'Значок: камера', 'Камера внутри значка читает код с экрана владельца или бригадира.', R({scr:'camera', personId:null}), w()],
-      ['p-digits',  'Значок: 6 цифр', 'Если камера не берёт или код показан издалека.', R({scr:'digits', personId:null, input:'4829'}), w()],
-      ['p-wrong',   'Неверные цифры', 'После 5 промахов — пауза, код сгорает.', R({scr:'digits', personId:null, input:'', err:'wrong', tries:2}), w()],
       ['p-welcome', 'Вход выполнен', 'Телефон привязан, дальше значок открывается сразу.', R({scr:'welcome'}), w({people:ppOn})],
       ['p-app',     'Рабочий внутри', 'Сразу «Мой код» (прототип TG-411).', R({scr:'app'}), w({people:ppOn})],
       ['p-app-f',   'Бригадир внутри', 'Сразу «Моя смена» — вход тот же, разница только в роли.', R({scr:'app', personId:1}), w({people:ppOn})],
       ['p-expired', 'Код истёк', '', R({scr:'err', err:'expired', personId:null}), w()],
       ['p-used',    'Код уже использован', '', R({scr:'err', err:'used', personId:null}), w()],
-      ['p-locked',  'Слишком много попыток', '', R({scr:'err', err:'locked', personId:null}), w()],
       ['p-offline', 'Нет связи при входе', '', R({scr:'err', err:'offline', personId:null, online:false}), w()],
       ['p-rev-new', 'Потерянный телефон', 'Человек вошёл на новом — на старом при открытии этот экран (решение 2).', R({scr:'revoked', why:'new'}), w({people:ppOn})],
       ['p-rev-blocked', 'Заблокирован', 'При следующем запросе значка — 401 и этот экран. Кнопки входа нет.', R({scr:'revoked', why:'blocked'}), w({people:ppOn})],
@@ -1018,10 +995,10 @@ function renderScreens(){
 
 /* ══ ПУЛЬТ ══ */
 const DECISIONS = `<details class="dec" open><summary>Решения — можно поменять</summary><ol>
-  <li><b>QR показывает владелец, человек наводит камеру.</b> Камера iPhone открывает ссылку в Safari, а вход Safari и значка хранятся раздельно — поэтому в Safari только приглашение и установка значка, а вход — внутри значка по одноразовому коду (QR или 6 цифр). <i>Иначе:</i> значок показывает свой код, владелец его сканирует или вводит.</li>
+  <li><b>QR показывает владелец, человек наводит камеру.</b> Камера iPhone открывает ссылку в Safari, а вход Safari и значка хранятся раздельно — поэтому в Safari только приглашение и установка значка, а вход — внутри значка по одноразовому QR. <i>Иначе:</i> значок показывает свой код, владелец его сканирует или вводит.</li>
   <li><b>Один телефон на человека.</b> Потерял, сменил, удалил приложение — это обычный повторный вход по новому коду, старый телефон отключается сам. Отдельная кнопка у владельца — «Заблокировать» для уволенного (поправка Oleg 21.11). <i>Иначе:</i> несколько телефонов на человека.</li>
   <li><b>Владелец входит логином и паролем</b>, экран «Люди» — в том же приложении. <i>Иначе:</i> тоже по коду / только с компьютера.</li>
-  <li><b>Третий способ — ПИН-код</b> (Oleg 25.11, вместо логина и пароля): постоянный, 6–7 цифр, его задаёт и меняет владелец в карточке человека — например, последние 7 цифр телефона рабочего. Ссылка «Войти по ПИН-коду» под «Ввести 6 цифр», за чертой «или»; на пульте — кнопка «🔢 Вход по ПИН-коду». Вход ПИН-кодом тоже переносит телефон: прежний отключается. 5 неверных — пауза 5 минут.</li>
+  <li><b>Второй способ — ПИН-код</b> (Oleg 25.11, вместо логина и пароля и вместо ручного ввода одноразового кода — «это дубль»): постоянный, 6–7 цифр, его задаёт и меняет владелец в карточке человека — например, последние 7 цифр телефона рабочего. На экране «Вход» — кнопка «Ввести ПИН-код» под «Сканировать код»; на пульте — кнопка «🔢 Вход по ПИН-коду». Издалека Дорин впускает человека, продиктовав его ПИН-код. Вход ПИН-кодом тоже переносит телефон: прежний отключается. 5 неверных — пауза 5 минут.</li>
   </ol></details>`;
 const BTN = [
   ['pinPath', () => '🔢 Вход по ПИН-коду'],
@@ -1061,13 +1038,13 @@ const NOTES = `
 <h2>Решения — можно поменять</h2>
 <table>
 <tr><th>№</th><th>Как в макете</th><th>Альтернатива и цена</th></tr>
-<tr><td>1</td><td>QR-приглашение показывает владелец, новый человек наводит камеру iPhone. Камера открывает ссылку в Safari; у Safari и значка вход хранится раздельно, поэтому страница в Safari только здоровается и учит поставить значок, а вход — уже в значке, по одноразовому коду с экрана владельца или бригадира: QR (камера внутри значка) или те же 6 цифр.</td><td>Наоборот: значок показывает свой код, владелец сканирует или вводит его. Так из коробки умеет Keycloak («вход на устройстве по коду», Device Authorization Grant), но владельцу или бригадиру нужен сканер в приложении, а код длиннее (8 букв).</td></tr>
+<tr><td>1</td><td>QR-приглашение показывает владелец, новый человек наводит камеру iPhone. Камера открывает ссылку в Safari; у Safari и значка вход хранится раздельно, поэтому страница в Safari только здоровается и учит поставить значок, а вход — уже в значке, по одноразовому QR с экрана владельца или бригадира (камера внутри значка); издалека — ПИН-кодом (решение 7).</td><td>Наоборот: значок показывает свой код, владелец сканирует или вводит его. Так из коробки умеет Keycloak («вход на устройстве по коду», Device Authorization Grant), но владельцу или бригадиру нужен сканер в приложении, а код длиннее (8 букв).</td></tr>
 <tr><td>2</td><td>Один телефон на человека. Потерял телефон, сменил, удалил приложение — обычный повторный вход: владелец или бригадир показывает новый код, человек входит на новом телефоне, старый отключается сам.</td><td>Несколько телефонов (например, бригадир с планшетом) — тогда в карточке список телефонов, и старый сам уже не отключается.</td></tr>
 <tr><td>3</td><td>Владелец (Дорин) входит логином и паролем; экран «Люди» — вкладка в том же приложении.</td><td>Владелец тоже по коду (кто тогда покажет ему код?) или «Люди» только в веб-интерфейсе с компьютера.</td></tr>
 <tr><td>4</td><td>Добавляет людей и блокирует доступ только владелец; бригадир выдаёт доступ людям своей бригады.</td><td>— (решение оркестратора 21.11)</td></tr>
 <tr><td>5</td><td>У владельца одна кнопка закрыть доступ — «Заблокировать доступ» для уволенного: человек выходит со всех телефонов, доступ ему не выдаётся. «Разблокировать» снимает блок — дальше «Выдать доступ», как в первый раз. Удаления из списка нет: заблокированный остаётся в нём (табель прошлых смен).</td><td>— (поправка Oleg 21.11)</td></tr>
-<tr><td>6</td><td>Каждая кнопка называется прямым действием — тем, что мы даём человеку: «Добавить человека» (фамилия, имя, роль), «Выдать доступ», «Заблокировать доступ» / «Разблокировать». «Выдать доступ» — одна кнопка, за ней два шага на одном экране: шаг 1 — QR установки приложения с кнопкой «Приложение уже есть — дальше», шаг 2 — QR и 6 цифр для входа. Если доступ уже был, кнопка та же, а подпись под ней говорит, что старый телефон перестанет работать. Слово «пропуск» не используется: оно занято кодом рабочего на объекте.</td><td>— (правило Oleg 21.11 и уточнение 22.11: «Установить приложение» и «Выдать доступ заново» — одно и то же; до них были «Код для входа» и «Впустить в приложение» — не считывались)</td></tr>
-<tr><td>7</td><td>Третий способ входа — постоянный ПИН-код, для рабочих и бригадиров (Oleg 25.11, вместо логина и пароля: «пин-код ничем не хуже, а только лучше»). ПИН задаёт и меняет владелец в карточке человека, 6–7 цифр — например, последние 7 цифр телефона рабочего; сообщает его человеку лично или по телефону. На экране «Вход» значка — ссылка «Войти по ПИН-коду» под «Ввести 6 цифр», за чертой «или»; главное по-прежнему QR и 6 цифр. Вход ПИН-кодом на новом телефоне тоже отключает прежний (решение 2 — для всех способов). Заблокированного ПИН не пускает; 5 неверных — пауза 5 минут.</td><td>— (решение Oleg 25.11)</td></tr>
+<tr><td>6</td><td>Каждая кнопка называется прямым действием — тем, что мы даём человеку: «Добавить человека» (фамилия, имя, роль), «Выдать доступ», «Заблокировать доступ» / «Разблокировать». «Выдать доступ» — одна кнопка, за ней два шага на одном экране: шаг 1 — QR установки приложения с кнопкой «Приложение уже есть — дальше», шаг 2 — QR для входа. Если доступ уже был, кнопка та же, а подпись под ней говорит, что старый телефон перестанет работать. Слово «пропуск» не используется: оно занято кодом рабочего на объекте.</td><td>— (правило Oleg 21.11 и уточнение 22.11: «Установить приложение» и «Выдать доступ заново» — одно и то же; до них были «Код для входа» и «Впустить в приложение» — не считывались)</td></tr>
+<tr><td>7</td><td>Второй способ входа — постоянный ПИН-код, для рабочих и бригадиров (Oleg 25.11, вместо логина и пароля: «пин-код ничем не хуже, а только лучше»; отдельный ручной ввод одноразового кода убран как дубль). ПИН задаёт и меняет владелец в карточке человека, 6–7 цифр — например, последние 7 цифр телефона рабочего; сообщает его человеку лично или по телефону. На экране «Вход» значка — две кнопки: «Сканировать код» и «Ввести ПИН-код». Вход ПИН-кодом на новом телефоне тоже отключает прежний (решение 2 — для всех способов). Заблокированного ПИН не пускает; 5 неверных — пауза 5 минут.</td><td>— (решение Oleg 25.11)</td></tr>
 </table>
 
 <h2>Вопросы заказчику</h2>
@@ -1083,11 +1060,11 @@ const NOTES = `
 <tr><td>«Люди»: список, роль, телефон, «последний раз»</td><td><span class="tag ask">нет</span> У владельца в контрактах LD Vill сейчас только чтение смен. Нужны право «управлять людьми» у роли <code>owner</code> и точка списка людей картриджа; «последний раз» — время последнего обновления долгого входа значка (сессия Keycloak клиента <code>ldvill-app</code>).</td></tr>
 <tr><td>«Новый человек»: фамилия, имя, роль</td><td><span class="tag ask">нет</span> Заведение пользователя Keycloak и выдача роли <code>worker</code>/<code>foreman</code> от имени владельца — сейчас людей заводят руками в Keycloak, а роли раздаёт только <code>engine_admin</code> (<code>routers/admin_users.py</code>).</td></tr>
 <tr><td>QR-приглашение</td><td><span class="tag cli">клиент</span> Ссылка <code>/app/join#&lt;приглашение&gt;</code> на странице в <code>app/</code>: приглашение отдаёт только имя для приветствия и ничего не открывает. Часть после <code>#</code> не уходит на сервер и в журналы. Срок приглашения — на выбор (предложение: 7 дней).</td></tr>
-<tr><td>«Выдать доступ», шаг 2: QR + 6 цифр, 5 минут, один раз</td><td><span class="tag ask">нет</span> Новая точка «выдать код входа для человека» — владельцу для всех, бригадиру для своей бригады. Похожа на код отметки рабочего на объекте (<code>one_time_passes</code>), но это вход, а не отметка: отдельный вид кода. 6 цифр обязательны: Дорин выдаёт доступ издалека, диктуя их по телефону (Oleg 22.11). Срок — 5 минут, а не 2: человеку нужно дослушать, открыть значок, нажать «Ввести 6 цифр» и ввести; перебору срок не помогает — после 5 неверных вводов код сгорает, пауза 5 минут на телефон (10<sup>6</sup> вариантов против 5 попыток).</td></tr>
+<tr><td>«Выдать доступ», шаг 2: QR, 5 минут, один раз</td><td><span class="tag ask">нет</span> Новая точка «выдать код входа для человека» — владельцу для всех, бригадиру для своей бригады. Похожа на код отметки рабочего на объекте (<code>one_time_passes</code>), но это вход, а не отметка: отдельный вид кода. Код живёт только внутри QR, руками его не вводят (Oleg 25.11: издалека входят ПИН-кодом). Срок — 5 минут, срабатывает один раз.</td></tr>
 <tr><td>Вход в значке по коду</td><td><span class="tag ask">нет</span> Главная работа. Keycloak не умеет входить по чужому одноразовому коду «из коробки»: нужен свой шаг входа (authenticator) в теме <code>ldvill</code> либо обмен кода на токен через движок. Итог — тот же долгий вход значка, что сейчас (офлайн-токен <code>ldvill-app</code>, до 30 дней простоя).</td></tr>
 <tr><td>Один телефон на человека</td><td><span class="tag ask">нет</span> При входе по коду закрыть прежние офлайн-сессии клиента <code>ldvill-app</code> у этого человека (Keycloak admin API). Потерянный телефон узнаёт об этом на следующем обновлении токена — экран «Вы вошли на другом телефоне».</td></tr>
 <tr><td>Заблокировать / разблокировать</td><td><span class="tag ask">нет</span> Блок — выключить пользователя Keycloak (<code>enabled: false</code>) и закрыть его сессии; движок не выпускает ему коды. Уже выданный короткий токен доживает свой срок (минуты) — если нужно мгновенно, движок проверяет блок на каждом запросе. Разблокировать — включить пользователя; прежние сессии не возвращаются, вход по новому коду.</td></tr>
-<tr><td>Вход по ПИН-коду</td><td><span class="tag ask">новое в движке</span> Точка «войти по ПИН-коду» из значка, без входа, с защитой от подбора, как у 6 цифр; вход ПИН-кодом переносит телефон, как вход кодом.</td></tr>
+<tr><td>Вход по ПИН-коду</td><td><span class="tag ask">новое в движке</span> Точка «войти по ПИН-коду» из значка, без входа, с защитой от подбора (5 неверных — пауза 5 минут); вход ПИН-кодом переносит телефон, как вход кодом.</td></tr>
 <tr><td>«Задать ПИН-код» / «Сменить ПИН-код»</td><td><span class="tag ask">новое в движке</span> Владелец задаёт и меняет ПИН человека в карточке; в списке людей — признак «ПИН задан», сам ПИН после сохранения никому не показывается.</td></tr>
 <tr><td>Экраны ошибок</td><td><span class="tag cli">клиент</span> Коды ответов в подписях (<code>410</code>, <code>409</code>, <code>429</code>, <code>401</code>) — предложение для новой точки, их нет в движке.</td></tr>
 </table>
