@@ -440,7 +440,7 @@ const T = {
   'home.hint2':['Nyisd meg az LD Vill ikont.','Откройте значок LD Vill.','Open the LD Vill icon.'],
 
   'saf.hi':['Szia, {name}!','Здравствуйте, {name}!','Hello, {name}!'],
-  'saf.t':['Ez az LD Vill alkalmazás — műszakok és érkezés a munkaterületre.','Это приложение LD Vill — смены и отметки на объекте.','This is the LD Vill app — shifts and check-ins on site.'],
+  'saf.t':['Ez az LD Vill alkalmazás — műszakok és munkakezdés a munkaterületen.','Это приложение LD Vill — смены и отметки на объекте.','This is the LD Vill app — shifts and start of work on site.'],
   'saf.s':['Tedd ki a főképernyőre — belépni már az ikonban fogsz.','Поставьте значок на экран «Домой» — войдёте уже в нём.','Add it to your Home Screen — you’ll sign in inside the app.'],
   'saf.why':['Itt nincs belépés: a Safari és az ikon nem osztoznak a belépésen.','Здесь входа нет: Safari и значок не делят вход между собой.','No sign-in here: Safari and the home-screen app don’t share it.'],
   /* Safari не знает, стоит ли значок, — поэтому страница одна для всех, с подсказкой для тех, у кого он уже есть */
@@ -784,7 +784,7 @@ function newCode(id){
   P.R.tries = 0;
   logEv(`${P.L.who==='owner'?'Владелец':'Бригадир'} показал код для входа для ${full(person(id))}: ${P.code.digits}, живёт ${CODE_TTL/60} мин, срабатывает один раз (движок: выдать код входа — новая точка).`);
 }
-/* Вход в значке: и скан, и 6 цифр приходят сюда. Проверяет «движок»: есть ли такой код, жив ли он, не погашен ли. */
+/* Вход в значке: и скан, и 6 цифр попадают сюда. Проверяет «движок»: есть ли такой код, жив ли он, не погашен ли. */
 function tryLogin(digits, how){
   const R = P.R;
   if (!R.online){ R.scr='err'; R.err='offline'; logEv('Нет сети у телефона человека — войти нельзя, экран «Нет связи».'); return; }
@@ -1101,7 +1101,7 @@ const NOTES = `
 </table>
 
 <h2>Что макет не показывает</h2>
-<p>Настоящую камеру в значке (на iPhone она доступна значку; в макете скан — нажатием на рамку), Android (там Chrome сам предлагает установку), смену языка на телефоне человека, сканер бригадира для отметок прихода (отдельная задача).</p>
+<p>Настоящую камеру в значке (на iPhone она доступна значку; в макете скан — нажатием на рамку), Android (там Chrome сам предлагает установку), смену языка на телефоне человека, сканер бригадира для отметок начала работы (отдельная задача).</p>
 `;
 
 function render(){
