@@ -452,10 +452,9 @@ const T = {
   'login.sub':['Műszaknyilvántartás','Учёт смен','Shift tracking'],
   'login.btn':['Belépés','Войти','Sign in'],
   'first.t':['Belépés','Вход','Sign in'],
-  'first.s':['Kérd meg a tulajdonost vagy a brigádvezetőt, hogy adjon hozzáférést: a képernyőjén megmutatja a kódot.','Попросите владельца или бригадира выдать вам доступ — они покажут код на своём экране.','Ask the owner or your foreman to grant you access — they show a code on their screen.'],
-  'first.scan':['Kód beolvasása','Сканировать код','Scan code'], 'first.dig':['6 számjegy beírása','Ввести 6 цифр','Type 6 digits'],
-  'first.or':['vagy','или','or'],
-  'first.pin':['Belépés PIN-kóddal','Войти по ПИН-коду','Sign in with PIN'],
+  'first.s':['Olvasd be a QR-kódot a tulajdonos vagy a brigádvezető képernyőjéről, vagy írd be a PIN-kódot, amit a tulajdonostól kaptál.','Отсканируйте код с экрана владельца или бригадира или введите ПИН-код, который выдал владелец.','Scan the code on the owner’s or foreman’s screen, or enter the PIN the owner gave you.'],
+  'first.scan':['Kód beolvasása','Сканировать код','Scan code'],
+  'first.pin':['PIN-kód megadása','Ввести ПИН-код','Enter PIN'],
 
   /* подписи состояний на доске */
   'c.login':['0 · Belépés','0 · Вход','0 · Sign in'],
@@ -665,13 +664,11 @@ function stateCard(st){
 function body(st, code){
   const onSite = !!st.since;
   if (st.id==='login'){
-    // Экран «Вход» из login-qr-456.html (TG-456): три способа — QR, 6 цифр, ПИН-код (Oleg 25.11).
-    // Весь путь скана, цифр и ПИН-кода показан там; здесь любая кнопка входит сразу.
+    // Экран «Вход» из login-qr-456.html (TG-456): два способа — QR и ПИН-код (Oleg 25.11).
+    // Весь путь скана и ПИН-кода показан там; здесь любая кнопка входит сразу.
     return `<div class="login"><div class="logo big">LD</div><b>${t('first.t')}</b><span>${t('first.s')}</span>
         <button class="btn" data-act="login">${ic('camera')}${t('first.scan')}</button>
-        <button class="btn line" data-act="login">${t('first.dig')}</button>
-        <div class="orline">${t('first.or')}</div>
-        <button class="lnk strong" data-act="login">${ic('key')} ${t('first.pin')}</button></div>`;
+        <button class="btn line" data-act="login">${ic('key')}${t('first.pin')}</button></div>`;
   }
   if (st.tab==='days') return daysBody(st);
   if (st.id==='done-in' || st.id==='done-out'){
