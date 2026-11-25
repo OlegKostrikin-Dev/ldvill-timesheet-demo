@@ -216,7 +216,7 @@
   .roles button{border:0;background:none;padding:9px 18px;font-weight:600;font-size:14px}
   .roles button[aria-pressed="true"]{background:var(--b-dark);color:#fff}
 
-  /* «Выдать доступ»: два шага, QR и 6 цифр — как в login-qr.html */
+  /* «Выдать доступ»: два шага, только QR — как в login-qr-456.html (Oleg 25.11) */
   .grant{max-width:560px;display:flex;flex-direction:column;gap:14px}
   .steps{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .steps span{border-top:4px solid var(--c-line);padding-top:6px;font-size:13px;font-weight:700;color:var(--c-muted);line-height:1.25}
@@ -232,8 +232,6 @@
   .qr .veil svg{width:40px;height:40px}
   .qr .veil.ok{color:var(--c-ok)} .qr .veil.bad{color:var(--c-bad)}
   .qr .veil small{font-weight:500;color:var(--c-muted);font-size:13px}
-  .digits{font-size:40px;font-weight:800;letter-spacing:.12em;font-variant-numeric:tabular-nums;line-height:1}
-  .digits.dead{color:var(--c-line);text-decoration:line-through}
   .ttl{width:100%;height:6px;background:var(--c-line)}
   .ttl i{display:block;height:100%;background:var(--c-lime-ink);transition:width .9s linear}
   .ttl.low i{background:var(--c-warn)}
@@ -556,7 +554,7 @@ const T = {
   'card.role':['Szerep','Роль','Role'], 'card.phone':['Telefon','Телефон','Phone'],
   'card.since':['csatolva {d}','привязан {d}','linked {d}'], 'card.last':['Utoljára','Последний раз','Last used'],
   'card.access':['Hozzáférés kiadása','Выдать доступ','Grant access'],
-  'card.access.s':['Két lépés: QR az alkalmazás telepítéséhez, majd QR és 6 számjegy a belépéshez.','Два шага: QR, чтобы установить приложение, потом QR и 6 цифр для входа.','Two steps: a QR to install the app, then a QR and 6 digits to sign in.'],
+  'card.access.s':['Két lépés: QR az alkalmazás telepítéséhez, majd QR a belépéshez.','Два шага: QR, чтобы установить приложение, потом QR для входа.','Two steps: a QR to install the app, then a QR to sign in.'],
   'card.access.again.s':['A hozzáférés már ki van adva egy telefonra. Ha újra kiadod, a régi telefon nem fog működni.','Доступ уже выдан на телефон. Если выдать снова, старый телефон перестанет работать.','Access is already granted to a phone. If you grant it again, the old phone will stop working.'],
   'step.of':['{n}. lépés / 2','Шаг {n} из 2','Step {n} of 2'],
   'step.1':['Alkalmazás telepítése','Установить приложение','Install the app'],
@@ -570,7 +568,7 @@ const T = {
   'code.title':['Hozzáférés kiadása','Выдать доступ','Grant access'],
   'code.how':['{name} megnyitja az LD Vill ikont, és kétféleképpen léphet be:','{name} откроет значок LD Vill и войдёт одним из двух способов:','{name} opens the LD Vill icon and signs in one of two ways:'],
   'code.near':['Melletted van — beolvassa ezt a QR-kódot («Kód beolvasása»)','Рядом с вами — сканирует этот QR («Сканировать код»)','Next to you — scans this QR (“Scan code”)'],
-  'code.or':['Messze van — diktáld be telefonon ezt a 6 számjegyet («6 számjegy beírása»)','Далеко — продиктуйте по телефону эти 6 цифр («Ввести 6 цифр»)','Far away — read these 6 digits out over the phone (“Type 6 digits”)'],
+  'code.or':['Messze van — diktáld be telefonon a PIN-kódját («PIN-kód megadása»)','Далеко — продиктуйте по телефону его ПИН-код («Ввести ПИН-код»)','Far away — read out their PIN over the phone (“Enter PIN”)'],
   'code.ok':['{name} bent van az alkalmazásban','{name} в приложении','{name} is in the app'],
   'code.left':['Érvényes még <b>{t}</b> · egyszer használható','Действует ещё <b>{t}</b> · срабатывает один раз','Valid for <b>{t}</b> · works once'],
   'code.expired':['A kód lejárt','Код истёк','Code expired'], 'code.new':['Új kód','Новый код','New code'],
@@ -1109,11 +1107,10 @@ function codeBlock(c, p){
   else if (c.left<=0) veil = `<div class="veil bad">${ic('clock')}${t('code.expired')}</div>`;
   else count = t('code.left',{t:mmss(c.left)});
   const live = !c.used && c.left>0;
-  // Два способа на одном экране (Oleg 22.11): рядом — QR, далеко — 6 цифр по телефону
+  // Только QR (Oleg 25.11): одноразовый код живёт внутри QR; издалека — продиктовать ПИН-код человека
   return `<div class="qrbox">${live ? `<div class="way">${ic('qr')}${t('code.near')}</div>` : ''}
     <div class="qr">${live ? qrSvg('LDV1:'+c.digits+':'+c.tok) : '<div class="fallback" style="opacity:.2"></div>'}${veil}</div>
     ${live ? `<div class="way tel">${ic('phone')}${t('code.or')}</div>` : ''}
-    <div class="digits ${live?'':'dead'}">${c.digits.slice(0,3)} ${c.digits.slice(3)}</div>
     <div class="ttl ${c.left<=20?'low':''}"><i style="width:${live ? c.left/CODE_TTL*100 : 0}%"></i></div>
     <div class="count">${count||'&nbsp;'}</div></div>`;
 }
@@ -1254,7 +1251,7 @@ function go(fn){ fn(); P._jump = true; }
 function toast(txt){ P.toast = txt; clearTimeout(P._tt); P._tt = setTimeout(()=>{ P.toast = null; renderApp(); }, 3500); }
 function newCode(id, quiet){
   P.code = {forId:id, digits:six(), tok:tok(16), left:CODE_TTL, used:false};
-  if (!quiet) logEv(`Дорин показал код для входа для ${full(person(id))}: ${P.code.digits}, живёт ${CODE_TTL/60} мин, срабатывает один раз (как в login-qr.html).`);
+  if (!quiet) logEv(`Дорин показал QR для входа для ${full(person(id))}: живёт ${CODE_TTL/60} мин, срабатывает один раз (как в login-qr.html).`);
 }
 const curView = () => P.stack[P.stack.length-1] || '';   // не top: это имя занято окном браузера (window.top)
 const ACT = {
@@ -1398,7 +1395,7 @@ const ACT = {
     if (!c || c.used || c.left<=0 || V(curView()).k!=='code'){ logEv('На экране кабинета сейчас нет живого кода для входа. Люди → человек → «Выдать доступ» → «Приложение уже есть — дальше».'); return; }
     const p = person(c.forId);
     c.used = true; p.phone = 'on'; p.since = dShort(TODAY_KEY); p.last = {d:0, t:hhmm(P.clock)};
-    logEv(`${full(p)} вошёл в значке по коду с экрана Дорина (скан или 6 цифр). Движок привязал телефон; в «Людях» строка «Телефон привязан · сегодня ${hhmm(P.clock)}».`);
+    logEv(`${full(p)} вошёл в значке по QR с экрана Дорина. Движок привязал телефон; в «Людях» строка «Телефон привязан · сегодня ${hhmm(P.clock)}».`);
   },
   expire(){
     if (!P.code || P.code.used || P.code.left<=0){ logEv('Живого кода для входа сейчас нет — истекать нечему.'); return; }
@@ -1477,7 +1474,7 @@ const NOTES = `
 <tr><td>1</td><td>Кабинет — в оболочке веб-интерфейса движка: шапка, полоса вкладок, страница с заголовком и карточками-таблицами; цвета LD Vill.</td><td>—</td></tr>
 <tr class="open"><td>2</td><td>Дорин только смотрит: смены, отметки и отчёты ведут бригадиры (строка «Только чтение» на дне и смене). <b>Открытый вопрос:</b> может ли владелец исправить «конец работы не отмечен» — поставить время конца работы с пометкой «исправлено владельцем»?</td><td>Кнопка «Указать конец работы» в строке с «конец работы не отмечен», пометка «исправлено владельцем · Дорин · когда», запись в журнал действий. Цена — новое право у владельца и журнал правок.</td></tr>
 <tr><td>3</td><td>Начало работы по умолчанию и округление Дорин меняет сам в «Настройках», своё время объекта — в карточке объекта.</td><td>Числа в контракте картриджа, меняет Copilot по просьбе Oleg, а «Настройки» их только показывают — без нового хранения настроек в движке.</td></tr>
-<tr><td>4</td><td>«Люди»: «Добавить человека», одна кнопка «Выдать доступ» (шаг 1 — установить приложение, шаг 2 — QR и 6 цифр), «Заблокировать доступ» / «Разблокировать» — слова и путь из макета входа (TG-443) один в один.</td><td>—</td></tr>
+<tr><td>4</td><td>«Люди»: «Добавить человека», одна кнопка «Выдать доступ» (шаг 1 — установить приложение, шаг 2 — QR для входа; издалека — ПИН-код), «Заблокировать доступ» / «Разблокировать» — слова и путь из макета входа (TG-443) один в один.</td><td>—</td></tr>
 <tr><td>5</td><td>Смена на объекте за день — тот же итог смены, что у бригадира: объект и длительность крупно, таблица «рабочий · начало · конец · часы» со строкой «Всего», ниже отчёт.</td><td>—</td></tr>
 <tr><td>6</td><td>Остальное — из принятых макетов: бригад нет, начало или конец работы решает система, опоздание — только по первому началу работы за день.</td><td>—</td></tr>
 </table>
