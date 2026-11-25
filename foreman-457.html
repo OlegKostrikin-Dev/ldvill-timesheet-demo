@@ -176,6 +176,12 @@
   .login{flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:0 6px}
   .login .logo.big{width:64px;height:64px;font-size:24px;margin-bottom:6px}
   .login > b{font-size:26px;font-weight:800} .login > span{color:var(--c-muted);margin-bottom:18px}
+  /* Экран входа с тремя способами — как в login-qr-456.html (TG-456, замечание Oleg 25.11) */
+  .lnk{border:0;background:none;color:var(--c-muted);font:inherit;font-size:14px;text-decoration:underline;text-underline-offset:3px;padding:6px;align-self:center;cursor:pointer}
+  .lnk svg{width:15px;height:15px;vertical-align:-2px}
+  .lnk.strong{color:var(--c-ink);font-weight:700;font-size:15px}
+  .orline{display:flex;align-items:center;gap:10px;color:var(--c-muted);font-size:13px}
+  .orline::before,.orline::after{content:'';flex:1;border-top:1px solid var(--c-line)}
 
   /* ══ ЭКРАНЫ БРИГАДИРА ══ */
   .h3{margin:4px 0 -4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--c-muted);font-weight:700}
@@ -547,7 +553,8 @@ const T = {
   'first.t':['Belépés','Вход','Sign in'],
   'first.s':['Kérd meg a tulajdonost vagy a brigádvezetőt, hogy adjon hozzáférést: a képernyőjén megmutatja a kódot.','Попросите владельца или бригадира выдать вам доступ — они покажут код на своём экране.','Ask the owner or your foreman to grant you access — they show a code on their screen.'],
   'first.scan':['Kód beolvasása','Сканировать код','Scan code'], 'first.dig':['6 számjegy beírása','Ввести 6 цифр','Type 6 digits'],
-  'first.nopass':['Jelszó nem kell.','Пароль не нужен.','No password needed.'],
+  'first.or':['vagy','или','or'],
+  'first.pw':['Belépés felhasználónévvel és jelszóval','Войти по логину и паролю','Sign in with username and password'],
 
   't.noshift':['Műszak','Смена','Shift'],
   'ns.t':['Nincs nyitott műszak','Смена не открыта','No open shift'],
@@ -806,6 +813,7 @@ const objName = id => OBJECTS.find(o=>o.id===id)?.name || '';
 
 /* ══ ИКОНКИ (lucide, ISC) ══ */
 const IC = {
+  key:'<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
   scan:'<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/>',
   users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   list:'<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>',
@@ -1008,11 +1016,12 @@ function body(m){
   const missLine = (names, key) => names.length ? `<div class="warnl">${ic('alert')}<div>${t(key,{names:'<b>'+names.map(esc).join(', ')+'</b>'})}
       <button class="link" data-act="toshift">${t('cl.toshift')}</button></div></div>` : '';
   switch (m.screen){
-    case 'login':   // экран «first» из login-qr.html (TG-443): весь путь скана и 6 цифр — там; здесь обе кнопки входят сразу
+    case 'login':   // экран «Вход» из login-qr-456.html (TG-456): QR, 6 цифр, логин и пароль; весь путь — там, здесь кнопки входят сразу
       return `<div class="login"><div class="logo big">LD</div><b>${t('first.t')}</b><span>${t('first.s')}</span>
         <button class="btn" data-act="login">${ic('camera')}${t('first.scan')}</button>
         <button class="btn line" data-act="login">${t('first.dig')}</button>
-        <p class="note c">${t('first.nopass')}</p></div>`;
+        <div class="orline">${t('first.or')}</div>
+        <button class="lnk strong" data-act="login">${ic('key')} ${t('first.pw')}</button></div>`;
     case 'noshift':
       // Одна строка и одна кнопка; карточки последней смены нет — все смены в «Прошлых» (Oleg 22.11, четвёртый круг)
       return `<div class="state off">${ic('pin')}<div><b>${t('ns.t')}</b></div></div>
